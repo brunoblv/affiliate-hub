@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Rocket } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -38,9 +37,14 @@ export function AppSidebar({ projects = [] }: { projects?: AppSidebarProject[] }
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <Rocket className="size-5" />
-          <span className="text-sm font-semibold">Affiliate Manager</span>
+        <div className="flex items-center gap-2.5 px-2 py-1.5">
+          <div className="flex size-7 items-center justify-center rounded-md bg-primary font-heading text-sm font-bold text-primary-foreground">
+            M
+          </div>
+          <div className="leading-tight">
+            <div className="font-heading text-sm font-semibold">Meu Novo Lar</div>
+            <div className="text-[10px] font-medium tracking-[0.04em] text-muted-foreground">PAINEL ADMIN</div>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>

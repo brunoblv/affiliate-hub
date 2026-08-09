@@ -1,0 +1,201 @@
+import Link from "next/link";
+import { prisma } from "@/lib/database";
+import { Button } from "@/components/ui/button";
+
+const STORE_LABEL: Record<string, string> = {
+  MERCADO_LIVRE: "Mercado Livre",
+  SHOPEE: "Shopee",
+  AMAZON: "Amazon",
+  TIKTOK_SHOP: "TikTok Shop",
+  ALIEXPRESS: "AliExpress",
+  MAGALU: "Magalu",
+  OUTRAS: "Outras lojas",
+};
+
+const TOOLS = [
+  { title: "Calculadora de tinta", description: "Descubra quantos litros você precisa comprar.", href: "/ferramentas/calculadora-de-tinta" },
+  { title: "Calculadora de piso", description: "Calcule a metragem certa para o seu ambiente.", href: "/ferramentas/calculadora-de-piso" },
+  { title: "Lista de compras", description: "Organize o que falta comprar para casa.", href: "/ferramentas/lista-de-compras" },
+  { title: "Comparador de produtos", description: "Compare preço, loja e avaliação lado a lado.", href: "/ferramentas/comparador-de-produtos" },
+];
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function readingTime(text: string) {
+  const words = text.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+export default async function HomePage() {
+  const [categories, posts, deals] = await Promise.all([
+    prisma.category.findMany({ where: { active: true }, orderBy: { name: "asc" }, take: 8 }),
+    prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+    }),
+    prisma.product.findMany({
+      where: { status: "ACTIVE", discountPercent: { not: null } },
+      orderBy: { discountPercent: "desc" },
+      take: 3,
+    }),
+  ]);
+
+  return (
+    <>
+      {/* Hero */}
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-10 px-5 py-14 sm:px-10 lg:grid-cols-2 lg:gap-14 lg:py-20">
+        <div>
+          <div className="text-xs font-bold tracking-[0.14em] text-primary">IDEIAS PARA O SEU LAR</div>
+          <h1 className="mt-4 max-w-md font-heading text-4xl leading-[1.15] font-semibold text-foreground sm:text-5xl">
+            Deixe sua casa mais prática, bonita e funcional.
+          </h1>
+          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            Inspiração, dicas, produtos selecionados e ferramentas úteis para o dia a dia da sua casa.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Button size="lg" render={<Link href="/blog" />} className="px-6">
+              Explorar conteúdos
+            </Button>
+            <Button size="lg" variant="outline" render={<Link href="/ofertas" />} className="px-6">
+              Ver ofertas
+            </Button>
+          </div>
+        </div>
+        <div className="flex h-64 items-center justify-center rounded-2xl bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_10px,var(--background)_10px,var(--background)_20px)] sm:h-80">
+          <span className="rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground">
+            foto editorial — sala aconchegante
+          </span>
+        </div>
+      </div>
+
+      {/* Categorias */}
+      {categories.length > 0 && (
+        <div id="categorias" className="mx-auto max-w-[1200px] px-5 pb-14 sm:px-10">
+          <div className="mb-4 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">EXPLORE POR CATEGORIA</div>
+          <div className="flex flex-wrap gap-3">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/categoria/${category.slug}`}
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-sage"
+              >
+                <span className="size-2 rounded-[2px] bg-sage" />
+                {category.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Conteúdos recentes */}
+      {posts.length > 0 && (
+        <div className="mx-auto max-w-[1200px] px-5 pb-16 sm:px-10">
+          <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">CONTEÚDOS RECENTES</div>
+          <h2 className="mb-7 font-heading text-2xl font-semibold text-foreground sm:text-[26px]">Ideias para o seu lar</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {posts.map((post) => (
+              <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+                <div className="mb-3.5 flex h-44 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_8px,var(--background)_8px,var(--background)_16px)]">
+                  {post.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
+                  )}
+                </div>
+                <h3 className="mt-1.5 font-heading text-[17px] font-semibold text-foreground group-hover:underline">
+                  {post.title}
+                </h3>
+                {post.excerpt && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>}
+                <span className="mt-2 block text-xs font-medium text-muted-foreground">{readingTime(post.body)} min de leitura</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ofertas */}
+      {deals.length > 0 && (
+        <div className="bg-secondary px-5 py-14 sm:px-10">
+          <div className="mx-auto max-w-[1200px]">
+            <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">OFERTAS QUE ENCONTRAMOS</div>
+            <div className="mb-7 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-heading text-2xl font-semibold text-foreground sm:text-[26px]">Boas oportunidades para sua casa</h2>
+              <span className="text-xs font-medium text-muted-foreground">Atualizado hoje</span>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {deals.map((product) => (
+                <Link key={product.id} href={`/produtos/${product.slug}`} className="block overflow-hidden rounded-xl bg-card">
+                  <div className="flex h-36 items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)]">
+                    {product.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="font-mono text-[11px] text-muted-foreground">produto</span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">{STORE_LABEL[product.source] ?? product.source}</span>
+                      {product.discountPercent && (
+                        <span className="rounded-full bg-olive px-2 py-0.5 text-xs font-bold text-white">
+                          -{Number(product.discountPercent).toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="mb-1.5 text-sm font-semibold text-foreground">{product.name}</div>
+                    <div className="flex items-baseline gap-2">
+                      {product.originalPrice && (
+                        <span className="text-xs text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice))}</span>
+                      )}
+                      <span className="text-lg font-bold text-foreground">{formatCurrency(Number(product.price))}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ferramentas */}
+      <div className="mx-auto max-w-[1200px] px-5 py-16 sm:px-10">
+        <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">FERRAMENTAS</div>
+        <h2 className="mb-7 font-heading text-2xl font-semibold text-foreground sm:text-[26px]">Ferramentas para facilitar sua vida</h2>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {TOOLS.map((tool) => (
+            <Link key={tool.href} href={tool.href} className="block rounded-xl border border-border p-5">
+              <div className="mb-3.5 flex size-10 items-center justify-center rounded-lg bg-secondary">
+                <span className="size-3.5 rounded-[3px] bg-sage" />
+              </div>
+              <div className="mb-1.5 text-sm font-semibold text-foreground">{tool.title}</div>
+              <div className="mb-3.5 text-[13px] leading-relaxed text-muted-foreground">{tool.description}</div>
+              <span className="text-xs font-semibold text-primary">Usar ferramenta →</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Newsletter */}
+      <div className="border-t border-border px-5 py-11 sm:px-10">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-6">
+          <div>
+            <div className="mb-1 font-heading text-lg font-semibold text-foreground">Receba boas ideias para sua casa</div>
+            <div className="text-sm text-muted-foreground">Dicas, ferramentas e ofertas selecionadas, sem spam.</div>
+          </div>
+          <form className="flex gap-2.5">
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              className="min-w-[220px] rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground"
+            />
+            <Button size="lg" className="px-5">Quero receber</Button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}

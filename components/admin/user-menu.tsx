@@ -29,7 +29,7 @@ export function UserMenu({ name, email }: { name?: string | null; email?: string
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/login" })}>
+        <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/admin/login" })}>
           <LogOut />
           Sair
         </DropdownMenuItem>

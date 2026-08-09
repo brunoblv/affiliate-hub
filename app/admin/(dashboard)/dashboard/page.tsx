@@ -38,26 +38,26 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Visão geral de desempenho do sistema de afiliados</p>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Bom dia</h1>
+        <p className="text-sm text-muted-foreground">Resumo de desempenho do sistema de afiliados</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Cliques</CardTitle>
+            <CardTitle className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Cliques</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{clicks.toLocaleString("pt-BR")}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Conversões</CardTitle>
+            <CardTitle className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Conversões</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{conversions.toLocaleString("pt-BR")}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Comissão</CardTitle>
+            <CardTitle className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Comissão</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{formatCurrency(commission)}</CardContent>
         </Card>

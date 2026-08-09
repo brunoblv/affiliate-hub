@@ -7,7 +7,7 @@ import type { NextAuthConfig } from "next-auth";
  */
 export const edgeAuthConfig: NextAuthConfig = {
   session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
+  pages: { signIn: "/admin/login" },
   providers: [],
   callbacks: {
     async session({ session, token }) {

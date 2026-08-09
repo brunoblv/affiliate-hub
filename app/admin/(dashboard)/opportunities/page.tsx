@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Channel } from "@/lib/generated/prisma/client";
-import { generateContentAction } from "@/app/admin/content/actions";
+import { generateContentAction } from "@/app/admin/(dashboard)/content/actions";
 
 export default async function OpportunitiesPage() {
   const opportunities = await prisma.opportunity.findMany({

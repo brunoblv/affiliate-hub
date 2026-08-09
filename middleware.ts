@@ -6,10 +6,11 @@ const { auth } = NextAuth(edgeAuthConfig);
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+  const isAdminRoute =
+    req.nextUrl.pathname.startsWith("/admin") && req.nextUrl.pathname !== "/admin/login";
 
   if (isAdminRoute && !isLoggedIn) {
-    const loginUrl = new URL("/login", req.nextUrl.origin);
+    const loginUrl = new URL("/admin/login", req.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }

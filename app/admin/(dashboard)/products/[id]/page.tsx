@@ -13,7 +13,7 @@ import {
   createAffiliateLinkAction,
   registerConversionAction,
 } from "../actions";
-import { generateContentAction } from "@/app/admin/content/actions";
+import { generateContentAction } from "@/app/admin/(dashboard)/content/actions";
 import { Channel } from "@/lib/generated/prisma/client";
 
 function formatCurrency(value: number) {
