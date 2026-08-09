@@ -6,6 +6,7 @@ import type { NextAuthConfig } from "next-auth";
  * (Credentials/PrismaAdapter ficam apenas em lib/auth/config.ts).
  */
 export const edgeAuthConfig: NextAuthConfig = {
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/admin/login" },
   providers: [],
