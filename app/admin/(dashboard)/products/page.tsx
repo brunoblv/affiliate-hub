@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Plus } from "lucide-react";
+import { Package, Plus, Upload } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -23,10 +23,16 @@ export default async function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Produtos" description="Produtos importados das plataformas de afiliados" />
-        <Link href="/admin/products/new" className={cn(buttonVariants({ size: "sm" }))}>
-          <Plus />
-          Novo produto
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/products/import" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            <Upload />
+            Importar CSV
+          </Link>
+          <Link href="/admin/products/new" className={cn(buttonVariants({ size: "sm" }))}>
+            <Plus />
+            Novo produto
+          </Link>
+        </div>
       </div>
 
       {products.length === 0 ? (
