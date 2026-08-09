@@ -112,6 +112,7 @@ enum EntityStatus {
 enum ProjectType {
   HOME
   UMBANDA
+  MUSICA
 }
 
 model AffiliateProject {
@@ -127,6 +128,7 @@ model AffiliateProject {
   campaigns  Campaign[]
   channels   ProjectChannel[]
   contents   Content[]
+  blogPosts  BlogPost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -154,7 +156,21 @@ model ProjectChannel {
   active    Boolean            @default(true)
   notes     String?            @db.Text
 
-  project AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /**
+   * ID da Página do Facebook (Graph API) — obrigatório para publicar automaticamente em canais PUBLIC_PAGE.
+   */
+  externalPageId String?
+
+  allowOffers     Boolean   @default(true)
+  allowLinks      Boolean   @default(true)
+  /**
+   * Controle de frequência (docs/especificacao-automacao-produtos-chartfm.md §16): dias mínimos entre publicações do mesmo produto neste canal.
+   */
+  cooldownDays    Int       @default(7)
+  lastPublishedAt DateTime?
+
+  project      AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  publications Publication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -233,6 +249,7 @@ model Product {
   contents         Content[]
   campaignProducts CampaignProduct[]
   priceHistory     ProductPriceHistory[]
+  blogPosts        BlogPost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -541,6 +558,15 @@ model Publication {
   contentId String
   channel   Channel
 
+  /**
+   * Página ou grupo específico de destino (docs/especificacao-automacao-produtos-chartfm.md §14/§15). Ausente = publicação legada sem canal específico.
+   */
+  projectChannelId String?
+  /**
+   * true = grupo do Facebook em fluxo assistido (Central de Grupos): o sistema não chama a API, o admin copia/cola manualmente e marca como publicado.
+   */
+  assisted         Boolean @default(false)
+
   scheduledAt DateTime?
   publishedAt DateTime?
 
@@ -551,7 +577,8 @@ model Publication {
   error    String? @db.Text
   attempts Int     @default(0)
 
-  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  content        Content         @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  projectChannel ProjectChannel? @relation(fields: [projectChannelId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -559,6 +586,7 @@ model Publication {
   @@index([contentId])
   @@index([status])
   @@index([scheduledAt])
+  @@index([projectChannelId])
   @@map("publications")
 }
 
@@ -642,6 +670,75 @@ model AutopilotRule {
   updatedAt DateTime @updatedAt
 
   @@map("autopilot_rules")
+}
+
+// ---------------------------------------------------------------------------
+// Blog (docs/especificacao-automacao-produtos-chartfm.md §10/§11) — canal
+// público, acessível sem autenticação, com posts manuais (editorial) e
+// posts automáticos gerados a partir de produtos com link de afiliado.
+// ---------------------------------------------------------------------------
+
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model BlogPost {
+  id        String  @id @default(cuid())
+  projectId String?
+  productId String?
+
+  title           String
+  slug            String  @unique
+  excerpt         String?
+  body            String  @db.Text
+  coverImageUrl   String?
+  seoTitle        String?
+  metaDescription String?
+
+  status      BlogPostStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  /**
+   * MANUAL (escrito pelo admin) ou MERCADO_LIVRE_AUTO / TIKTOK_SHOP_AUTO / AMAZON_AUTO (gerado automaticamente).
+   */
+  source String @default("MANUAL")
+
+  project AffiliateProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  product Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+// ---------------------------------------------------------------------------
+// Bloqueios (docs/especificacao-automacao-produtos-chartfm.md §27) — regras
+// mínimas do Rules Engine: produtos com essas características são ignorados
+// na descoberta em vez de virarem Product/conteúdo.
+// ---------------------------------------------------------------------------
+
+enum BlocklistType {
+  SELLER
+  CATEGORY
+  KEYWORD
+}
+
+model Blocklist {
+  id     String        @id @default(cuid())
+  type   BlocklistType
+  value  String
+  active Boolean       @default(true)
+  notes  String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([type, value])
+  @@map("blocklist")
 }
 
 // ---------------------------------------------------------------------------

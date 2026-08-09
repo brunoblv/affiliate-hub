@@ -42,6 +42,19 @@ async function main() {
     update: {},
   });
 
+  // docs/especificacao-automacao-produtos-chartfm.md — vinis e artigos de música,
+  // com destino futuro à Loja do ChartFM (integração ainda não implementada).
+  const chartfmProject = await prisma.affiliateProject.upsert({
+    where: { slug: "chartfm" },
+    create: {
+      name: "ChartFM",
+      slug: "chartfm",
+      type: "MUSICA",
+      description: "Vinis, CDs e artigos de música — candidatos à Loja do ChartFM.",
+    },
+    update: {},
+  });
+
   const slugify = (value: string) =>
     value
       .toLowerCase()
@@ -98,6 +111,27 @@ async function main() {
     await prisma.category.upsert({
       where: { slug },
       create: { name, slug, projectId: umbandaProject.id },
+      update: {},
+    });
+  }
+
+  // Categorias do projeto ChartFM (docs/especificacao-automacao-produtos-chartfm.md §31).
+  const chartfmCategories = [
+    "Vinis",
+    "CDs",
+    "Fones",
+    "Caixas de som",
+    "Livros de música",
+    "Microfones",
+    "Instrumentos",
+    "Acessórios",
+  ];
+
+  for (const name of chartfmCategories) {
+    const slug = `chartfm-${slugify(name)}`;
+    await prisma.category.upsert({
+      where: { slug },
+      create: { name, slug, projectId: chartfmProject.id },
       update: {},
     });
   }

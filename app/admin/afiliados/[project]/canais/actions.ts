@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/database";
-import { getUmbandaProject } from "@/lib/projects";
+import { getProjectBySlug } from "@/lib/projects";
 import { Channel, ProjectChannelType } from "@/lib/generated/prisma/client";
 
-export async function createUmbandaChannelAction(formData: FormData) {
-  const project = await getUmbandaProject();
+export async function createProjectChannelAction(projectSlug: string, formData: FormData) {
+  const project = await getProjectBySlug(projectSlug);
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Nome é obrigatório.");
@@ -24,16 +24,20 @@ export async function createUmbandaChannelAction(formData: FormData) {
 
   const url = String(formData.get("url") ?? "").trim() || undefined;
   const notes = String(formData.get("notes") ?? "").trim() || undefined;
+  const externalPageId = String(formData.get("externalPageId") ?? "").trim() || undefined;
+  const cooldownDays = Number(formData.get("cooldownDays") ?? 7) || 7;
+  const allowLinks = formData.get("allowLinks") === "on";
+  const allowOffers = formData.get("allowOffers") === "on";
 
   await prisma.projectChannel.create({
-    data: { projectId: project.id, name, platform, type, url, notes },
+    data: { projectId: project.id, name, platform, type, url, notes, externalPageId, cooldownDays, allowLinks, allowOffers },
   });
 
-  revalidatePath("/admin/afiliados/umbanda/canais");
+  revalidatePath(`/admin/afiliados/${projectSlug}/canais`);
 }
 
-export async function toggleUmbandaChannelAction(channelId: string) {
+export async function toggleProjectChannelAction(projectSlug: string, channelId: string) {
   const channel = await prisma.projectChannel.findUniqueOrThrow({ where: { id: channelId } });
   await prisma.projectChannel.update({ where: { id: channelId }, data: { active: !channel.active } });
-  revalidatePath("/admin/afiliados/umbanda/canais");
+  revalidatePath(`/admin/afiliados/${projectSlug}/canais`);
 }

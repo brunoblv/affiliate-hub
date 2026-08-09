@@ -20,7 +20,12 @@ import {
   ScrollText,
   Settings,
   Sparkles,
+  Newspaper,
+  Radar,
+  ShieldBan,
 } from "lucide-react";
+
+export { Sparkles as AFFILIATE_PROJECT_ICON };
 
 export interface NavItem {
   title: string;
@@ -53,6 +58,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Conteúdo", href: "/admin/content", icon: FileText },
       { title: "Templates", href: "/admin/templates", icon: LayoutTemplate },
       { title: "Campanhas", href: "/admin/campaigns", icon: Megaphone },
+      { title: "Blog", href: "/admin/blog", icon: Newspaper },
     ],
   },
   {
@@ -74,12 +80,10 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: "Afiliados",
-    items: [{ title: "Umbanda", href: "/admin/afiliados/umbanda", icon: Sparkles }],
-  },
-  {
     title: "Automação",
     items: [
+      { title: "Central de Automação", href: "/admin/automacao", icon: Radar },
+      { title: "Bloqueios", href: "/admin/automacao/bloqueios", icon: ShieldBan },
       { title: "Autopilot", href: "/admin/autopilot", icon: Bot },
       { title: "Regras", href: "/admin/autopilot/rules", icon: ListChecks },
       { title: "Jobs", href: "/admin/jobs", icon: Briefcase },

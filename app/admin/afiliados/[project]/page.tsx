@@ -1,6 +1,6 @@
-import { Package, Megaphone, Radio, Send, MousePointerClick, DollarSign } from "lucide-react";
+import { Package, Megaphone, Radio, Send, MousePointerClick, DollarSign, Link2Off } from "lucide-react";
 import { prisma } from "@/lib/database";
-import { getUmbandaProject } from "@/lib/projects";
+import { getProjectBySlug } from "@/lib/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function StatCard({
@@ -23,31 +23,35 @@ function StatCard({
   );
 }
 
-export default async function UmbandaOverviewPage() {
-  const project = await getUmbandaProject();
+export default async function ProjectOverviewPage({ params }: { params: Promise<{ project: string }> }) {
+  const { project: slug } = await params;
+  const project = await getProjectBySlug(slug);
 
-  const [productCount, campaignCount, channelCount, publicationCount, clicks, categories] = await Promise.all([
-    prisma.product.count({ where: { projectId: project.id } }),
-    prisma.campaign.count({ where: { projectId: project.id } }),
-    prisma.projectChannel.count({ where: { projectId: project.id, active: true } }),
-    prisma.publication.count({ where: { content: { projectId: project.id } } }),
-    prisma.click.findMany({
-      where: { affiliateLink: { product: { projectId: project.id } } },
-      select: { id: true, affiliateLink: { select: { commission: true } } },
-    }),
-    prisma.category.findMany({
-      where: { projectId: project.id },
-      include: { _count: { select: { products: true } } },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  const [productCount, pendingLinkCount, campaignCount, channelCount, publicationCount, clicks, categories] =
+    await Promise.all([
+      prisma.product.count({ where: { projectId: project.id } }),
+      prisma.productSource.count({ where: { affiliateUrl: null, product: { projectId: project.id } } }),
+      prisma.campaign.count({ where: { projectId: project.id } }),
+      prisma.projectChannel.count({ where: { projectId: project.id, active: true } }),
+      prisma.publication.count({ where: { content: { projectId: project.id } } }),
+      prisma.click.findMany({
+        where: { affiliateLink: { product: { projectId: project.id } } },
+        select: { id: true, affiliateLink: { select: { commission: true } } },
+      }),
+      prisma.category.findMany({
+        where: { projectId: project.id },
+        include: { _count: { select: { products: true } } },
+        orderBy: { name: "asc" },
+      }),
+    ]);
 
   const commission = clicks.reduce((sum, c) => sum + Number(c.affiliateLink.commission ?? 0), 0);
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Package} label="Produtos cadastrados" value={productCount} />
+        <StatCard icon={Link2Off} label="Sem link de afiliado" value={pendingLinkCount} />
         <StatCard icon={Megaphone} label="Campanhas" value={campaignCount} />
         <StatCard icon={Radio} label="Canais ativos" value={channelCount} />
         <StatCard icon={Send} label="Publicações" value={publicationCount} />

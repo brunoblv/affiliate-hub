@@ -1,12 +1,13 @@
 import { MousePointerClick } from "lucide-react";
-import { getUmbandaProject } from "@/lib/projects";
+import { getProjectBySlug } from "@/lib/projects";
 import { prisma } from "@/lib/database";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export default async function UmbandaAnalyticsPage() {
-  const project = await getUmbandaProject();
+export default async function ProjectAnalyticsPage({ params }: { params: Promise<{ project: string }> }) {
+  const { project: slug } = await params;
+  const project = await getProjectBySlug(slug);
 
   const links = await prisma.affiliateLink.findMany({
     where: { product: { projectId: project.id } },

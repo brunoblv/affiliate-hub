@@ -1,4 +1,4 @@
-import { getUmbandaProject } from "@/lib/projects";
+import { getProjectBySlug } from "@/lib/projects";
 import { prisma } from "@/lib/database";
 import { CampaignStatus } from "@/lib/generated/prisma/client";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -8,16 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Megaphone } from "lucide-react";
-import { createUmbandaCampaignAction, setUmbandaCampaignStatusAction } from "./actions";
+import { createProjectCampaignAction, setProjectCampaignStatusAction } from "./actions";
 
-export default async function UmbandaCampaignsPage() {
-  const project = await getUmbandaProject();
+export default async function ProjectCampaignsPage({ params }: { params: Promise<{ project: string }> }) {
+  const { project: slug } = await params;
+  const project = await getProjectBySlug(slug);
 
   const campaigns = await prisma.campaign.findMany({
     where: { projectId: project.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { products: true, contents: true } } },
   });
+
+  const createWithSlug = createProjectCampaignAction.bind(null, slug);
 
   return (
     <div className="space-y-6">
@@ -26,14 +29,14 @@ export default async function UmbandaCampaignsPage() {
           <CardTitle className="text-base">Nova campanha</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={createUmbandaCampaignAction} className="grid gap-4 sm:grid-cols-4">
+          <form action={createWithSlug} className="grid gap-4 sm:grid-cols-4">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="name">Nome *</Label>
-              <Input id="name" name="name" placeholder="Livros de Umbanda" required />
+              <Input id="name" name="name" placeholder="Ofertas da semana" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="code">Código</Label>
-              <Input id="code" name="code" placeholder="UMB-LIVROS" />
+              <Input id="code" name="code" placeholder="PROJ-OFERTAS" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="channel">Canal</Label>
@@ -57,8 +60,9 @@ export default async function UmbandaCampaignsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {campaigns.map((c) => {
-            const toggle = setUmbandaCampaignStatusAction.bind(
+            const toggle = setProjectCampaignStatusAction.bind(
               null,
+              slug,
               c.id,
               c.status === CampaignStatus.ACTIVE ? CampaignStatus.PAUSED : CampaignStatus.ACTIVE,
             );

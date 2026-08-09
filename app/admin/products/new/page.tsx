@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Platform } from "@/lib/generated/prisma/client";
 import { createProductAction } from "../actions";
 
 export default async function NewProductPage({
@@ -50,9 +51,23 @@ export default async function NewProductPage({
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="brand">Marca</Label>
-                <Input id="brand" name="brand" />
+                <Label htmlFor="source">Plataforma (cadastro manual)</Label>
+                <select
+                  id="source"
+                  name="source"
+                  defaultValue={Platform.OUTRAS}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <option value={Platform.AMAZON}>Amazon</option>
+                  <option value={Platform.SHOPEE}>Shopee</option>
+                  <option value={Platform.OUTRAS}>Outras</option>
+                </select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="brand">Marca</Label>
+              <Input id="brand" name="brand" />
             </div>
 
             <div className="space-y-2">

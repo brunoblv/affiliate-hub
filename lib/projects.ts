@@ -1,6 +1,9 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/database";
 
-/** Projeto Umbanda (docs/modulo-afiliados-umbanda.md) — criado no seed com slug fixo. */
-export function getUmbandaProject() {
-  return prisma.affiliateProject.findUniqueOrThrow({ where: { slug: "umbanda" } });
+/** Resolve um AffiliateProject pelo slug da URL (/admin/afiliados/[project]/...) — 404 se não existir. */
+export async function getProjectBySlug(slug: string) {
+  const project = await prisma.affiliateProject.findUnique({ where: { slug } });
+  if (!project) notFound();
+  return project;
 }

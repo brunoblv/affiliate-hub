@@ -7,3 +7,4 @@ export { FacebookPublisher, InstagramPublisher, TikTokPublisher, TelegramPublish
 export { getPublisher } from "./get-publisher";
 export { resolvePublisher } from "./resolve-publisher";
 export { executePublication } from "./execute-publication";
+export { publishToProjectChannel } from "./publish-to-project-channel";

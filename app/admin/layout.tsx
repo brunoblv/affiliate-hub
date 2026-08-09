@@ -1,15 +1,19 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/database";
 import { AppSidebar } from "@/components/admin/app-sidebar";
 import { UserMenu } from "@/components/admin/user-menu";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const [session, projects] = await Promise.all([
+    auth(),
+    prisma.affiliateProject.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { slug: true, name: true } }),
+  ]);
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar projects={projects} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />

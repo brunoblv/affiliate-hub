@@ -43,12 +43,13 @@ export async function createProductAction(formData: FormData) {
   const categoryId = String(formData.get("categoryId") ?? "") || undefined;
   const projectId = String(formData.get("projectId") ?? "").trim();
   if (!projectId) throw new Error("Projeto é obrigatório.");
+  const source = String(formData.get("source") ?? "") as Platform;
   const slug = `${toSlug(name)}-${Date.now().toString(36)}`;
 
   const product = await prisma.product.create({
     data: {
       projectId,
-      source: Platform.OUTRAS,
+      source: Object.values(Platform).includes(source) ? source : Platform.OUTRAS,
       externalId: slug,
       name,
       slug,
@@ -139,8 +140,14 @@ export async function toggleProductStatusAction(productId: string) {
 /**
  * Ação "Criar link" da tela de produtos (spec §30/§10). Em operação manual,
  * o admin cola aqui o link de afiliado já gerado no painel da própria
- * plataforma (Shopee/TikTok) — o rastreamento próprio via /go/:code funciona
- * independentemente da automação de geração de link estar pronta ou não.
+ * plataforma (Mercado Livre/Shopee/TikTok/Amazon) — o rastreamento próprio
+ * via /go/:code funciona independentemente da automação de geração de link
+ * estar pronta ou não.
+ *
+ * Quando o canal é Facebook, dispara a publicação automática (Página + fila
+ * de grupos + blog), docs/especificacao-automacao-produtos-chartfm.md §13/§14
+ * — mesmo esquema seja o produto do Mercado Livre/TikTok ou cadastrado
+ * manualmente (Amazon/Shopee, spec §5).
  */
 export async function createAffiliateLinkAction(productId: string, formData: FormData) {
   const product = await prisma.product.findUniqueOrThrow({ where: { id: productId } });
@@ -153,19 +160,19 @@ export async function createAffiliateLinkAction(productId: string, formData: For
 
   const subId = String(formData.get("subId") ?? "").trim() || undefined;
 
-  await prisma.affiliateLink.create({
-    data: {
-      productId,
-      platform: product.source,
-      channel,
-      affiliateUrl,
-      subId,
-    },
-  });
+  if (channel === Channel.FACEBOOK) {
+    const { attachAffiliateLinkAndPublish } = await import("@/lib/affiliate/attach-link");
+    await attachAffiliateLinkAndPublish({ productId, affiliateUrl, subId });
+  } else {
+    await prisma.affiliateLink.create({
+      data: { productId, platform: product.source, channel, affiliateUrl, subId },
+    });
+  }
 
   logger.info("AFFILIATE_SYNC", "Link de afiliado criado manualmente", { productId, channel });
 
   revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/admin/afiliados");
 }
 
 /**

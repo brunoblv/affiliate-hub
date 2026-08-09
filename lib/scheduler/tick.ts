@@ -3,6 +3,7 @@ import { logger } from "@/lib/logging";
 import { AutopilotMode, ContentStatus, PublicationStatus } from "@/lib/generated/prisma/client";
 import { executePublication } from "@/lib/publishing";
 import { runAutopilotRule } from "@/lib/autopilot";
+import { maybeRunDailyDiscovery } from "@/lib/discovery";
 import { runScheduleSlot } from "./run-slot";
 
 function currentTimeHHmm(): string {
@@ -23,6 +24,8 @@ function isSameDay(a: Date, b: Date): boolean {
 export async function schedulerTick(): Promise<void> {
   const now = new Date();
   const hhmm = currentTimeHHmm();
+
+  await maybeRunDailyDiscovery(now);
 
   const dueSlots = await prisma.scheduleSlot.findMany({ where: { active: true, time: hhmm } });
 

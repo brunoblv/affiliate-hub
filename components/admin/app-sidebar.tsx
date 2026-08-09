@@ -14,10 +14,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NAV_GROUPS } from "./nav-items";
+import { NAV_GROUPS, AFFILIATE_PROJECT_ICON, type NavGroup } from "./nav-items";
 
-export function AppSidebar() {
+export interface AppSidebarProject {
+  slug: string;
+  name: string;
+}
+
+export function AppSidebar({ projects = [] }: { projects?: AppSidebarProject[] }) {
   const pathname = usePathname();
+
+  const projectsGroup: NavGroup = {
+    title: "Afiliados",
+    items: projects.map((p) => ({
+      title: p.name,
+      href: `/admin/afiliados/${p.slug}`,
+      icon: AFFILIATE_PROJECT_ICON,
+    })),
+  };
+
+  const groups = projects.length > 0 ? [...NAV_GROUPS.slice(0, 4), projectsGroup, ...NAV_GROUPS.slice(4)] : NAV_GROUPS;
 
   return (
     <Sidebar>
@@ -28,7 +44,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
