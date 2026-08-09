@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/database";
@@ -9,6 +10,10 @@ export const authConfig: NextAuthConfig = {
   ...edgeAuthConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       name: "Credenciais",
       credentials: {
@@ -30,10 +35,24 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
+  events: {
+    async createUser({ user }) {
+      if (user.email === "blv.bruno@gmail.com" && user.id) {
+        await prisma.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
+      }
+    },
+  },
   callbacks: {
+    async signIn({ account, profile }) {
+      if (account?.provider === "google") {
+        return profile?.email === "blv.bruno@gmail.com";
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role?: string }).role;
+        const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+        token.role = dbUser?.role;
       }
       return token;
     },
