@@ -19,6 +19,7 @@ import {
   Briefcase,
   ScrollText,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 export interface NavItem {
@@ -71,6 +72,10 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Conversões", href: "/admin/analytics/conversions", icon: BarChart3 },
       { title: "Comissões", href: "/admin/analytics/commissions", icon: Wallet },
     ],
+  },
+  {
+    title: "Afiliados",
+    items: [{ title: "Umbanda", href: "/admin/afiliados/umbanda", icon: Sparkles }],
   },
   {
     title: "Automação",

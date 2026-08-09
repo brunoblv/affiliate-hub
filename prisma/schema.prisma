@@ -102,19 +102,83 @@ enum EntityStatus {
 }
 
 // ---------------------------------------------------------------------------
+// Projetos de afiliados (spec docs/modulo-afiliados-umbanda.md)
+//
+// Um AffiliateProject separa completamente dados, categorias, campanhas,
+// canais e conteúdo entre operações que compartilham o mesmo motor
+// (Affiliate Commerce Engine), ex.: Meu Novo Lar (HOME) e Umbanda (UMBANDA).
+// ---------------------------------------------------------------------------
+
+enum ProjectType {
+  HOME
+  UMBANDA
+}
+
+model AffiliateProject {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  type        ProjectType
+  description String?
+  active      Boolean     @default(true)
+
+  categories Category[]
+  products   Product[]
+  campaigns  Campaign[]
+  channels   ProjectChannel[]
+  contents   Content[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("affiliate_projects")
+}
+
+enum ProjectChannelType {
+  PUBLIC_PAGE
+  PUBLIC_GROUP
+  PRIVATE_GROUP
+  PROFILE
+}
+
+/**
+ * Página ou grupo concreto (ex.: a Página do Facebook, um grupo público) usado como canal de distribuição de um projeto.
+ */
+model ProjectChannel {
+  id        String             @id @default(cuid())
+  projectId String
+  name      String
+  platform  Channel
+  url       String?
+  type      ProjectChannelType
+  active    Boolean            @default(true)
+  notes     String?            @db.Text
+
+  project AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("project_channels")
+}
+
+// ---------------------------------------------------------------------------
 // Categorias
 // ---------------------------------------------------------------------------
 
 model Category {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
+  projectId   String
   name        String
-  slug        String   @unique
+  slug        String  @unique
   description String?
   parentId    String?
-  active      Boolean  @default(true)
+  active      Boolean @default(true)
 
-  parent   Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
-  children Category[] @relation("CategoryToCategory")
+  project  AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Category?        @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[]       @relation("CategoryToCategory")
 
   products Product[]
 
@@ -122,6 +186,7 @@ model Category {
   updatedAt DateTime @updatedAt
 
   @@index([parentId])
+  @@index([projectId])
   @@map("categories")
 }
 
@@ -131,6 +196,7 @@ model Category {
 
 model Product {
   id          String   @id @default(cuid())
+  projectId   String
   source      Platform
   externalId  String
   name        String
@@ -157,7 +223,8 @@ model Product {
 
   status EntityStatus @default(ACTIVE)
 
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  project  AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   sources          ProductSource[]
   scores           ProductScore[]
@@ -173,10 +240,13 @@ model Product {
   @@unique([source, externalId])
   @@index([categoryId])
   @@index([status])
+  @@index([projectId])
   @@map("products")
 }
 
-/** Histórico de preço — base para detectar quedas de preço (OpportunityType.PRICE_DROP, spec §9). */
+/**
+ * Histórico de preço — base para detectar quedas de preço (OpportunityType.PRICE_DROP, spec §9).
+ */
 model ProductPriceHistory {
   id        String  @id @default(cuid())
   productId String
@@ -341,7 +411,13 @@ enum CampaignStatus {
 
 model Campaign {
   id          String  @id @default(cuid())
+  projectId   String
   name        String
+  /**
+   * Código curto usado em tags/UTM, ex.: UMB-LIVROS (spec docs/modulo-afiliados-umbanda.md).
+   */
+  code        String?
+  channel     String?
   description String? @db.Text
 
   startAt DateTime?
@@ -349,12 +425,15 @@ model Campaign {
 
   status CampaignStatus @default(DRAFT)
 
+  project  AffiliateProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   products CampaignProduct[]
   contents Content[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([projectId, code])
+  @@index([projectId])
   @@map("campaigns")
 }
 
@@ -401,6 +480,7 @@ enum ContentStatus {
 model Content {
   id String @id @default(cuid())
 
+  projectId  String
   productId  String?
   campaignId String?
 
@@ -415,8 +495,9 @@ model Content {
 
   status ContentStatus @default(DRAFT)
 
-  product      Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
-  campaign     Campaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  project      AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  product      Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  campaign     Campaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   publications Publication[]
 
   createdAt DateTime @default(now())
@@ -424,6 +505,7 @@ model Content {
 
   @@index([productId])
   @@index([campaignId])
+  @@index([projectId])
   @@map("contents")
 }
 
@@ -488,7 +570,6 @@ model Publication {
  * Horário recorrente de publicação configurável pelo usuário: canal,
  * horário, categoria, quantidade de posts, campanha, tipo de conteúdo,
  * score mínimo, faixa de preço e desconto mínimo.
- *
  * categoryId/campaignId são referências soltas (sem FK) para não acoplar o
  * agendamento ao ciclo de vida de Category/Campaign.
  */
@@ -498,7 +579,9 @@ model ScheduleSlot {
 
   channel Channel
 
-  /** Horário no formato HH:mm (horário local do servidor). */
+  /**
+   * Horário no formato HH:mm (horário local do servidor).
+   */
   time String
 
   categoryId  String?

@@ -18,6 +18,37 @@ async function main() {
     update: { passwordHash },
   });
 
+  // Projetos de afiliados (docs/modulo-afiliados-umbanda.md) — cada projeto isola
+  // categorias, produtos, campanhas, canais e conteúdo, compartilhando o mesmo motor.
+  const homeProject = await prisma.affiliateProject.upsert({
+    where: { slug: "meu-novo-lar" },
+    create: {
+      name: "Meu Novo Lar",
+      slug: "meu-novo-lar",
+      type: "HOME",
+      description: "Produtos de casa, reforma e organização.",
+    },
+    update: {},
+  });
+
+  const umbandaProject = await prisma.affiliateProject.upsert({
+    where: { slug: "umbanda" },
+    create: {
+      name: "Umbanda",
+      slug: "umbanda",
+      type: "UMBANDA",
+      description: "Produtos relacionados à Umbanda e espiritualidade.",
+    },
+    update: {},
+  });
+
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-");
+
   // Taxonomia inicial (spec §7) — definitiva será revista junto do blog.
   const taxonomy = [
     {
@@ -35,23 +66,65 @@ async function main() {
   for (const category of taxonomy) {
     const parent = await prisma.category.upsert({
       where: { slug: category.slug },
-      create: { name: category.name, slug: category.slug },
+      create: { name: category.name, slug: category.slug, projectId: homeProject.id },
       update: {},
     });
 
     for (const childName of category.children) {
-      const childSlug = `${category.slug}-${childName
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")}`;
+      const childSlug = `${category.slug}-${slugify(childName)}`;
 
       await prisma.category.upsert({
         where: { slug: childSlug },
-        create: { name: childName, slug: childSlug, parentId: parent.id },
+        create: { name: childName, slug: childSlug, parentId: parent.id, projectId: homeProject.id },
         update: { parentId: parent.id },
       });
     }
+  }
+
+  // Categorias do projeto Umbanda (docs/modulo-afiliados-umbanda.md §Categorias).
+  const umbandaCategories = [
+    "Velas e iluminação",
+    "Defumação",
+    "Artigos religiosos",
+    "Guias e acessórios",
+    "Vestuário",
+    "Livros",
+    "Baralhos e oráculos",
+    "Decoração",
+  ];
+
+  for (const name of umbandaCategories) {
+    const slug = `umbanda-${slugify(name)}`;
+    await prisma.category.upsert({
+      where: { slug },
+      create: { name, slug, projectId: umbandaProject.id },
+      update: {},
+    });
+  }
+
+  // Campanhas iniciais do projeto Umbanda (docs/modulo-afiliados-umbanda.md §Campanhas).
+  const umbandaCampaigns = [
+    { code: "UMB-FACEBOOK", name: "Página Facebook", channel: "FACEBOOK" },
+    { code: "UMB-PAGINA", name: "Conteúdo da página", channel: "FACEBOOK" },
+    { code: "UMB-GRUPO", name: "Grupos públicos", channel: "FACEBOOK" },
+    { code: "UMB-VELAS", name: "Velas e iluminação", channel: "FACEBOOK" },
+    { code: "UMB-LIVROS", name: "Livros de Umbanda", channel: "FACEBOOK" },
+    { code: "UMB-ORIXAS", name: "Orixás", channel: "FACEBOOK" },
+    { code: "UMB-GUIAS", name: "Guias e acessórios", channel: "FACEBOOK" },
+  ];
+
+  for (const campaign of umbandaCampaigns) {
+    await prisma.campaign.upsert({
+      where: { projectId_code: { projectId: umbandaProject.id, code: campaign.code } },
+      create: {
+        projectId: umbandaProject.id,
+        name: campaign.name,
+        code: campaign.code,
+        channel: campaign.channel,
+        status: "DRAFT",
+      },
+      update: {},
+    });
   }
 
   // Templates padrão por canal (spec §15) — reutilizáveis, editáveis em /admin/templates.

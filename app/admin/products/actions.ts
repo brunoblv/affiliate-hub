@@ -41,10 +41,13 @@ export async function createProductAction(formData: FormData) {
     originalPrice && originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : undefined;
 
   const categoryId = String(formData.get("categoryId") ?? "") || undefined;
+  const projectId = String(formData.get("projectId") ?? "").trim();
+  if (!projectId) throw new Error("Projeto é obrigatório.");
   const slug = `${toSlug(name)}-${Date.now().toString(36)}`;
 
   const product = await prisma.product.create({
     data: {
+      projectId,
       source: Platform.OUTRAS,
       externalId: slug,
       name,

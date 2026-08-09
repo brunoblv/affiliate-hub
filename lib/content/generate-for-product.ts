@@ -35,6 +35,7 @@ export async function generateContentForProduct(options: GenerateContentForProdu
 
   const content = await prisma.content.create({
     data: {
+      projectId: product.projectId,
       productId,
       campaignId,
       type: CHANNEL_TO_CONTENT_TYPE[channel],

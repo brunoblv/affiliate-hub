@@ -70,6 +70,7 @@ export async function duplicateContentAction(contentId: string) {
 
   const duplicate = await prisma.content.create({
     data: {
+      projectId: content.projectId,
       productId: content.productId,
       campaignId: content.campaignId,
       type: content.type,

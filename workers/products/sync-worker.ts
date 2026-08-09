@@ -25,6 +25,10 @@ export function createProductSyncWorker() {
     async (job) => {
       const { platform } = job.data as { platform: keyof typeof CLIENTS_BY_PLATFORM };
 
+      // Sincronização automática das plataformas conectadas alimenta hoje apenas
+      // o projeto Meu Novo Lar (spec docs/modulo-afiliados-umbanda.md — separação de projetos).
+      const homeProject = await prisma.affiliateProject.findUniqueOrThrow({ where: { slug: "meu-novo-lar" } });
+
       const client = CLIENTS_BY_PLATFORM[platform];
       await client.authenticate();
       const products = await client.searchProducts();
@@ -40,6 +44,7 @@ export function createProductSyncWorker() {
         const saved = await prisma.product.upsert({
           where: { source_externalId: { source: p.source, externalId: p.externalId } },
           create: {
+            projectId: homeProject.id,
             source: p.source,
             externalId: p.externalId,
             name: p.name,

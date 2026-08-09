@@ -6,8 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createProductAction } from "../actions";
 
-export default async function NewProductPage() {
-  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+export default async function NewProductPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string }>;
+}) {
+  const { projectId } = await searchParams;
+  const [projects, categories] = await Promise.all([
+    prisma.affiliateProject.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.category.findMany({ orderBy: { name: "asc" }, include: { project: true } }),
+  ]);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -26,24 +34,47 @@ export default async function NewProductPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="brand">Marca</Label>
-                <Input id="brand" name="brand" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoryId">Categoria</Label>
+                <Label htmlFor="projectId">Projeto *</Label>
                 <select
-                  id="categoryId"
-                  name="categoryId"
+                  id="projectId"
+                  name="projectId"
+                  required
+                  defaultValue={projectId ?? projects[0]?.id}
                   className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  <option value="">—</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
                     </option>
                   ))}
                 </select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="brand">Marca</Label>
+                <Input id="brand" name="brand" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoryId">Categoria</Label>
+              <select
+                id="categoryId"
+                name="categoryId"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <option value="">—</option>
+                {projects.map((project) => (
+                  <optgroup key={project.id} label={project.name}>
+                    {categories
+                      .filter((c) => c.projectId === project.id)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
