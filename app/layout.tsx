@@ -35,19 +35,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        {/* Google tag (gtag.js) — no HTML inicial para o detector do GA */}
         <script
           async
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_ID}');
-            `,
+            // Uma linha: o SSR do Next às vezes corta `window.dataLayer = ...` em multilinha
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
           }}
         />
       </head>
