@@ -1,17 +1,22 @@
 /**
  * Detecta o separador do CSV pela primeira linha — o Excel em pt-BR salva com
  * ";" (já que "," é o separador decimal nesse locale), enquanto o padrão
- * internacional usa ",". Conta ocorrências fora de aspas na primeira linha.
+ * internacional usa ",". Também cobre "\t", comum quando o usuário copia e
+ * cola direto de uma planilha (Excel/Google Sheets) em vez de exportar .csv.
+ * Conta ocorrências fora de aspas na primeira linha.
  */
-function detectDelimiter(firstLine: string): "," | ";" {
+function detectDelimiter(firstLine: string): "," | ";" | "\t" {
   let inQuotes = false;
   let commas = 0;
   let semicolons = 0;
+  let tabs = 0;
   for (const char of firstLine) {
     if (char === '"') inQuotes = !inQuotes;
     else if (!inQuotes && char === ",") commas++;
     else if (!inQuotes && char === ";") semicolons++;
+    else if (!inQuotes && char === "\t") tabs++;
   }
+  if (tabs > commas && tabs > semicolons) return "\t";
   return semicolons > commas ? ";" : ",";
 }
 
