@@ -762,6 +762,9 @@ model Job {
   error    String?   @db.Text
   attempts Int       @default(0)
 
+  /** Quando setado, o job só deve ser processado a partir deste horário (fila com atraso — ex: publicações espalhadas ao longo do dia). */
+  scheduledAt DateTime?
+
   startedAt  DateTime?
   finishedAt DateTime?
 

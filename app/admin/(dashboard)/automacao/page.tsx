@@ -10,14 +10,30 @@ import { getTikTokTokens } from "@/lib/tiktok/credentials";
 import { getMercadoLivreTokens } from "@/lib/mercado-livre/credentials";
 import { getMetaTokens } from "@/lib/meta/credentials";
 import type { DiscoveryRunSummary } from "@/lib/discovery";
-import { runDiscoveryNowAction, updateDiscoveryScheduleAction, updateDiscoveryRulesAction } from "./actions";
+import {
+  runDiscoveryNowAction,
+  updateDiscoveryScheduleAction,
+  updateDiscoveryRulesAction,
+  updatePublishScheduleAction,
+} from "./actions";
 
 function StatusDot({ ok }: { ok: boolean }) {
   return <span className={`inline-block size-2 rounded-full ${ok ? "bg-green-500" : "bg-muted-foreground/40"}`} />;
 }
 
 export default async function AutomationCenterPage() {
-  const [mlTokens, tiktokTokens, metaTokens, lastJob, scheduleSetting, rulesSetting, pendingCount] = await Promise.all([
+  const [
+    mlTokens,
+    tiktokTokens,
+    metaTokens,
+    lastJob,
+    scheduleSetting,
+    rulesSetting,
+    pendingCount,
+    publishScheduleSetting,
+    queuedPublishCount,
+    nextQueuedPublish,
+  ] = await Promise.all([
     getMercadoLivreTokens(),
     getTikTokTokens(),
     getMetaTokens(),
@@ -25,10 +41,20 @@ export default async function AutomationCenterPage() {
     prisma.setting.findUnique({ where: { key: "discoverySchedule" } }),
     prisma.setting.findUnique({ where: { key: "discoveryRules" } }),
     prisma.productSource.count({ where: { affiliateUrl: null } }),
+    prisma.setting.findUnique({ where: { key: "publishSchedule" } }),
+    prisma.job.count({ where: { queue: "affiliate-publish", status: "PENDING" } }),
+    prisma.job.findFirst({
+      where: { queue: "affiliate-publish", status: "PENDING" },
+      orderBy: { scheduledAt: "asc" },
+      select: { scheduledAt: true },
+    }),
   ]);
 
   const schedule = (scheduleSetting?.value as { time?: string } | undefined) ?? { time: "06:00" };
   const rules = (rulesSetting?.value as { minPrice?: number; maxPrice?: number } | undefined) ?? {};
+  const publishSchedule = (publishScheduleSetting?.value as
+    | { intervalMinutes?: number; windowStartHour?: number; windowEndHour?: number }
+    | undefined) ?? {};
   const summary = lastJob?.result as unknown as DiscoveryRunSummary | undefined;
 
   return (
@@ -138,6 +164,70 @@ export default async function AutomationCenterPage() {
               Salvar
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Publicações agendadas</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Controla o espaçamento das publicações criadas pela{" "}
+            <Link href="/admin/products/import" className="underline">
+              importação em massa (CSV)
+            </Link>{" "}
+            — nunca publica tudo de uma vez.
+          </p>
+          <p className="text-sm">
+            Na fila agora: <strong>{queuedPublishCount}</strong>
+            {nextQueuedPublish?.scheduledAt && (
+              <> · próxima em {nextQueuedPublish.scheduledAt.toLocaleString("pt-BR")}</>
+            )}
+          </p>
+          <form action={updatePublishScheduleAction} className="flex flex-wrap items-end gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="intervalMinutes">Intervalo (min)</Label>
+              <Input
+                id="intervalMinutes"
+                name="intervalMinutes"
+                type="number"
+                min="5"
+                defaultValue={publishSchedule.intervalMinutes ?? 90}
+                className="w-28"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="windowStartHour">A partir da hora</Label>
+              <Input
+                id="windowStartHour"
+                name="windowStartHour"
+                type="number"
+                min="0"
+                max="23"
+                defaultValue={publishSchedule.windowStartHour ?? 9}
+                className="w-24"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="windowEndHour">Até a hora</Label>
+              <Input
+                id="windowEndHour"
+                name="windowEndHour"
+                type="number"
+                min="0"
+                max="23"
+                defaultValue={publishSchedule.windowEndHour ?? 21}
+                className="w-24"
+              />
+            </div>
+            <Button type="submit" size="sm" variant="secondary">
+              Salvar
+            </Button>
+          </form>
+          <p className="text-xs text-muted-foreground">
+            Requer o processo de workers rodando (<code>npm run workers</code>) — a fila é processada a cada 60s.
+          </p>
         </CardContent>
       </Card>
     </div>

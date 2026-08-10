@@ -38,8 +38,10 @@ export default async function ImportProductsPage({
           </p>
           <p>
             Apenas <code>nome</code>, <code>projeto</code> e <code>preco</code> são obrigatórios. Se preencher{" "}
-            <code>url_afiliado</code>, o link já é criado no canal Facebook e{" "}
-            <strong>publica automaticamente</strong> (Página + grupos + blog) assim que o produto for importado.
+            <code>url_afiliado</code>, a publicação (Página + grupos + blog) é{" "}
+            <strong>agendada e espalhada ao longo do dia</strong> — nunca todos de uma vez. O intervalo padrão é a
+            cada 90min, das 9h às 21h; a fila é processada pelo processo de workers (
+            <code>npm run workers</code>), que precisa estar rodando.
           </p>
           <a
             href="/api/admin/products/import-template"
@@ -83,7 +85,7 @@ export default async function ImportProductsPage({
                   <span>Criados: {summary.created}</span>
                   <span>Atualizados: {summary.updated}</span>
                   <span>Ignorados: {summary.ignored}</span>
-                  <span>Links publicados: {summary.linksPublished}</span>
+                  <span>Links agendados: {summary.linksScheduled}</span>
                 </div>
                 {summary.errors.length > 0 && (
                   <div className="space-y-1">

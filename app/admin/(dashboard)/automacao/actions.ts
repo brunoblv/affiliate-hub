@@ -42,3 +42,18 @@ export async function updateDiscoveryRulesAction(formData: FormData) {
 
   revalidatePath("/admin/automacao");
 }
+
+/** Intervalo/janela usados para espalhar as publicações agendadas pela importação em massa (nunca tudo de uma vez). */
+export async function updatePublishScheduleAction(formData: FormData) {
+  const intervalMinutes = Number(formData.get("intervalMinutes") ?? 90) || 90;
+  const windowStartHour = Number(formData.get("windowStartHour") ?? 9) || 0;
+  const windowEndHour = Number(formData.get("windowEndHour") ?? 21) || 23;
+
+  await prisma.setting.upsert({
+    where: { key: "publishSchedule" },
+    create: { key: "publishSchedule", value: { intervalMinutes, windowStartHour, windowEndHour } },
+    update: { value: { intervalMinutes, windowStartHour, windowEndHour } },
+  });
+
+  revalidatePath("/admin/automacao");
+}

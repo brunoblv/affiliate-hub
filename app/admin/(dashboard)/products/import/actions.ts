@@ -5,6 +5,7 @@ import { prisma } from "@/lib/database";
 import { Platform, type Prisma } from "@/lib/generated/prisma/client";
 import { parseCsv } from "@/lib/csv";
 import { runScoringPipeline } from "@/lib/scoring";
+import { queuePublish, nextPostingSlot, getPublishSchedule } from "@/lib/scheduler";
 import { logger } from "@/lib/logging";
 
 const DIACRITICS_REGEX = /[̀-ͯ]/g;
@@ -36,7 +37,7 @@ export interface ImportSummary {
   created: number;
   updated: number;
   ignored: number;
-  linksPublished: number;
+  linksScheduled: number;
   errors: ImportRowError[];
 }
 
@@ -76,19 +77,21 @@ export async function importProductsAction(formData: FormData) {
     created: 0,
     updated: 0,
     ignored: 0,
-    linksPublished: 0,
+    linksScheduled: 0,
     errors: [],
   };
 
   try {
-    const [projects, categories] = await Promise.all([
+    const [projects, categories, publishSchedule] = await Promise.all([
       prisma.affiliateProject.findMany({ select: { id: true, slug: true } }),
       prisma.category.findMany({ select: { id: true, name: true, projectId: true } }),
+      getPublishSchedule(),
     ]);
     const projectBySlug = new Map(projects.map((p) => [p.slug, p.id]));
     const categoryByProjectAndName = new Map(
       categories.map((c) => [`${c.projectId}:${c.name.trim().toLowerCase()}`, c.id]),
     );
+    let nextSlot = nextPostingSlot(new Date(), publishSchedule);
 
     for (let i = 1; i < rows.length; i++) {
       const rowNumber = i + 1;
@@ -192,13 +195,13 @@ export async function importProductsAction(formData: FormData) {
         const affiliateUrl = get("url_afiliado");
         if (affiliateUrl) {
           try {
-            const { attachAffiliateLinkAndPublish } = await import("@/lib/affiliate/attach-link");
-            await attachAffiliateLinkAndPublish({ productId: product.id, affiliateUrl });
-            summary.linksPublished += 1;
+            await queuePublish({ productId: product.id, affiliateUrl }, nextSlot);
+            summary.linksScheduled += 1;
+            nextSlot = nextPostingSlot(nextSlot, publishSchedule);
           } catch (error) {
             summary.errors.push({
               row: rowNumber,
-              message: `Produto salvo, mas falha ao publicar link de afiliado: ${error instanceof Error ? error.message : String(error)}`,
+              message: `Produto salvo, mas falha ao agendar publicação: ${error instanceof Error ? error.message : String(error)}`,
             });
           }
         }
