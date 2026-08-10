@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Project rules
+
+- Sempre rodar `npx tsc --noEmit -p tsconfig.json` (typecheck) antes de considerar qualquer mudança de código concluída — inclusive depois de alterar `prisma/schema.prisma` (rodar `npx prisma generate` primeiro, já que `lib/generated/prisma` é gitignored e não é regenerado automaticamente no build).
