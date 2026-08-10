@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Newsreader, Manrope, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Providers } from "./providers";
+
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -34,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
       </body>
+      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }
