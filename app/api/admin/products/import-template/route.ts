@@ -18,6 +18,7 @@ const HEADERS = [
   "vendidos",
   "url_imagem",
   "url_produto",
+  "url_afiliado",
 ];
 
 const EXAMPLE_ROWS = [
@@ -37,6 +38,7 @@ const EXAMPLE_ROWS = [
     vendidos: "1500",
     url_imagem: "https://http2.mlstatic.com/exemplo.jpg",
     url_produto: "https://produto.mercadolivre.com.br/MLB-1234567890",
+    url_afiliado: "https://meli.la/exemplo123",
   },
   {
     nome: "Aspirador de Pó Vertical 2 em 1",
@@ -54,6 +56,7 @@ const EXAMPLE_ROWS = [
     vendidos: "",
     url_imagem: "https://m.media-amazon.com/exemplo.jpg",
     url_produto: "https://www.amazon.com.br/dp/B0EXEMPLO123",
+    url_afiliado: "",
   },
   {
     nome: "Organizador de Gaveta 8 Peças",
@@ -71,6 +74,7 @@ const EXAMPLE_ROWS = [
     vendidos: "5000",
     url_imagem: "https://cf.shopee.com.br/exemplo.jpg",
     url_produto: "https://shopee.com.br/exemplo-produto",
+    url_afiliado: "",
   },
 ];
 

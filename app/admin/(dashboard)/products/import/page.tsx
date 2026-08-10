@@ -34,10 +34,12 @@ export default async function ImportProductsPage({
             preencha para poder reenviar a planilha depois e atualizar em vez de duplicar), <code>categoria</code>,{" "}
             <code>marca</code>, <code>descricao</code>, <code>preco</code>, <code>preco_original</code>,{" "}
             <code>comissao_percent</code>, <code>avaliacao</code>, <code>num_avaliacoes</code>, <code>vendidos</code>,{" "}
-            <code>url_imagem</code>, <code>url_produto</code>.
+            <code>url_imagem</code>, <code>url_produto</code>, <code>url_afiliado</code>.
           </p>
           <p>
-            Apenas <code>nome</code>, <code>projeto</code> e <code>preco</code> são obrigatórios.
+            Apenas <code>nome</code>, <code>projeto</code> e <code>preco</code> são obrigatórios. Se preencher{" "}
+            <code>url_afiliado</code>, o link já é criado no canal Facebook e{" "}
+            <strong>publica automaticamente</strong> (Página + grupos + blog) assim que o produto for importado.
           </p>
           <a
             href="/api/admin/products/import-template"
@@ -76,11 +78,12 @@ export default async function ImportProductsPage({
             {job.error && <p className="text-destructive">{job.error}</p>}
             {summary && (
               <>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                   <span>Linhas: {summary.totalRows}</span>
                   <span>Criados: {summary.created}</span>
                   <span>Atualizados: {summary.updated}</span>
                   <span>Ignorados: {summary.ignored}</span>
+                  <span>Links publicados: {summary.linksPublished}</span>
                 </div>
                 {summary.errors.length > 0 && (
                   <div className="space-y-1">

@@ -36,6 +36,7 @@ export interface ImportSummary {
   created: number;
   updated: number;
   ignored: number;
+  linksPublished: number;
   errors: ImportRowError[];
 }
 
@@ -70,7 +71,14 @@ export async function importProductsAction(formData: FormData) {
     data: { queue: "product-import", name: "Importação manual de produtos (CSV)", status: "RUNNING", startedAt: new Date() },
   });
 
-  const summary: ImportSummary = { totalRows: rows.length - 1, created: 0, updated: 0, ignored: 0, errors: [] };
+  const summary: ImportSummary = {
+    totalRows: rows.length - 1,
+    created: 0,
+    updated: 0,
+    ignored: 0,
+    linksPublished: 0,
+    errors: [],
+  };
 
   try {
     const [projects, categories] = await Promise.all([
@@ -180,6 +188,20 @@ export async function importProductsAction(formData: FormData) {
 
         if (existing) summary.updated += 1;
         else summary.created += 1;
+
+        const affiliateUrl = get("url_afiliado");
+        if (affiliateUrl) {
+          try {
+            const { attachAffiliateLinkAndPublish } = await import("@/lib/affiliate/attach-link");
+            await attachAffiliateLinkAndPublish({ productId: product.id, affiliateUrl });
+            summary.linksPublished += 1;
+          } catch (error) {
+            summary.errors.push({
+              row: rowNumber,
+              message: `Produto salvo, mas falha ao publicar link de afiliado: ${error instanceof Error ? error.message : String(error)}`,
+            });
+          }
+        }
       } catch (error) {
         summary.ignored += 1;
         summary.errors.push({ row: rowNumber, message: error instanceof Error ? error.message : String(error) });

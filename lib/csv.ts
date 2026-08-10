@@ -47,7 +47,11 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
 }
 
-/** Converte linhas de objetos em texto CSV, escapando campos com vírgula/aspas/quebra de linha. */
+/**
+ * Converte linhas de objetos em texto CSV, escapando campos com vírgula/aspas/quebra de linha.
+ * Inclui BOM UTF-8 no início — sem ele, o Excel no Windows abre o arquivo assumindo
+ * ANSI/Windows-1252 e corrompe acentos (á, ç, ã, etc.).
+ */
 export function toCsv(headers: string[], rows: Array<Record<string, string>>): string {
   const escape = (value: string) => {
     if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
@@ -58,5 +62,5 @@ export function toCsv(headers: string[], rows: Array<Record<string, string>>): s
   for (const row of rows) {
     lines.push(headers.map((h) => escape(row[h] ?? "")).join(","));
   }
-  return lines.join("\n");
+  return "﻿" + lines.join("\n");
 }
