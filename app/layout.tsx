@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Newsreader, Manrope, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const gaId = process.env.NEXT_PUBLIC_GA_ID;
+/** GA4 Measurement ID — público; também pode vir de NEXT_PUBLIC_GA_ID. */
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-ZL1R0ZBN9J";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -34,24 +34,25 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${newsreader.variable} ${manrope.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Google tag (gtag.js) — no HTML inicial para o detector do GA */}
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_ID}');
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
-        {gaId ? (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaId}');
-              `}
-            </Script>
-          </>
-        ) : null}
       </body>
     </html>
   );
