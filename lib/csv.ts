@@ -1,4 +1,21 @@
-/** Parser de CSV simples (RFC 4180): trata campos entre aspas, vírgulas e quebras de linha dentro de aspas. */
+/**
+ * Detecta o separador do CSV pela primeira linha — o Excel em pt-BR salva com
+ * ";" (já que "," é o separador decimal nesse locale), enquanto o padrão
+ * internacional usa ",". Conta ocorrências fora de aspas na primeira linha.
+ */
+function detectDelimiter(firstLine: string): "," | ";" {
+  let inQuotes = false;
+  let commas = 0;
+  let semicolons = 0;
+  for (const char of firstLine) {
+    if (char === '"') inQuotes = !inQuotes;
+    else if (!inQuotes && char === ",") commas++;
+    else if (!inQuotes && char === ";") semicolons++;
+  }
+  return semicolons > commas ? ";" : ",";
+}
+
+/** Parser de CSV simples (RFC 4180): trata campos entre aspas, separador (auto-detectado) e quebras de linha entre aspas. */
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
@@ -6,6 +23,7 @@ export function parseCsv(text: string): string[][] {
   let inQuotes = false;
 
   const normalized = text.replace(/^﻿/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const delimiter = detectDelimiter(normalized.slice(0, normalized.indexOf("\n") + 1 || undefined));
 
   for (let i = 0; i < normalized.length; i++) {
     const char = normalized[i];
@@ -26,7 +44,7 @@ export function parseCsv(text: string): string[][] {
 
     if (char === '"') {
       inQuotes = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       row.push(field);
       field = "";
     } else if (char === "\n") {
