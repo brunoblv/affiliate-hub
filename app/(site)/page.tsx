@@ -119,7 +119,7 @@ export default async function HomePage() {
 
       {/* Ofertas */}
       {deals.length > 0 && (
-        <div className="bg-secondary px-5 py-14 sm:px-10">
+        <div id="ofertas" className="bg-secondary px-5 py-14 sm:px-10">
           <div className="mx-auto max-w-[1200px]">
             <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">OFERTAS QUE ENCONTRAMOS</div>
             <div className="mb-7 flex flex-wrap items-baseline justify-between gap-2">
