@@ -12,6 +12,7 @@ export function ProjectSubnav({ projectSlug }: { projectSlug: string }) {
     { href: base, label: "Visão geral" },
     { href: `${base}/produtos`, label: "Produtos e ofertas" },
     { href: `${base}/importar-links`, label: "Importar links" },
+    { href: `${base}/capturar`, label: "Capturar" },
     { href: `${base}/revisar`, label: "Revisar" },
     { href: `${base}/campanhas`, label: "Campanhas" },
     { href: `${base}/canais`, label: "Página e grupos" },

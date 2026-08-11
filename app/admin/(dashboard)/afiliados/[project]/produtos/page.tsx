@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { PinterestExportForm } from "@/components/admin/pinterest-export-form";
 import { setAffiliateLinkAction } from "./actions";
 
 function formatCurrency(value: number) {
@@ -42,6 +43,20 @@ export default async function ProjectProductsPage({ params }: { params: Promise<
           Novo produto manual
         </Link>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Exportar para Pinterest (bulk upload)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Gera o CSV no formato do sample oficial (Title, Media URL, Pinterest board, Thumbnail, Description, Link,
+            Publish date, Keywords). O Link usa <code className="font-mono">/go/…</code> quando houver link de
+            afiliado.
+          </p>
+          <PinterestExportForm projectSlug={slug} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

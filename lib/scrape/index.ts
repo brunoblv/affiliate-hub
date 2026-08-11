@@ -6,3 +6,6 @@ export { scrapeUrlAndSaveProduct } from "./save";
 export type { ScrapeAndSaveResult } from "./save";
 export { enqueueUrlScrapes, getScrapeDelayMinutes } from "./enqueue";
 export type { EnqueueUrlScrapesResult } from "./enqueue";
+export { isSecurityChallengePage, ScrapeSecurityChallengeError } from "./security";
+export { importDraftUrls, upsertCapturedProduct } from "./import-drafts";
+export type { ImportDraftUrlsResult } from "./import-drafts";

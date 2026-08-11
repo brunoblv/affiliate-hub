@@ -28,6 +28,11 @@ export async function scrapeUrlAndSaveProduct(params: {
   const externalId = extractExternalId(params.url, platform);
   const scraped = await scrapeProductUrl(params.url);
 
+  if (/security check/i.test(scraped.name)) {
+    const { ScrapeSecurityChallengeError } = await import("./security");
+    throw new ScrapeSecurityChallengeError(params.url);
+  }
+
   const existing = await prisma.product.findUnique({
     where: { source_externalId: { source: platform, externalId } },
     select: { id: true },

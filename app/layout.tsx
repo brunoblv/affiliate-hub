@@ -35,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
+        <meta name="p:domain_verify" content="5f28555bab48fbe0f0325e4cfbc18937" />
         <script
           async
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

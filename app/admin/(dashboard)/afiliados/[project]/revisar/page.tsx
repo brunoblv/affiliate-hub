@@ -22,8 +22,15 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default async function RevisarProdutosPage({ params }: { params: Promise<{ project: string }> }) {
+export default async function RevisarProdutosPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ project: string }>;
+  searchParams: Promise<{ imported?: string; created?: string; captured?: string }>;
+}) {
   const { project: slug } = await params;
+  const query = await searchParams;
   const project = await getProjectBySlug(slug);
 
   const [products, categories] = await Promise.all([
@@ -56,17 +63,38 @@ export default async function RevisarProdutosPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6">
+      {query.imported && (
+        <p className="rounded-md border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+          {query.imported} link(s) importado(s) como rascunho
+          {query.created ? ` (${query.created} novo(s))` : ""}. Complete os dados abaixo ou use o bookmarklet em
+          Capturar.
+        </p>
+      )}
+      {query.captured === "1" && (
+        <p className="rounded-md border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+          Produto capturado salvo. Revise se precisar e ative.
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Complete nome, preço, imagem, categoria e link de afiliado. Produtos importados por scrape começam
           inativos.
         </p>
-        <Link
-          href={`/admin/afiliados/${slug}/importar-links`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-        >
-          Importar mais links
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/admin/afiliados/${slug}/capturar`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Capturar / bookmarklet
+          </Link>
+          <Link
+            href={`/admin/afiliados/${slug}/importar-links`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Importar mais links
+          </Link>
+        </div>
       </div>
 
       {toReview.length === 0 ? (
