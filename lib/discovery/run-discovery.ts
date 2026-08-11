@@ -5,7 +5,7 @@ import { mercadoLivreClient } from "@/lib/mercado-livre";
 import { tiktokClient } from "@/lib/tiktok";
 import { runScoringPipeline } from "@/lib/scoring";
 import type { AffiliatePlatformClient, NormalizedProduct } from "@/lib/integrations/types";
-import { DISCOVERY_BUCKETS, PROMOTION_SWEEP_TERMS } from "./buckets";
+import { ACHADINHOS_TIKTOK_PROJECT_SLUG, DISCOVERY_BUCKETS, PROMOTION_SWEEP_TERMS } from "./buckets";
 import { classifyPromotionBucket } from "./classify";
 import { isBlocked } from "./blocklist";
 
@@ -38,6 +38,7 @@ interface DiscoveryTask {
   bucketLabel: string;
   client: AffiliatePlatformClient;
   query: string;
+  categorySlug?: string;
 }
 
 /**
@@ -89,16 +90,35 @@ export async function runProductDiscovery(): Promise<DiscoveryRunSummary> {
       const project = projectBySlug.get(bucket.projectSlug);
       if (!project) continue;
       for (const client of connectedClients) {
+        if (bucket.platforms && !bucket.platforms.includes(client.platform)) continue;
         for (const query of bucket.keywords) {
-          tasks.push({ projectId: project.id, bucketLabel: bucket.label, client, query });
+          tasks.push({
+            projectId: project.id,
+            bucketLabel: bucket.label,
+            client,
+            query,
+            categorySlug: bucket.categorySlug,
+          });
         }
       }
     }
 
-    // Varredura genérica de "promoções de qualquer tipo" (spec §2) — classificada por título após a busca.
+    // Varredura genérica de "promoções de qualquer tipo" (spec §2).
+    // TikTok Shop → Achadinhos Tik Tok; demais plataformas classificam por título.
     for (const client of connectedClients) {
+      const tiktokProjectId =
+        client.platform === Platform.TIKTOK_SHOP
+          ? (projectBySlug.get(ACHADINHOS_TIKTOK_PROJECT_SLUG)?.id ?? "")
+          : "";
       for (const query of PROMOTION_SWEEP_TERMS) {
-        tasks.push({ projectId: "", bucketLabel: "Promoções", client, query });
+        tasks.push({
+          projectId: tiktokProjectId,
+          bucketLabel: "Promoções",
+          client,
+          query,
+          categorySlug:
+            client.platform === Platform.TIKTOK_SHOP ? "achadinhos-tiktok-ofertas-do-dia" : undefined,
+        });
       }
     }
 
@@ -154,7 +174,8 @@ async function processDiscoveredProduct(
     return;
   }
 
-  const projectId = task.projectId || projectBySlug.get(classifyPromotionBucket(item.name))?.id;
+  const projectId =
+    task.projectId || projectBySlug.get(classifyPromotionBucket(item.name, item.source))?.id;
   if (!projectId) {
     summary.ignored += 1;
     return;
@@ -162,6 +183,17 @@ async function processDiscoveredProduct(
 
   const discountPercent = computeDiscountPercent(item.price, item.originalPrice);
   if (discountPercent && discountPercent >= 20) summary.promotions += 1;
+
+  let categoryId: string | undefined;
+  if (task.categorySlug) {
+    const category = await prisma.category.findUnique({
+      where: { slug: task.categorySlug },
+      select: { id: true, projectId: true },
+    });
+    if (category && category.projectId === projectId) {
+      categoryId = category.id;
+    }
+  }
 
   const existing = await prisma.product.findUnique({
     where: { source_externalId: { source: item.source, externalId: item.externalId } },
@@ -180,6 +212,7 @@ async function processDiscoveredProduct(
       slug: slugBase,
       description: item.description,
       brand: item.brand,
+      categoryId,
       imageUrl: item.imageUrl,
       productUrl: item.productUrl,
       price: item.price,
@@ -202,6 +235,7 @@ async function processDiscoveredProduct(
       rating: item.rating,
       reviewCount: item.reviewCount,
       soldCount: item.soldCount,
+      ...(categoryId ? { categoryId } : {}),
     },
   });
 

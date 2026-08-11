@@ -3,6 +3,12 @@ import { saveTikTokTokens, type TikTokTokenSet } from "./credentials";
 
 const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY;
 const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET;
+/**
+ * ID do serviço no Partner Center (App & Service → Copy authorization link).
+ * NÃO é o App Key — usar o `service_id` da URL oficial de autorização,
+ * senão a página responde "This service does not exist".
+ */
+const SERVICE_ID = process.env.TIKTOK_SERVICE_ID;
 
 // Domínio de autorização/token do TikTok Shop Partner API (estável entre versões).
 const AUTH_BASE_URL = "https://auth.tiktok-shops.com";
@@ -32,16 +38,22 @@ function requireCredentials() {
  * O vendedor faz login, aprova os escopos e o TikTok redireciona de volta
  * para `redirectUri` com `?code=...` (spec §21 authenticate()).
  *
- * IMPORTANTE: confirme esta URL na página "App Details" do seu app no
- * Partner Center antes do primeiro uso — apps do tipo "Public" (listados na
- * App Store do TikTok Shop) usam services.tiktokshop.com/open/authorize,
- * enquanto apps custom/self-built podem expor uma URL de autorização própria.
+ * No Partner Center: App & Service → seu app → Authorization →
+ * "Copy authorization link". O parâmetro `service_id` dessa URL é o valor
+ * de `TIKTOK_SERVICE_ID` (diferente do App Key / TIKTOK_CLIENT_KEY).
  */
 export function buildTikTokAuthorizationUrl(redirectUri: string, state?: string): string {
-  const { clientKey } = requireCredentials();
+  requireCredentials();
+
+  const serviceId = SERVICE_ID?.trim();
+  if (!serviceId) {
+    throw new Error(
+      "TIKTOK_SERVICE_ID não configurado. Copie o service_id do link de autorização no Partner Center (não use o App Key).",
+    );
+  }
 
   const url = new URL("https://services.tiktokshop.com/open/authorize");
-  url.searchParams.set("service_id", clientKey);
+  url.searchParams.set("service_id", serviceId);
   url.searchParams.set("redirect_uri", redirectUri);
   if (state) url.searchParams.set("state", state);
 

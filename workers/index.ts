@@ -5,6 +5,7 @@ import { createContentGenerationWorker } from "./content/generation-worker";
 import { createPublishWorker } from "./publishing/publish-worker";
 import { createAnalyticsSyncWorker } from "./analytics/sync-worker";
 import { createAffiliateLinkWorker } from "./affiliate/link-worker";
+import { createUrlScrapeWorker } from "./scrape/url-scrape-worker";
 import { schedulerTick } from "@/lib/scheduler";
 import { logger } from "@/lib/logging";
 
@@ -22,6 +23,7 @@ function startWorkers() {
     createPublishWorker(),
     createAnalyticsSyncWorker(),
     createAffiliateLinkWorker(),
+    createUrlScrapeWorker(),
   ];
 
   console.log(`Workers iniciados: ${workers.length}`);

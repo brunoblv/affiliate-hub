@@ -1,4 +1,5 @@
-import { DISCOVERY_BUCKETS } from "./buckets";
+import { Platform } from "@/lib/generated/prisma/client";
+import { ACHADINHOS_TIKTOK_PROJECT_SLUG, DISCOVERY_BUCKETS } from "./buckets";
 
 function normalize(value: string): string {
   return value
@@ -12,8 +13,15 @@ function normalize(value: string): string {
  * promoções (spec §2) num dos buckets por projeto, usando as mesmas
  * palavras-chave da busca por categoria — sem isso, tudo cairia sempre em
  * "meu-novo-lar" por ser o bucket padrão.
+ *
+ * Produtos do TikTok Shop na varredura de promoções vão para Achadinhos Tik Tok
+ * (projeto exclusivo dessa plataforma).
  */
-export function classifyPromotionBucket(title: string): string {
+export function classifyPromotionBucket(title: string, platform?: Platform): string {
+  if (platform === Platform.TIKTOK_SHOP) {
+    return ACHADINHOS_TIKTOK_PROJECT_SLUG;
+  }
+
   const normalizedTitle = normalize(title);
 
   for (const bucket of DISCOVERY_BUCKETS) {

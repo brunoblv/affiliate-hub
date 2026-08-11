@@ -18,6 +18,7 @@ const PROJECT_TYPE_LABEL: Record<ProjectType, string> = {
   HOME: "Casa",
   UMBANDA: "Umbanda",
   MUSICA: "Música",
+  ACHADINHOS: "Achadinhos",
 };
 
 export default async function ProjectsPage() {
@@ -59,6 +60,7 @@ export default async function ProjectsPage() {
                 <option value={ProjectType.HOME}>{PROJECT_TYPE_LABEL.HOME}</option>
                 <option value={ProjectType.UMBANDA}>{PROJECT_TYPE_LABEL.UMBANDA}</option>
                 <option value={ProjectType.MUSICA}>{PROJECT_TYPE_LABEL.MUSICA}</option>
+                <option value={ProjectType.ACHADINHOS}>{PROJECT_TYPE_LABEL.ACHADINHOS}</option>
               </select>
             </div>
 

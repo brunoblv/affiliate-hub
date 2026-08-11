@@ -55,6 +55,18 @@ async function main() {
     update: {},
   });
 
+  // Projeto exclusivo TikTok Shop — página + grupo próprios (Achadinhos).
+  const achadinhosProject = await prisma.affiliateProject.upsert({
+    where: { slug: "achadinhos-tiktok" },
+    create: {
+      name: "Achadinhos Tik Tok",
+      slug: "achadinhos-tiktok",
+      type: "ACHADINHOS",
+      description: "Ofertas e achadinhos exclusivos do TikTok Shop — página e grupo dedicados.",
+    },
+    update: {},
+  });
+
   const slugify = (value: string) =>
     value
       .toLowerCase()
@@ -136,6 +148,29 @@ async function main() {
     });
   }
 
+  // Categorias do projeto Achadinhos Tik Tok (foco só TikTok Shop).
+  const achadinhosCategories = [
+    "Beleza e cuidados",
+    "Casa e organização",
+    "Cozinha",
+    "Eletrônicos e gadgets",
+    "Moda e acessórios",
+    "Pet",
+    "Infantil",
+    "Fitness e saúde",
+    "Utilidades",
+    "Ofertas do dia",
+  ];
+
+  for (const name of achadinhosCategories) {
+    const slug = `achadinhos-tiktok-${slugify(name)}`;
+    await prisma.category.upsert({
+      where: { slug },
+      create: { name, slug, projectId: achadinhosProject.id },
+      update: {},
+    });
+  }
+
   // Campanhas iniciais do projeto Umbanda (docs/modulo-afiliados-umbanda.md §Campanhas).
   const umbandaCampaigns = [
     { code: "UMB-FACEBOOK", name: "Página Facebook", channel: "FACEBOOK" },
@@ -158,6 +193,64 @@ async function main() {
         status: "DRAFT",
       },
       update: {},
+    });
+  }
+
+  const achadinhosCampaigns = [
+    { code: "ACH-FACEBOOK", name: "Página Facebook", channel: "FACEBOOK" },
+    { code: "ACH-GRUPO", name: "Grupo público", channel: "FACEBOOK" },
+    { code: "ACH-OFERTAS", name: "Ofertas do dia", channel: "FACEBOOK" },
+    { code: "ACH-VIRAL", name: "Produtos virais", channel: "FACEBOOK" },
+  ];
+
+  for (const campaign of achadinhosCampaigns) {
+    await prisma.campaign.upsert({
+      where: { projectId_code: { projectId: achadinhosProject.id, code: campaign.code } },
+      create: {
+        projectId: achadinhosProject.id,
+        name: campaign.name,
+        code: campaign.code,
+        channel: campaign.channel,
+        status: "DRAFT",
+      },
+      update: {},
+    });
+  }
+
+  // Canais placeholder — preencher URL / externalPageId em /admin/afiliados/achadinhos-tiktok/canais.
+  const existingPage = await prisma.projectChannel.findFirst({
+    where: { projectId: achadinhosProject.id, type: "PUBLIC_PAGE", platform: "FACEBOOK" },
+  });
+  if (!existingPage) {
+    await prisma.projectChannel.create({
+      data: {
+        projectId: achadinhosProject.id,
+        name: "Página Achadinhos Tik Tok",
+        platform: "FACEBOOK",
+        type: "PUBLIC_PAGE",
+        notes: "Preencha o ID da Página (Graph API) para publicar automaticamente.",
+        cooldownDays: 3,
+        allowLinks: true,
+        allowOffers: true,
+      },
+    });
+  }
+
+  const existingGroup = await prisma.projectChannel.findFirst({
+    where: { projectId: achadinhosProject.id, type: "PUBLIC_GROUP", platform: "FACEBOOK" },
+  });
+  if (!existingGroup) {
+    await prisma.projectChannel.create({
+      data: {
+        projectId: achadinhosProject.id,
+        name: "Grupo Achadinhos Tik Tok",
+        platform: "FACEBOOK",
+        type: "PUBLIC_GROUP",
+        notes: "Fluxo assistido: copie o post na Central de Grupos. Preencha a URL do grupo.",
+        cooldownDays: 7,
+        allowLinks: true,
+        allowOffers: true,
+      },
     });
   }
 

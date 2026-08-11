@@ -113,6 +113,7 @@ enum ProjectType {
   HOME
   UMBANDA
   MUSICA
+  ACHADINHOS
 }
 
 model AffiliateProject {

@@ -20,7 +20,9 @@ export default async function IntegrationsPage({
 }) {
   const params = await searchParams;
 
-  const tiktokConfigured = Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET);
+  const tiktokConfigured = Boolean(
+    process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET && process.env.TIKTOK_SERVICE_ID,
+  );
   const tiktokTokens = tiktokConfigured ? await getTikTokTokens() : null;
 
   const metaConfigured = Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
@@ -73,7 +75,12 @@ export default async function IntegrationsPage({
             </Badge>
           </CardHeader>
           <CardContent className="space-y-3 text-xs text-muted-foreground">
-            <p>TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET</p>
+            <p>TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_SERVICE_ID</p>
+            {!process.env.TIKTOK_SERVICE_ID && process.env.TIKTOK_CLIENT_KEY && (
+              <p className="text-destructive">
+                Falta TIKTOK_SERVICE_ID — copie do link de autorização no Partner Center (não use o App Key).
+              </p>
+            )}
             {tiktokTokens?.sellerName && <p>Vendedor: {tiktokTokens.sellerName}</p>}
             {tiktokConfigured && (
               <Link
