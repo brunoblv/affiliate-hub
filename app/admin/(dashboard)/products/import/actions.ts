@@ -87,7 +87,7 @@ export async function importProductsAction(formData: FormData) {
       prisma.category.findMany({ select: { id: true, name: true, projectId: true } }),
       getPublishSchedule(),
     ]);
-    const projectBySlug = new Map(projects.map((p) => [p.slug, p.id]));
+    const projectBySlug = new Map(projects.map((p) => [p.slug.toLowerCase(), p.id]));
     const categoryByProjectAndName = new Map(
       categories.map((c) => [`${c.projectId}:${c.name.trim().toLowerCase()}`, c.id]),
     );
@@ -108,11 +108,19 @@ export async function importProductsAction(formData: FormData) {
         continue;
       }
 
-      const projetoSlug = get("projeto");
+      const projetoRaw = get("projeto");
+      // Excel e cópia de planilha costumam mandar "ChartFM", espaços e NBSP.
+      const projetoSlug = projetoRaw
+        ? projetoRaw.toLowerCase().normalize("NFD").replace(DIACRITICS_REGEX, "").replace(/\u00a0/g, " ").trim()
+        : undefined;
       const projectId = projetoSlug ? projectBySlug.get(projetoSlug) : undefined;
       if (!projectId) {
         summary.ignored += 1;
-        summary.errors.push({ row: rowNumber, message: `Projeto "${projetoSlug}" não encontrado.` });
+        const available = [...projectBySlug.keys()].sort().join(", ") || "(nenhum — rode npm run db:seed)";
+        summary.errors.push({
+          row: rowNumber,
+          message: `Projeto "${projetoRaw ?? ""}" não encontrado. Slugs neste banco: ${available}.`,
+        });
         continue;
       }
 

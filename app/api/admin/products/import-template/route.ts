@@ -76,6 +76,24 @@ const EXAMPLE_ROWS = [
     url_produto: "https://shopee.com.br/exemplo-produto",
     url_afiliado: "",
   },
+  {
+    nome: "Vinil Abbey Road The Beatles",
+    projeto: "chartfm",
+    plataforma: "AMAZON",
+    id_anuncio: "B0CHARTFMEX",
+    categoria: "Vinis",
+    marca: "Apple Records",
+    descricao: "Edição remasterizada em vinil 180g.",
+    preco: "249.90",
+    preco_original: "299.90",
+    comissao_percent: "6",
+    avaliacao: "4.9",
+    num_avaliacoes: "420",
+    vendidos: "800",
+    url_imagem: "https://m.media-amazon.com/exemplo-vinil.jpg",
+    url_produto: "https://www.amazon.com.br/dp/B0CHARTFMEX",
+    url_afiliado: "",
+  },
 ];
 
 /**

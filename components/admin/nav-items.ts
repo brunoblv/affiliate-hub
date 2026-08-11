@@ -47,6 +47,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Catálogo",
     items: [
+      { title: "Projetos", href: "/admin/projects", icon: Sparkles },
       { title: "Produtos", href: "/admin/products", icon: Package },
       { title: "Oportunidades", href: "/admin/opportunities", icon: Flame },
       { title: "Categorias", href: "/admin/categories", icon: FolderTree },
