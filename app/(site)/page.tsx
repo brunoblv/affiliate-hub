@@ -129,10 +129,14 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               {deals.map((product) => (
                 <Link key={product.id} href={`/produtos/${product.slug}`} className="block overflow-hidden rounded-xl bg-card">
-                  <div className="flex h-36 items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)]">
+                  <div className="flex aspect-square items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)] p-3 sm:p-4">
                     {product.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
                     ) : (
                       <span className="font-mono text-[11px] text-muted-foreground">produto</span>
                     )}
@@ -146,7 +150,7 @@ export default async function HomePage() {
                         </span>
                       )}
                     </div>
-                    <div className="mb-1.5 text-sm font-semibold text-foreground">{product.name}</div>
+                    <div className="mb-1.5 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</div>
                     <div className="flex items-baseline gap-2">
                       {product.originalPrice && (
                         <span className="text-xs text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice))}</span>
