@@ -845,3 +845,25 @@ model IntegrationCredential {
   @@unique([provider, label])
   @@map("integration_credentials")
 }
+
+/**
+ * Páginas do Facebook conectadas via Meta Graph API.
+ * accessToken = Page Access Token (criptografado), usado para publicar em cada Página.
+ */
+model MetaFacebookPage {
+  id          String  @id @default(cuid())
+  pageId      String  @unique
+  name        String
+  accessToken String  @db.Text
+  active      Boolean @default(true)
+
+  /**
+   * Conta Instagram Business vinculada à Página (quando houver).
+   */
+  instagramBusinessAccountId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("meta_facebook_pages")
+}

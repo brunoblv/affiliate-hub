@@ -217,23 +217,60 @@ async function main() {
     });
   }
 
-  // Canais placeholder — preencher URL / externalPageId em /admin/afiliados/achadinhos-tiktok/canais.
-  const existingPage = await prisma.projectChannel.findFirst({
-    where: { projectId: achadinhosProject.id, type: "PUBLIC_PAGE", platform: "FACEBOOK" },
-  });
-  if (!existingPage) {
-    await prisma.projectChannel.create({
-      data: {
-        projectId: achadinhosProject.id,
-        name: "Página Achadinhos Tik Tok",
-        platform: "FACEBOOK",
-        type: "PUBLIC_PAGE",
-        notes: "Preencha o ID da Página (Graph API) para publicar automaticamente.",
-        cooldownDays: 3,
-        allowLinks: true,
-        allowOffers: true,
-      },
+  // Páginas do Facebook (Page ID Graph API) por projeto.
+  const facebookPages = [
+    {
+      projectId: umbandaProject.id,
+      name: "Página Universo Umbanda",
+      externalPageId: "1612010899071169",
+      url: "https://www.facebook.com/1612010899071169",
+      cooldownDays: 7,
+    },
+    {
+      projectId: homeProject.id,
+      name: "Página Meu Novo Lar",
+      externalPageId: "1312188428634291",
+      url: "https://www.facebook.com/1312188428634291",
+      cooldownDays: 7,
+    },
+    {
+      projectId: achadinhosProject.id,
+      name: "Página Achadinhos Tik Tok",
+      externalPageId: "1303950226131311",
+      url: "https://www.facebook.com/1303950226131311",
+      cooldownDays: 3,
+    },
+  ] as const;
+
+  for (const page of facebookPages) {
+    const existing = await prisma.projectChannel.findFirst({
+      where: { projectId: page.projectId, type: "PUBLIC_PAGE", platform: "FACEBOOK" },
     });
+    if (existing) {
+      await prisma.projectChannel.update({
+        where: { id: existing.id },
+        data: {
+          name: page.name,
+          externalPageId: page.externalPageId,
+          url: page.url,
+          active: true,
+        },
+      });
+    } else {
+      await prisma.projectChannel.create({
+        data: {
+          projectId: page.projectId,
+          name: page.name,
+          platform: "FACEBOOK",
+          type: "PUBLIC_PAGE",
+          externalPageId: page.externalPageId,
+          url: page.url,
+          cooldownDays: page.cooldownDays,
+          allowLinks: true,
+          allowOffers: true,
+        },
+      });
+    }
   }
 
   const existingGroup = await prisma.projectChannel.findFirst({

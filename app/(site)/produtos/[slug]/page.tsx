@@ -101,14 +101,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
           </div>
 
-          {(product.rating != null || product.soldCount != null) && (
-            <p className="mt-3 text-sm text-muted-foreground">
-              {product.rating != null && <>⭐ {Number(product.rating).toFixed(1)}</>}
-              {product.reviewCount != null && <> · {product.reviewCount} avaliações</>}
-              {product.soldCount != null && <> · {product.soldCount} vendidos</>}
-            </p>
-          )}
-
           {product.description && (
             <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap">
               {product.description}

@@ -15,7 +15,9 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:ensure-chartfm": "tsx scripts/ensure-chartfm-project.ts",
-    "db:ensure-achadinhos": "tsx scripts/ensure-achadinhos-tiktok-project.ts"
+    "db:ensure-achadinhos": "tsx scripts/ensure-achadinhos-tiktok-project.ts",
+    "meta:bootstrap": "tsx scripts/bootstrap-meta-from-env.ts",
+    "meta:ensure-pages": "tsx scripts/ensure-facebook-pages.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

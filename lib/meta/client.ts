@@ -1,7 +1,13 @@
 import { getRateLimiter } from "@/lib/integrations/rate-limiter";
 import { withRetry } from "@/lib/integrations/retry";
 import { logger } from "@/lib/logging";
-import { getMetaTokens, saveMetaTokens, type MetaPage } from "./credentials";
+import {
+  getMetaPageByPageId,
+  getMetaTokens,
+  listActiveMetaPages,
+  saveMetaTokens,
+  type MetaPage,
+} from "./credentials";
 import { graphRequest } from "./request";
 import { GRAPH_API_BASE_URL } from "./graph-version";
 import { fetchConnectedPages } from "./auth";
@@ -19,19 +25,18 @@ export interface MetaPostPayload {
 }
 
 async function requirePage(pageId: string): Promise<MetaPage> {
-  const tokens = await getMetaTokens();
-  const page = tokens?.pages.find((p) => p.id === pageId);
+  const page = await getMetaPageByPageId(pageId);
   if (!page) {
-    throw new Error(`Página ${pageId} não encontrada entre as contas conectadas. Reconecte em /admin/integrations.`);
+    throw new Error(`Página ${pageId} não encontrada em meta_facebook_pages. Rode npm run meta:bootstrap ou reconecte em /admin/integrations.`);
   }
   return page;
 }
 
 async function requirePageByInstagramAccount(igUserId: string): Promise<MetaPage> {
-  const tokens = await getMetaTokens();
-  const page = tokens?.pages.find((p) => p.instagramBusinessAccountId === igUserId);
+  const pages = await listActiveMetaPages();
+  const page = pages.find((p) => p.instagramBusinessAccountId === igUserId);
   if (!page) {
-    throw new Error(`Conta Instagram ${igUserId} não encontrada entre as contas conectadas. Reconecte em /admin/integrations.`);
+    throw new Error(`Conta Instagram ${igUserId} não encontrada em meta_facebook_pages. Reconecte a conta Meta.`);
   }
   return page;
 }
@@ -55,10 +60,9 @@ export class MetaClient {
     logger.info("PUBLISH", "Meta: credenciais válidas", { pageCount: tokens.pages.length });
   }
 
-  /** Páginas do Facebook (e contas Instagram vinculadas) conectadas via OAuth. */
+  /** Páginas do Facebook (e contas Instagram vinculadas) ativas em meta_facebook_pages. */
   async getAccounts(): Promise<MetaPage[]> {
-    const tokens = await getMetaTokens();
-    return tokens?.pages ?? [];
+    return listActiveMetaPages();
   }
 
   async publishFacebookPost(pageId: string, payload: MetaPostPayload) {

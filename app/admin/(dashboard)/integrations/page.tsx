@@ -102,7 +102,12 @@ export default async function IntegrationsPage({
           </CardHeader>
           <CardContent className="space-y-3 text-xs text-muted-foreground">
             <p>META_APP_ID, META_APP_SECRET</p>
-            {metaTokens && <p>{metaTokens.pages.length} página(s) conectada(s)</p>}
+            {metaTokens && <p>{metaTokens.pages.length} página(s) em meta_facebook_pages</p>}
+            {metaTokens?.pages.map((page) => (
+              <p key={page.id}>
+                {page.name}: {page.id}
+              </p>
+            ))}
             {metaConfigured && (
               <Link
                 href="/api/integrations/meta/authorize"
