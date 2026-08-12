@@ -4,6 +4,7 @@ import { AutopilotMode, ContentStatus, PublicationStatus } from "@/lib/generated
 import { executePublication } from "@/lib/publishing";
 import { runAutopilotRule } from "@/lib/autopilot";
 import { maybeRunDailyDiscovery } from "@/lib/discovery";
+import { maybeRunGroupInvitePosts } from "@/lib/community/group-invite-post";
 import { runScheduleSlot } from "./run-slot";
 import { runDuePublishJobs } from "./publish-queue";
 
@@ -23,14 +24,16 @@ function isSameDay(a: Date, b: Date): boolean {
  *    massa (CSV) para espalhar publicações ao longo do dia em vez de postar
  *    tudo de uma vez.
  * 2. Dispara os ScheduleSlot cujo horário bateu com o horário atual (uma vez por dia).
- * 3. Roda as AutopilotRule ativas em modo AUTOMATIC (spec §27/§28) — sem esperar horário fixo.
- * 4. Publica automaticamente as Publication já aprovadas e com horário vencido.
+ * 3. Publica o post periódico de convite pros grupos (Telegram/WhatsApp) na Página do Facebook, a cada 7 dias por projeto.
+ * 4. Roda as AutopilotRule ativas em modo AUTOMATIC (spec §27/§28) — sem esperar horário fixo.
+ * 5. Publica automaticamente as Publication já aprovadas e com horário vencido.
  */
 export async function schedulerTick(): Promise<void> {
   const now = new Date();
   const hhmm = currentTimeHHmm();
 
   await maybeRunDailyDiscovery(now);
+  await maybeRunGroupInvitePosts();
   await runDuePublishJobs(now);
 
   const dueSlots = await prisma.scheduleSlot.findMany({ where: { active: true, time: hhmm } });
