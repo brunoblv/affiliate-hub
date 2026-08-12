@@ -16,7 +16,12 @@ export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
-    include: { category: true, scores: { orderBy: { calculatedAt: "desc" }, take: 1 } },
+    include: {
+      category: true,
+      scores: { orderBy: { calculatedAt: "desc" }, take: 1 },
+      sources: { select: { affiliateUrl: true } },
+      affiliateLinks: { select: { id: true } },
+    },
   });
 
   return (
@@ -52,6 +57,7 @@ export default async function ProductsPage() {
               <TableHead className="text-right">Desconto</TableHead>
               <TableHead className="text-right">Score</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Afiliado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -75,6 +81,13 @@ export default async function ProductsPage() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={p.status === "ACTIVE" ? "default" : "secondary"}>{p.status}</Badge>
+                </TableCell>
+                <TableCell>
+                  {p.affiliateLinks.length > 0 || p.sources.some((s) => !!s.affiliateUrl) ? (
+                    <Badge variant="default">Sim</Badge>
+                  ) : (
+                    <Badge variant="destructive">Não</Badge>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
