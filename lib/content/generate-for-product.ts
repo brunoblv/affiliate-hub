@@ -3,6 +3,7 @@ import { generateContent } from "@/lib/ai";
 import { logger } from "@/lib/logging";
 import { Channel, ContentStatus } from "@/lib/generated/prisma/client";
 import { CHANNEL_TO_CONTENT_TYPE } from "./channel-map";
+import { marketplaceLabel } from "./product-post";
 
 export interface GenerateContentForProductOptions {
   productId: string;
@@ -31,6 +32,7 @@ export async function generateContentForProduct(options: GenerateContentForProdu
       soldCount: product.soldCount ?? undefined,
     },
     channel,
+    marketplace: marketplaceLabel(product.source),
   });
 
   const content = await prisma.content.create({

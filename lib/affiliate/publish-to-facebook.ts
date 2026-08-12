@@ -13,6 +13,7 @@ import {
   type Product,
 } from "@/lib/generated/prisma/client";
 import { toProductFacts } from "./product-facts";
+import { marketplaceLabel } from "@/lib/content/product-post";
 
 export interface PublishToFacebookResult {
   pagePublished: number;
@@ -51,8 +52,13 @@ export async function publishToFacebook(product: Product, link: AffiliateLink): 
   }
 
   const trackedUrl = `${getSiteUrl()}/go/${link.shortCode}`;
-  const generated = await generateContent({ product: toProductFacts(product), channel: Channel.FACEBOOK });
-  const caption = `${generated.headline}\n\n${generated.description}\n\n👉 ${generated.cta}\n${trackedUrl}`;
+  const generated = await generateContent({
+    product: toProductFacts(product),
+    channel: Channel.FACEBOOK,
+    marketplace: marketplaceLabel(product.source),
+    affiliateUrl: trackedUrl,
+  });
+  const caption = generated.variations[0];
 
   const content = await prisma.content.create({
     data: {

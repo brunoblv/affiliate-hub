@@ -6,6 +6,7 @@ export const CHANNEL_TO_CONTENT_TYPE: Record<Channel, ContentType> = {
   INSTAGRAM: ContentType.INSTAGRAM_POST,
   TIKTOK: ContentType.TIKTOK_VIDEO,
   TELEGRAM: ContentType.TELEGRAM_POST,
+  WHATSAPP: ContentType.WHATSAPP_POST,
   WEBSITE: ContentType.BLOG_ARTICLE,
   BLOG: ContentType.BLOG_ARTICLE,
   PINTEREST: ContentType.INSTAGRAM_POST,
@@ -20,5 +21,6 @@ export const CONTENT_TYPE_TO_CHANNEL: Record<ContentType, Channel> = {
   INSTAGRAM_REEL: Channel.INSTAGRAM,
   TIKTOK_VIDEO: Channel.TIKTOK,
   TELEGRAM_POST: Channel.TELEGRAM,
+  WHATSAPP_POST: Channel.WHATSAPP,
   BLOG_ARTICLE: Channel.BLOG,
 };

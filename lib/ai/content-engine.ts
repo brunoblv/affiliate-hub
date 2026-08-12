@@ -1,5 +1,7 @@
 import { Channel } from "@/lib/generated/prisma/client";
 import { logger } from "@/lib/logging";
+import { buildProductPostData, type PostType, type UrgencyLevel } from "@/lib/content/product-post";
+import { formatForChannel } from "@/lib/content/channel-formatters";
 
 /** Dados factuais do produto — a IA não pode inventar nada além disto (spec §16). */
 export interface ProductFacts {
@@ -15,6 +17,16 @@ export interface ProductFacts {
 export interface ContentGenerationInput {
   product: ProductFacts;
   channel: Channel;
+  /** Nome de exibição da plataforma de origem (ex: "Mercado Livre") — usado pelo layout multicanal. */
+  marketplace?: string;
+  /** Link de afiliado já rastreado; se ausente, o texto usa o placeholder "[LINK]" do template. */
+  affiliateUrl?: string;
+  /** 1-3 frases sobre por que o produto interessa; se ausente, a linha é omitida (nunca inventada). */
+  shortDescription?: string;
+  /** Até 3 características já confirmadas do produto. */
+  benefits?: string[];
+  postType?: PostType;
+  urgencyLevel?: UrgencyLevel;
 }
 
 export interface ContentGenerationOutput {
@@ -27,62 +39,47 @@ export interface ContentGenerationOutput {
   approachSuggestion: string;
 }
 
-const CTAS_BY_CHANNEL: Record<Channel, string> = {
-  FACEBOOK: "Garanta o seu agora 👉",
-  INSTAGRAM: "Corre que acaba 🔥",
-  TIKTOK: "Link na bio 🚀",
-  TELEGRAM: "Aproveite antes que acabe 👇",
-  WEBSITE: "Ver oferta",
-  BLOG: "Confira a oferta completa",
-  PINTEREST: "Salve e aproveite",
-  OUTROS: "Saiba mais",
-};
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
 /**
  * Gera conteúdo determinístico a partir de fatos do produto (fallback local,
- * sem depender de um provider de IA externo). Serve de base para o formato
- * de saída esperado quando um provider de IA real for conectado.
+ * sem depender de um provider de IA externo), seguindo o layout multicanal de
+ * docs/template-multicanal-posts-achadinhos.md (lib/content/product-post.ts +
+ * lib/content/channel-formatters.ts): ordem FOTO → TIPO → NOME → PREÇO →
+ * DESCONTO → DESCRIÇÃO → BENEFÍCIOS → CTA → LINK → DISCLOSURE, adaptada por
+ * canal.
  *
- * Regra fundamental: nenhum dado (preço, desconto, avaliação, vendas) pode
- * ser inventado — tudo deve vir de `input.product`.
+ * Regra fundamental: nenhum dado (preço, desconto, avaliação, vendas,
+ * benefício) pode ser inventado — tudo deve vir de `input`.
  */
 export async function generateContent(input: ContentGenerationInput): Promise<ContentGenerationOutput> {
   const { product, channel } = input;
-  const cta = CTAS_BY_CHANNEL[channel];
 
-  const discountLine =
-    product.discountPercent && product.originalPrice
-      ? `De ${formatCurrency(product.originalPrice)} por ${formatCurrency(product.price)} (${product.discountPercent}% OFF)`
-      : `Por ${formatCurrency(product.price)}`;
+  const postData = buildProductPostData({
+    product,
+    marketplace: input.marketplace ?? "",
+    shortDescription: input.shortDescription,
+    benefits: input.benefits,
+    postType: input.postType,
+    urgencyLevel: input.urgencyLevel,
+  });
 
-  const ratingLine = product.rating ? `⭐ ${product.rating.toFixed(1)}${product.reviewCount ? ` (${product.reviewCount} avaliações)` : ""}` : undefined;
-  const salesLine = product.soldCount ? `${product.soldCount.toLocaleString("pt-BR")} vendidos` : undefined;
+  const channelPost = formatForChannel(channel, postData, input.affiliateUrl);
 
-  const descriptionLines = [discountLine, ratingLine, salesLine].filter(Boolean);
+  const hashtags = ["#oferta", "#achadinho"];
+  if (postData.postType === "PROMOTION" || postData.postType === "FLASH_DEAL" || postData.postType === "PRICE_DROP") {
+    hashtags.push("#promocao");
+  }
 
-  const headline = `🔥 ${product.name}`;
-  const description = descriptionLines.join("\n");
+  const altVariation = `Olha essa oferta: ${product.name}!\n${channelPost.body}\n${channelPost.cta}`;
 
-  const hashtags = ["#oferta", "#promocao", "#achadinho"];
-
-  const variations = [
-    `${headline}\n\n${description}\n\n${cta}`,
-    `Olha essa oferta: ${product.name}!\n${discountLine}\n${cta}`,
-  ];
-
-  logger.debug("CONTENT", "Conteúdo gerado (engine local)", { product: product.name, channel });
+  logger.debug("CONTENT", "Conteúdo gerado (engine local)", { product: product.name, channel, postType: postData.postType });
 
   return {
-    headline,
-    description,
-    cta,
+    headline: channelPost.headline,
+    description: channelPost.body,
+    cta: channelPost.cta,
     hashtags,
-    variations,
+    variations: [channelPost.fullText, altVariation],
     titleSuggestion: product.name,
-    approachSuggestion: product.discountPercent && product.discountPercent >= 30 ? "Destacar desconto" : "Destacar benefício/uso",
+    approachSuggestion: postData.discountPercent && postData.discountPercent >= 30 ? "Destacar desconto" : "Destacar benefício/uso",
   };
 }

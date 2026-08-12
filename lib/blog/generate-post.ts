@@ -3,6 +3,7 @@ import { generateContent } from "@/lib/ai";
 import { logger } from "@/lib/logging";
 import { Channel, type Product } from "@/lib/generated/prisma/client";
 import { toProductFacts } from "@/lib/affiliate/product-facts";
+import { marketplaceLabel } from "@/lib/content/product-post";
 
 function slugify(value: string): string {
   return value
@@ -30,7 +31,12 @@ export async function generateAutoBlogPost(product: Product, trackedUrl: string)
   const existing = await prisma.blogPost.findFirst({ where: { productId: product.id, source: { not: "MANUAL" } } });
   if (existing) return existing;
 
-  const generated = await generateContent({ product: toProductFacts(product), channel: Channel.BLOG });
+  const generated = await generateContent({
+    product: toProductFacts(product),
+    channel: Channel.BLOG,
+    marketplace: marketplaceLabel(product.source),
+    affiliateUrl: trackedUrl,
+  });
 
   const isPromotion = (product.discountPercent ? Number(product.discountPercent) : 0) >= 20;
   const title = isPromotion
