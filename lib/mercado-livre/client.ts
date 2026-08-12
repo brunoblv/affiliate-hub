@@ -53,6 +53,8 @@ interface MLCatalogProductResponse {
   id: string;
   name: string;
   pictures?: Array<{ url: string }>;
+  attributes?: Array<{ id: string; value_name?: string | null }>;
+  short_description?: { content?: string } | null;
 }
 
 function toNormalizedProduct(item: MLSearchResponse["results"][number] | MLItem): NormalizedProduct {
@@ -137,12 +139,33 @@ export class MercadoLivreClient implements AffiliatePlatformClient {
     );
   }
 
-  /** Nome + imagem do produto de catálogo — usado junto com getItemPriceViaCatalog() para refrescar dados de itens de terceiros. */
-  async getCatalogProductInfo(catalogProductId: string): Promise<{ name: string; imageUrl?: string } | null> {
+  /** Nome + imagem + marca do produto de catálogo — usado junto com getItemPriceViaCatalog() para refrescar dados de itens de terceiros. */
+  async getCatalogProductInfo(
+    catalogProductId: string,
+  ): Promise<{ name: string; imageUrl?: string; brand?: string; description?: string } | null> {
     return rateLimiter.acquire().then(() =>
       withRetry(async () => {
         const product = await mercadoLivreRequest<MLCatalogProductResponse>(`/products/${catalogProductId}`);
-        return { name: product.name, imageUrl: product.pictures?.[0]?.url };
+        return {
+          name: product.name,
+          imageUrl: product.pictures?.[0]?.url,
+          brand: product.attributes?.find((a) => a.id === "BRAND")?.value_name ?? undefined,
+          description: product.short_description?.content || undefined,
+        };
+      }),
+    );
+  }
+
+  /** Lista os anúncios (com preço) de um produto de catálogo — usado para escolher um item ao cadastrar um produto novo a partir do código/URL do Mercado Livre. */
+  async listCatalogItems(catalogProductId: string): Promise<Array<{ itemId: string; price: number; originalPrice?: number }>> {
+    return rateLimiter.acquire().then(() =>
+      withRetry(async () => {
+        const data = await mercadoLivreRequest<MLCatalogItemsResponse>(`/products/${catalogProductId}/items`);
+        return data.results.map((result) => ({
+          itemId: result.item_id,
+          price: result.price,
+          originalPrice: result.original_price ?? undefined,
+        }));
       }),
     );
   }

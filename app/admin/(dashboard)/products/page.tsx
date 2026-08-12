@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Plus, Upload } from "lucide-react";
+import { Package, Plus, ShoppingBag, Upload } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -29,6 +29,10 @@ export default async function ProductsPage() {
       <div className="flex items-center justify-between">
         <PageHeader title="Produtos" description="Produtos importados das plataformas de afiliados" />
         <div className="flex gap-2">
+          <Link href="/admin/products/import-mercado-livre" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            <ShoppingBag />
+            Importar Mercado Livre
+          </Link>
           <Link href="/admin/products/import" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             <Upload />
             Importar CSV
