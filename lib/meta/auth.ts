@@ -92,10 +92,16 @@ export async function exchangeToLongLivedUserToken(
   const longLived = (await longLivedResponse.json()) as GraphTokenResponse & { error?: { message: string } };
 
   if (!longLivedResponse.ok || !longLived.access_token) {
-    logger.warn("PUBLISH", "Meta: não foi possível estender o user token; seguindo com o token atual", {
+    logger.error("PUBLISH", "Meta: falha ao estender o user token para long-lived", {
       error: longLived.error?.message,
     });
-    return { accessToken: userAccessToken, expiresInSeconds: 60 * 24 * 60 * 60 };
+    // Não fingir 60 dias de validade aqui: se a troca falhar, o token original
+    // segue com a expiração curta que já tinha (minutos/horas) — assumir 60
+    // dias faria o sistema salvar Page Access Tokens fadados a expirar em
+    // horas, com o banco dizendo que valem por meses.
+    throw new Error(
+      `Meta: não foi possível gerar um user token long-lived (${longLived.error?.message ?? longLivedResponse.statusText}). Gere um META_USER_TOKEN novo e tente de novo.`,
+    );
   }
 
   return {
