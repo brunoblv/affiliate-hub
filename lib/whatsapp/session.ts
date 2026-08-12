@@ -1,5 +1,5 @@
 import path from "node:path";
-import makeWASocket, { useMultiFileAuthState, DisconnectReason, type WASocket } from "@whiskeysockets/baileys";
+import type { WASocket } from "@whiskeysockets/baileys";
 import { logger } from "@/lib/logging";
 
 const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".whatsapp-auth");
@@ -9,6 +9,9 @@ let socketPromise: Promise<WASocket> | null = null;
 function connect(): Promise<WASocket> {
   return new Promise((resolve, reject) => {
     void (async () => {
+      // Import dinâmico: página/rota que nunca publica no WhatsApp não deve
+      // precisar que o Baileys esteja resolvível (biblioteca pesada/não-oficial).
+      const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = await import("@whiskeysockets/baileys");
       const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
       const sock = makeWASocket({ auth: state, printQRInTerminal: false });
 
