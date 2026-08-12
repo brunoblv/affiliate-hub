@@ -79,7 +79,7 @@ async function main() {
 
     if (!connectedIds.has(page.pageId)) {
       console.warn(
-        `  ⚠ Página ${page.pageId} ainda NÃO está nas credenciais Meta. Rode npm run meta:bootstrap com um user token que administre essa página.`,
+        `  ⚠ Página ${page.pageId} ainda sem Page Access Token. Defina META_USER_TOKEN no .env (admin dessa página) — a publicação carrega sozinha na primeira vez.`,
       );
     } else {
       const metaName = tokens?.pages.find((p) => p.id === page.pageId)?.name;

@@ -79,16 +79,19 @@ export default async function AutomationCenterPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-2 pt-6 text-sm">
-            <StatusDot ok={Boolean(metaTokens)} />
-            Facebook {metaTokens ? "conectado" : "não conectado"}
+            <StatusDot ok={Boolean(metaTokens?.pages.length)} />
+            Facebook {metaTokens?.pages.length ? "pronto" : "pendente"}
           </CardContent>
         </Card>
       </div>
 
-      {(!mlTokens || !tiktokTokens || !metaTokens) && (
+      {(!mlTokens || !tiktokTokens || !metaTokens?.pages.length) && (
         <p className="text-sm text-muted-foreground">
-          Conecte as contas pendentes em <Link href="/admin/integrations" className="underline">Integrações</Link> para a
-          descoberta e publicação funcionarem automaticamente.
+          Contas pendentes: TikTok/ML em{" "}
+          <Link href="/admin/integrations" className="underline">
+            Integrações
+          </Link>
+          ; Facebook com META_USER_TOKEN no .env (sem conectar no browser).
         </p>
       )}
 

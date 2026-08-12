@@ -74,6 +74,37 @@ export async function fetchConnectedPages(userAccessToken: string): Promise<Meta
 }
 
 /**
+ * Converte um user token (curto ou já long-lived) em long-lived (~60 dias).
+ * Se a troca falhar (token já long-lived / app em modo dev), devolve o original.
+ */
+export async function exchangeToLongLivedUserToken(
+  userAccessToken: string,
+): Promise<{ accessToken: string; expiresInSeconds: number }> {
+  const { appId, appSecret } = requireCredentials();
+
+  const longLivedUrl = new URL(`${GRAPH_API_BASE_URL}/oauth/access_token`);
+  longLivedUrl.searchParams.set("grant_type", "fb_exchange_token");
+  longLivedUrl.searchParams.set("client_id", appId);
+  longLivedUrl.searchParams.set("client_secret", appSecret);
+  longLivedUrl.searchParams.set("fb_exchange_token", userAccessToken);
+
+  const longLivedResponse = await fetch(longLivedUrl);
+  const longLived = (await longLivedResponse.json()) as GraphTokenResponse & { error?: { message: string } };
+
+  if (!longLivedResponse.ok || !longLived.access_token) {
+    logger.warn("PUBLISH", "Meta: não foi possível estender o user token; seguindo com o token atual", {
+      error: longLived.error?.message,
+    });
+    return { accessToken: userAccessToken, expiresInSeconds: 60 * 24 * 60 * 60 };
+  }
+
+  return {
+    accessToken: longLived.access_token,
+    expiresInSeconds: longLived.expires_in ?? 60 * 24 * 60 * 60,
+  };
+}
+
+/**
  * Troca o `code` do callback por um token de curta duração, converte para
  * long-lived (~60 dias) e busca as Páginas conectadas (com seus tokens
  * próprios e a conta do Instagram vinculada, quando houver).
@@ -95,25 +126,12 @@ export async function exchangeMetaAuthCode(code: string, redirectUri: string): P
     throw new Error(`Meta token exchange falhou: ${shortLived.error?.message ?? shortLivedResponse.statusText}`);
   }
 
-  const longLivedUrl = new URL(`${GRAPH_API_BASE_URL}/oauth/access_token`);
-  longLivedUrl.searchParams.set("grant_type", "fb_exchange_token");
-  longLivedUrl.searchParams.set("client_id", appId);
-  longLivedUrl.searchParams.set("client_secret", appSecret);
-  longLivedUrl.searchParams.set("fb_exchange_token", shortLived.access_token);
-
-  const longLivedResponse = await fetch(longLivedUrl);
-  const longLived = (await longLivedResponse.json()) as GraphTokenResponse & { error?: { message: string } };
-
-  if (!longLivedResponse.ok || !longLived.access_token) {
-    logger.error("PUBLISH", "Meta: falha ao gerar long-lived token", { error: longLived.error });
-    throw new Error(`Meta long-lived token falhou: ${longLived.error?.message ?? longLivedResponse.statusText}`);
-  }
-
-  const pages = await fetchConnectedPages(longLived.access_token);
+  const longLived = await exchangeToLongLivedUserToken(shortLived.access_token);
+  const pages = await fetchConnectedPages(longLived.accessToken);
 
   const tokens: MetaTokenSet = {
-    userAccessToken: longLived.access_token,
-    userAccessTokenExpireAt: Date.now() + (longLived.expires_in ?? 60 * 24 * 60 * 60) * 1000,
+    userAccessToken: longLived.accessToken,
+    userAccessTokenExpireAt: Date.now() + longLived.expiresInSeconds * 1000,
     pages,
   };
 

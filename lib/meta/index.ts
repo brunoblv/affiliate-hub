@@ -7,3 +7,5 @@ export {
   getMetaPageByPageId,
 } from "./credentials";
 export type { MetaPage, MetaTokenSet } from "./credentials";
+export { ensureMetaPagesFromEnv } from "./ensure-from-env";
+export { metaUserTokenConfigured, readMetaUserTokenFromEnv } from "./user-token-env";

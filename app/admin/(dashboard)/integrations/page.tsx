@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getTikTokTokens } from "@/lib/tiktok/credentials";
-import { getMetaTokens } from "@/lib/meta/credentials";
+import { ensureMetaPagesFromEnv, getMetaTokens } from "@/lib/meta";
+import { metaUserTokenConfigured } from "@/lib/meta/user-token-env";
 import { getMercadoLivreTokens } from "@/lib/mercado-livre/credentials";
 
 const INTEGRATIONS = [
@@ -26,7 +27,12 @@ export default async function IntegrationsPage({
   const tiktokTokens = tiktokConfigured ? await getTikTokTokens() : null;
 
   const metaConfigured = Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
-  const metaTokens = metaConfigured ? await getMetaTokens() : null;
+  const metaEnvToken = metaUserTokenConfigured();
+  // Com META_USER_TOKEN, as páginas sobem sozinhas (sem botão Conectar).
+  const metaTokens = metaConfigured
+    ? ((metaEnvToken ? await ensureMetaPagesFromEnv() : null) ?? (await getMetaTokens()))
+    : null;
+  const metaReady = Boolean(metaTokens?.pages.length);
 
   const mlConfigured = Boolean(process.env.MERCADOLIVRE_CLIENT_ID && process.env.MERCADOLIVRE_CLIENT_SECRET);
   const mlTokens = mlConfigured ? await getMercadoLivreTokens() : null;
@@ -96,24 +102,38 @@ export default async function IntegrationsPage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Meta (Facebook / Instagram)</CardTitle>
-            <Badge variant={metaTokens ? "default" : "outline"}>
-              {metaTokens ? "Conectado" : metaConfigured ? "Chaves ok, conta não conectada" : "Pendente"}
+            <Badge variant={metaReady ? "default" : "outline"}>
+              {metaReady
+                ? metaEnvToken
+                  ? "Pronto via .env"
+                  : "Pronto"
+                : metaConfigured
+                  ? metaEnvToken
+                    ? "Token no .env, páginas pendentes"
+                    : "Falta META_USER_TOKEN"
+                  : "Pendente"}
             </Badge>
           </CardHeader>
           <CardContent className="space-y-3 text-xs text-muted-foreground">
-            <p>META_APP_ID, META_APP_SECRET</p>
-            {metaTokens && <p>{metaTokens.pages.length} página(s) em meta_facebook_pages</p>}
+            <p>META_APP_ID, META_APP_SECRET, META_USER_TOKEN</p>
+            <p>Páginas publicam com o token do .env. Não é necessário clicar em Conectar.</p>
+            {metaReady && <p>{metaTokens!.pages.length} página(s) pronta(s)</p>}
             {metaTokens?.pages.map((page) => (
               <p key={page.id}>
                 {page.name}: {page.id}
               </p>
             ))}
-            {metaConfigured && (
+            {metaConfigured && !metaEnvToken && (
+              <p className="text-destructive">
+                Defina META_USER_TOKEN no .env (user token de um admin das Páginas).
+              </p>
+            )}
+            {metaConfigured && !metaEnvToken && (
               <Link
                 href="/api/integrations/meta/authorize"
-                className={cn(buttonVariants({ variant: metaTokens ? "outline" : "default", size: "sm" }))}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
               >
-                {metaTokens ? "Reconectar conta" : "Conectar Meta"}
+                Alternativa: OAuth no browser
               </Link>
             )}
           </CardContent>

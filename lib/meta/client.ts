@@ -11,6 +11,8 @@ import {
 import { graphRequest } from "./request";
 import { GRAPH_API_BASE_URL } from "./graph-version";
 import { fetchConnectedPages } from "./auth";
+import { ensureMetaPagesFromEnv } from "./ensure-from-env";
+import { metaUserTokenConfigured } from "./user-token-env";
 
 const APP_ID = process.env.META_APP_ID;
 const APP_SECRET = process.env.META_APP_SECRET;
@@ -25,18 +27,31 @@ export interface MetaPostPayload {
 }
 
 async function requirePage(pageId: string): Promise<MetaPage> {
-  const page = await getMetaPageByPageId(pageId);
+  let page = await getMetaPageByPageId(pageId);
+  if (!page && metaUserTokenConfigured()) {
+    await ensureMetaPagesFromEnv({ pageId });
+    page = await getMetaPageByPageId(pageId);
+  }
   if (!page) {
-    throw new Error(`Página ${pageId} não encontrada em meta_facebook_pages. Rode npm run meta:bootstrap ou reconecte em /admin/integrations.`);
+    throw new Error(
+      `Página ${pageId} sem Page Access Token. Defina META_USER_TOKEN no .env (admin da página) ou rode npm run meta:bootstrap.`,
+    );
   }
   return page;
 }
 
 async function requirePageByInstagramAccount(igUserId: string): Promise<MetaPage> {
-  const pages = await listActiveMetaPages();
-  const page = pages.find((p) => p.instagramBusinessAccountId === igUserId);
+  let pages = await listActiveMetaPages();
+  let page = pages.find((p) => p.instagramBusinessAccountId === igUserId);
+  if (!page && metaUserTokenConfigured()) {
+    await ensureMetaPagesFromEnv();
+    pages = await listActiveMetaPages();
+    page = pages.find((p) => p.instagramBusinessAccountId === igUserId);
+  }
   if (!page) {
-    throw new Error(`Conta Instagram ${igUserId} não encontrada em meta_facebook_pages. Reconecte a conta Meta.`);
+    throw new Error(
+      `Conta Instagram ${igUserId} não encontrada. Defina META_USER_TOKEN de um admin com Página + IG Business.`,
+    );
   }
   return page;
 }
@@ -52,9 +67,11 @@ export class MetaClient {
       throw new Error("META_APP_ID / META_APP_SECRET não configurados.");
     }
 
-    const tokens = await getMetaTokens();
-    if (!tokens) {
-      throw new Error("Nenhuma conta Meta conectada. Acesse /admin/integrations e conecte a conta antes de publicar.");
+    const tokens = (await ensureMetaPagesFromEnv()) ?? (await getMetaTokens());
+    if (!tokens?.pages.length) {
+      throw new Error(
+        "Nenhuma Página do Facebook pronta. Defina META_USER_TOKEN no .env (usuário admin das páginas) — não é necessário conectar pelo navegador.",
+      );
     }
 
     logger.info("PUBLISH", "Meta: credenciais válidas", { pageCount: tokens.pages.length });
@@ -156,20 +173,23 @@ export class MetaClient {
     );
   }
 
-  /**
-   * Estende a validade do token de usuário atual (o token long-lived pode
-   * ser trocado por um novo antes de expirar; Meta não oferece um "refresh
-   * token" tradicional — passados ~60 dias sem uso, é preciso reconectar
-   * via OAuth novamente em /admin/integrations).
-   */
   async refreshToken(): Promise<void> {
     if (!APP_ID || !APP_SECRET) {
       throw new Error("META_APP_ID / META_APP_SECRET não configurados.");
     }
 
+    // Preferir renovar a partir do .env: não depende de OAuth no browser.
+    const fromEnv = await ensureMetaPagesFromEnv({ force: true });
+    if (fromEnv?.pages.length) {
+      logger.info("PUBLISH", "Meta: páginas renovadas via META_USER_TOKEN");
+      return;
+    }
+
     const tokens = await getMetaTokens();
-    if (!tokens) {
-      throw new Error("Nenhuma conta Meta conectada.");
+    if (!tokens?.userAccessToken) {
+      throw new Error(
+        "Nenhum META_USER_TOKEN no .env e nenhum user token salvo. Defina META_USER_TOKEN para renovar.",
+      );
     }
 
     const url = new URL(`${GRAPH_API_BASE_URL}/oauth/access_token`);
@@ -183,7 +203,9 @@ export class MetaClient {
 
     if (!response.ok || !json.access_token) {
       logger.error("PUBLISH", "Meta: falha ao renovar token", { error: json.error });
-      throw new Error(`Meta: falha ao renovar token — reconecte em /admin/integrations. (${json.error?.message ?? response.statusText})`);
+      throw new Error(
+        `Meta: falha ao renovar token. Atualize META_USER_TOKEN no .env. (${json.error?.message ?? response.statusText})`,
+      );
     }
 
     const pages = await fetchConnectedPages(json.access_token);

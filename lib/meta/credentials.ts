@@ -91,16 +91,24 @@ export async function saveMetaTokens(tokens: MetaTokenSet): Promise<void> {
 }
 
 export async function getMetaTokens(): Promise<MetaTokenSet | null> {
+  const pages = await listActiveMetaPages();
   const record = await prisma.integrationCredential.findUnique({
     where: { provider_label: { provider: IntegrationProvider.META, label: LABEL } },
   });
 
-  if (!record?.active) return null;
+  // Páginas sozinhas bastam para publicar (Page Access Token). O blob do
+  // user token só é necessário para refresh / listar contas novas.
+  if (!record?.active) {
+    if (pages.length === 0) return null;
+    return {
+      userAccessToken: "",
+      userAccessTokenExpireAt: 0,
+      pages,
+    };
+  }
 
   const tokens = decryptJson<MetaTokenSet>(record.encryptedPayload);
-  const pages = await listActiveMetaPages();
 
-  // Preferir a tabela de páginas quando houver registros; senão, fallback do blob legado.
   return {
     ...tokens,
     pages: pages.length > 0 ? pages : tokens.pages,
