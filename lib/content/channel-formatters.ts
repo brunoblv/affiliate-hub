@@ -8,6 +8,8 @@ import {
   openingFor,
   TELEGRAM_GROUP_LINK,
   TELEGRAM_TIKTOK_SHOP_GROUP_LINK,
+  WHATSAPP_GROUP_LINK,
+  WHATSAPP_TIKTOK_SHOP_GROUP_LINK,
 } from "./product-post";
 
 /**
@@ -42,11 +44,17 @@ function linkLine(affiliateUrl?: string): string {
   return affiliateUrl || LINK_PLACEHOLDER;
 }
 
-/** Rodapé de divulgação dos grupos do Telegram — só entra em Facebook/Instagram. O link do TikTok Shop só aparece para produtos dessa origem. */
+/** Rodapé de divulgação dos grupos do Telegram/WhatsApp — só entra em Facebook/Instagram. Os links exclusivos do TikTok Shop só aparecem para produtos dessa origem. */
 function telegramGroupFooter(data: ProductPostData): string[] {
-  const lines = [`📢 Entre no nosso grupo do Telegram: ${TELEGRAM_GROUP_LINK}`];
+  const lines = [
+    `📢 Entre no nosso grupo do Telegram: ${TELEGRAM_GROUP_LINK}`,
+    `📱 Entre no nosso grupo do WhatsApp: ${WHATSAPP_GROUP_LINK}`,
+  ];
   if (data.isTikTokShop) {
-    lines.push(`🛒 Ofertas exclusivas do TikTok Shop: ${TELEGRAM_TIKTOK_SHOP_GROUP_LINK}`);
+    lines.push(
+      `🛒 Ofertas exclusivas do TikTok Shop no Telegram: ${TELEGRAM_TIKTOK_SHOP_GROUP_LINK}`,
+      `🛒 Ofertas exclusivas do TikTok Shop no WhatsApp: ${WHATSAPP_TIKTOK_SHOP_GROUP_LINK}`,
+    );
   }
   return lines;
 }

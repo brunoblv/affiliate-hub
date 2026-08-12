@@ -31,9 +31,11 @@ export interface ProductPostData {
   disclosureShort: string;
 }
 
-/** Links dos grupos do Telegram divulgados no rodapé dos posts de Facebook/Instagram. */
+/** Links dos grupos do Telegram/WhatsApp divulgados no rodapé dos posts de Facebook/Instagram. */
 export const TELEGRAM_GROUP_LINK = "https://t.me/achadinhosblv";
 export const TELEGRAM_TIKTOK_SHOP_GROUP_LINK = "https://t.me/tiktokshopblv";
+export const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/FSmQRi2MNq5DlcP7jHodo1";
+export const WHATSAPP_TIKTOK_SHOP_GROUP_LINK = "https://chat.whatsapp.com/Lh85h35ok92IahiGoO5NVZ";
 
 export const DISCLOSURE_FULL =
   "*Link de afiliado. Podemos receber uma comissão se você realizar uma compra através deste link, sem custo adicional para você.";
