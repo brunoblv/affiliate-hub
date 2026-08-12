@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Perfil Playwright (cookies após Security Check)
 /.playwright
+
+# Sessão do WhatsApp (Baileys) — credenciais de login, nunca versionar
+/.whatsapp-auth

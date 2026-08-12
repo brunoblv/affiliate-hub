@@ -74,6 +74,14 @@ export default async function ProjectChannelsPage({ params }: { params: Promise<
               <Input id="externalPageId" name="externalPageId" placeholder="Obrigatório para publicar automaticamente" />
             </div>
             <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="externalChatId">Chat ID (Telegram) / JID do grupo (WhatsApp)</Label>
+              <Input
+                id="externalChatId"
+                name="externalChatId"
+                placeholder="Telegram: npm run telegram:get-chat-id · WhatsApp: npm run whatsapp:login"
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="url">URL</Label>
               <Input id="url" name="url" type="url" />
             </div>
@@ -104,8 +112,10 @@ export default async function ProjectChannelsPage({ params }: { params: Promise<
             </div>
           </form>
           <p className="mt-3 text-xs text-muted-foreground">
-            Página do Facebook: publicação automática via API (requer o ID da Página). Grupo público: entra na Central de
-            Grupos em fluxo assistido — o sistema não publica em grupos via API. Grupos privados não podem ser cadastrados.
+            Página do Facebook: publicação automática via API (requer o ID da Página). Grupo público do Facebook: entra na
+            Central de Grupos em fluxo assistido — o sistema não publica em grupos via API. Telegram e WhatsApp: publicação
+            automática direta (requer o Chat ID / JID do grupo — veja <code>npm run telegram:get-chat-id</code> e{" "}
+            <code>npm run whatsapp:login</code>). Grupos privados não podem ser cadastrados.
           </p>
         </CardContent>
       </Card>
@@ -126,8 +136,11 @@ export default async function ProjectChannelsPage({ params }: { params: Promise<
                   <p>
                     {c.platform} · {TYPE_LABEL[c.type]}
                   </p>
-                  {c.type === "PUBLIC_PAGE" && (
+                  {c.platform === "FACEBOOK" && c.type === "PUBLIC_PAGE" && (
                     <p className="text-xs">{c.externalPageId ? `Page ID: ${c.externalPageId}` : "⚠️ sem Page ID"}</p>
+                  )}
+                  {(c.platform === "TELEGRAM" || c.platform === "WHATSAPP") && (
+                    <p className="text-xs">{c.externalChatId ? `Chat ID: ${c.externalChatId}` : "⚠️ sem Chat ID / JID"}</p>
                   )}
                   <p className="text-xs">Cooldown: {c.cooldownDays}d</p>
                   {c.notes && <p className="text-xs">{c.notes}</p>}

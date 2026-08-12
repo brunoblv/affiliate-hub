@@ -163,6 +163,12 @@ model ProjectChannel {
    */
   externalPageId String?
 
+  /**
+   * Identificador do destino para canais de grupo com API de envio direto:
+   * chat_id do Telegram (Bot API) ou JID do grupo do WhatsApp (Baileys).
+   */
+  externalChatId String?
+
   allowOffers     Boolean   @default(true)
   allowLinks      Boolean   @default(true)
   /**

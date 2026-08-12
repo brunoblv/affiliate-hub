@@ -163,6 +163,12 @@ export async function createAffiliateLinkAction(productId: string, formData: For
   if (channel === Channel.FACEBOOK) {
     const { attachAffiliateLinkAndPublish } = await import("@/lib/affiliate/attach-link");
     await attachAffiliateLinkAndPublish({ productId, affiliateUrl, subId });
+  } else if (channel === Channel.TELEGRAM || channel === Channel.WHATSAPP) {
+    const link = await prisma.affiliateLink.create({
+      data: { productId, platform: product.source, channel, affiliateUrl, subId },
+    });
+    const { publishToChannelGroups } = await import("@/lib/affiliate/publish-to-channel-group");
+    await publishToChannelGroups(product, link, channel);
   } else {
     await prisma.affiliateLink.create({
       data: { productId, platform: product.source, channel, affiliateUrl, subId },
