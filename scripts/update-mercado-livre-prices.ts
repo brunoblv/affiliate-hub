@@ -1,13 +1,14 @@
 /**
- * Atualiza o preço dos produtos Mercado Livre (source = MERCADO_LIVRE, status ACTIVE)
- * e grava um snapshot em ProductPriceHistory sempre que o preço mudar.
+ * Atualiza preço, nome e imagem dos produtos Mercado Livre (source = MERCADO_LIVRE,
+ * status ACTIVE) e grava um snapshot em ProductPriceHistory sempre que o preço mudar.
  *
  * `/items/{id}` (API de Itens) retorna 403 para anúncios que não pertencem à
  * conta autenticada — só dá acesso pleno aos próprios anúncios do usuário
  * conectado. Como produtos de afiliados são de terceiros, usamos a API de
- * Catálogo (`/products/{catalogProductId}/items`), que lista os anúncios (com
- * preço) de um produto de catálogo sem essa restrição. O catalogProductId é
- * extraído da productUrl salva (padrão .../p/MLB...).
+ * Catálogo: `/products/{catalogProductId}` (nome + imagem) e
+ * `/products/{catalogProductId}/items` (preço do anúncio), sem essa
+ * restrição. O catalogProductId é extraído da productUrl salva (padrão
+ * .../p/MLB...).
  *
  * Uso (na pasta Sistema-afiliados):
  *   npx tsx scripts/update-mercado-livre-prices.ts
@@ -26,7 +27,7 @@ async function main() {
 
   const products = await prisma.product.findMany({
     where: { source: "MERCADO_LIVRE", status: "ACTIVE" },
-    select: { id: true, externalId: true, name: true, price: true, originalPrice: true, productUrl: true },
+    select: { id: true, externalId: true, name: true, price: true, originalPrice: true, productUrl: true, imageUrl: true },
   });
 
   console.log(`${products.length} produtos Mercado Livre ativos encontrados.`);
@@ -43,33 +44,50 @@ async function main() {
         continue;
       }
 
-      const fresh = await mercadoLivreClient.getItemPriceViaCatalog(catalogProductId, product.externalId);
+      const [freshPrice, freshInfo] = await Promise.all([
+        mercadoLivreClient.getItemPriceViaCatalog(catalogProductId, product.externalId),
+        mercadoLivreClient.getCatalogProductInfo(catalogProductId),
+      ]);
 
-      if (!fresh) {
+      if (!freshPrice) {
         console.log(`[SKIP] ${product.externalId} — anúncio não encontrado no catálogo ${catalogProductId} (removido/pausado?).`);
         continue;
       }
 
       const currentPrice = Number(product.price);
       const currentOriginalPrice = product.originalPrice === null ? null : Number(product.originalPrice);
-      const newOriginalPrice = fresh.originalPrice ?? null;
+      const newOriginalPrice = freshPrice.originalPrice ?? null;
 
-      if (fresh.price === currentPrice && newOriginalPrice === currentOriginalPrice) {
+      const priceChanged = freshPrice.price !== currentPrice || newOriginalPrice !== currentOriginalPrice;
+      const nameChanged = Boolean(freshInfo?.name) && freshInfo!.name !== product.name;
+      const imageChanged = Boolean(freshInfo?.imageUrl) && freshInfo!.imageUrl !== product.imageUrl;
+
+      if (!priceChanged && !nameChanged && !imageChanged) {
         unchanged++;
         continue;
       }
 
+      const updateData: { price?: number; originalPrice?: number | null; name?: string; imageUrl?: string } = {};
+      if (priceChanged) {
+        updateData.price = freshPrice.price;
+        updateData.originalPrice = newOriginalPrice;
+      }
+      if (nameChanged) updateData.name = freshInfo!.name;
+      if (imageChanged) updateData.imageUrl = freshInfo!.imageUrl;
+
       await prisma.$transaction([
-        prisma.product.update({
-          where: { id: product.id },
-          data: { price: fresh.price, originalPrice: newOriginalPrice },
-        }),
-        prisma.productPriceHistory.create({
-          data: { productId: product.id, price: fresh.price },
-        }),
+        prisma.product.update({ where: { id: product.id }, data: updateData }),
+        ...(priceChanged ? [prisma.productPriceHistory.create({ data: { productId: product.id, price: freshPrice.price } })] : []),
       ]);
 
-      console.log(`[UPDATE] ${product.name}: R$${currentPrice} -> R$${fresh.price}`);
+      const changes = [
+        priceChanged && `preço R$${currentPrice} -> R$${freshPrice.price}`,
+        nameChanged && "nome",
+        imageChanged && "imagem",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      console.log(`[UPDATE] ${product.name}: ${changes}`);
       updated++;
     } catch (error) {
       failed++;

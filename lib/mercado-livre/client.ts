@@ -49,6 +49,12 @@ interface MLCatalogItemsResponse {
   }>;
 }
 
+interface MLCatalogProductResponse {
+  id: string;
+  name: string;
+  pictures?: Array<{ url: string }>;
+}
+
 function toNormalizedProduct(item: MLSearchResponse["results"][number] | MLItem): NormalizedProduct {
   return {
     source: Platform.MERCADO_LIVRE,
@@ -127,6 +133,16 @@ export class MercadoLivreClient implements AffiliatePlatformClient {
         const match = data.results.find((result) => result.item_id === itemId);
         if (!match) return null;
         return { price: match.price, originalPrice: match.original_price ?? undefined };
+      }),
+    );
+  }
+
+  /** Nome + imagem do produto de catálogo — usado junto com getItemPriceViaCatalog() para refrescar dados de itens de terceiros. */
+  async getCatalogProductInfo(catalogProductId: string): Promise<{ name: string; imageUrl?: string } | null> {
+    return rateLimiter.acquire().then(() =>
+      withRetry(async () => {
+        const product = await mercadoLivreRequest<MLCatalogProductResponse>(`/products/${catalogProductId}`);
+        return { name: product.name, imageUrl: product.pictures?.[0]?.url };
       }),
     );
   }
