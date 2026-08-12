@@ -35,6 +35,7 @@ export async function generateAutoBlogPost(product: Product, trackedUrl: string)
     product: toProductFacts(product),
     channel: Channel.BLOG,
     marketplace: marketplaceLabel(product.source),
+    productSource: product.source,
     affiliateUrl: trackedUrl,
   });
 

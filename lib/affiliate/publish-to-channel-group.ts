@@ -50,6 +50,7 @@ export async function publishToChannelGroups(
     product: toProductFacts(product),
     channel,
     marketplace: marketplaceLabel(product.source),
+    productSource: product.source,
     affiliateUrl: trackedUrl,
   });
 

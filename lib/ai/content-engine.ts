@@ -1,4 +1,4 @@
-import { Channel } from "@/lib/generated/prisma/client";
+import { Channel, type Platform } from "@/lib/generated/prisma/client";
 import { logger } from "@/lib/logging";
 import { buildProductPostData, type PostType, type UrgencyLevel } from "@/lib/content/product-post";
 import { formatForChannel } from "@/lib/content/channel-formatters";
@@ -19,6 +19,8 @@ export interface ContentGenerationInput {
   channel: Channel;
   /** Nome de exibição da plataforma de origem (ex: "Mercado Livre") — usado pelo layout multicanal. */
   marketplace?: string;
+  /** Plataforma de origem (enum) — decide se o link do grupo exclusivo do TikTok Shop entra no rodapé de Facebook/Instagram. */
+  productSource?: Platform;
   /** Link de afiliado já rastreado; se ausente, o texto usa o placeholder "[LINK]" do template. */
   affiliateUrl?: string;
   /** 1-3 frases sobre por que o produto interessa; se ausente, a linha é omitida (nunca inventada). */
@@ -56,6 +58,7 @@ export async function generateContent(input: ContentGenerationInput): Promise<Co
   const postData = buildProductPostData({
     product,
     marketplace: input.marketplace ?? "",
+    platform: input.productSource,
     shortDescription: input.shortDescription,
     benefits: input.benefits,
     postType: input.postType,

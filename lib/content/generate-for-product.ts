@@ -33,6 +33,7 @@ export async function generateContentForProduct(options: GenerateContentForProdu
     },
     channel,
     marketplace: marketplaceLabel(product.source),
+    productSource: product.source,
   });
 
   const content = await prisma.content.create({

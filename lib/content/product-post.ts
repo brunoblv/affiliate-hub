@@ -25,10 +25,15 @@ export interface ProductPostData {
   discountPercent?: number;
   benefits: string[];
   marketplace: string;
+  isTikTokShop: boolean;
   urgencyLevel: UrgencyLevel;
   disclosureFull: string;
   disclosureShort: string;
 }
+
+/** Links dos grupos do Telegram divulgados no rodapé dos posts de Facebook/Instagram. */
+export const TELEGRAM_GROUP_LINK = "https://t.me/achadinhosblv";
+export const TELEGRAM_TIKTOK_SHOP_GROUP_LINK = "https://t.me/tiktokshopblv";
 
 export const DISCLOSURE_FULL =
   "*Link de afiliado. Podemos receber uma comissão se você realizar uma compra através deste link, sem custo adicional para você.";
@@ -108,6 +113,8 @@ function resolvePriceFacts(product: ProductPostFacts): { previousPrice?: number;
 export interface BuildProductPostDataInput {
   product: ProductPostFacts;
   marketplace: string;
+  /** Plataforma de origem do produto — só usada para decidir se o link do grupo exclusivo do TikTok Shop entra no rodapé. */
+  platform?: Platform;
   /** 1-3 frases; se ausente, os formatadores de canal simplesmente omitem a linha — nunca é inventada. */
   shortDescription?: string;
   /** Só características já confirmadas do produto; no máximo 3 são usadas. */
@@ -129,6 +136,7 @@ export function buildProductPostData(input: BuildProductPostDataInput): ProductP
     discountPercent,
     benefits: (input.benefits ?? []).filter(Boolean).slice(0, 3),
     marketplace: input.marketplace,
+    isTikTokShop: input.platform === Platform.TIKTOK_SHOP,
     urgencyLevel: input.urgencyLevel ?? defaultUrgency(postType),
     disclosureFull: DISCLOSURE_FULL,
     disclosureShort: DISCLOSURE_SHORT,

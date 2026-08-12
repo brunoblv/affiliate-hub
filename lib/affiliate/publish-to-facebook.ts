@@ -56,6 +56,7 @@ export async function publishToFacebook(product: Product, link: AffiliateLink): 
     product: toProductFacts(product),
     channel: Channel.FACEBOOK,
     marketplace: marketplaceLabel(product.source),
+    productSource: product.source,
     affiliateUrl: trackedUrl,
   });
   const caption = generated.variations[0];

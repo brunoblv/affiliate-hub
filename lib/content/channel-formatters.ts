@@ -6,6 +6,8 @@ import {
   formatCurrency,
   formatPriceBlock,
   openingFor,
+  TELEGRAM_GROUP_LINK,
+  TELEGRAM_TIKTOK_SHOP_GROUP_LINK,
 } from "./product-post";
 
 /**
@@ -38,6 +40,15 @@ function joinLines(lines: Array<string | false | undefined>): string {
 
 function linkLine(affiliateUrl?: string): string {
   return affiliateUrl || LINK_PLACEHOLDER;
+}
+
+/** Rodapé de divulgação dos grupos do Telegram — só entra em Facebook/Instagram. O link do TikTok Shop só aparece para produtos dessa origem. */
+function telegramGroupFooter(data: ProductPostData): string[] {
+  const lines = [`📢 Entre no nosso grupo do Telegram: ${TELEGRAM_GROUP_LINK}`];
+  if (data.isTikTokShop) {
+    lines.push(`🛒 Ofertas exclusivas do TikTok Shop: ${TELEGRAM_TIKTOK_SHOP_GROUP_LINK}`);
+  }
+  return lines;
 }
 
 function formatWhatsApp(data: ProductPostData, affiliateUrl?: string): ChannelPost {
@@ -101,7 +112,18 @@ function formatFacebook(data: ProductPostData, affiliateUrl?: string): ChannelPo
     ...benefitLines,
   ]);
 
-  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⚠️ Valores e disponibilidade podem mudar."]);
+  const fullText = joinLines([
+    headline,
+    "",
+    body,
+    "",
+    cta,
+    linkLine(affiliateUrl),
+    "",
+    "⚠️ Valores e disponibilidade podem mudar.",
+    "",
+    ...telegramGroupFooter(data),
+  ]);
 
   return { headline, body, cta, disclosure, fullText };
 }
@@ -131,7 +153,7 @@ function formatInstagramFeed(data: ProductPostData, affiliateUrl?: string): Chan
     ...benefitLines,
   ]);
 
-  const caption = joinLines([body, "", cta, "", "⚠️ Preço sujeito a alteração."]);
+  const caption = joinLines([body, "", cta, "", "⚠️ Preço sujeito a alteração.", "", ...telegramGroupFooter(data)]);
 
   // affiliateUrl não entra na legenda (Instagram não permite link clicável em texto) — fica só registrado para reuso futuro (ex: link da bio/stories).
   void affiliateUrl;
