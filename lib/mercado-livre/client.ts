@@ -40,6 +40,15 @@ interface MLItem {
   sold_quantity?: number;
 }
 
+interface MLCatalogItemsResponse {
+  paging: { total: number; offset: number; limit: number };
+  results: Array<{
+    item_id: string;
+    price: number;
+    original_price?: number | null;
+  }>;
+}
+
 function toNormalizedProduct(item: MLSearchResponse["results"][number] | MLItem): NormalizedProduct {
   return {
     source: Platform.MERCADO_LIVRE,
@@ -99,6 +108,25 @@ export class MercadoLivreClient implements AffiliatePlatformClient {
       withRetry(async () => {
         const item = await mercadoLivreRequest<MLItem>(`/items/${externalId}`);
         return toNormalizedProduct(item);
+      }),
+    );
+  }
+
+  /**
+   * `/items/{id}` retorna 403 (access_denied) para itens de vendedores fora da
+   * conta autenticada — a API de itens só permite acesso pleno aos anúncios do
+   * próprio usuário conectado. Para consultar preço de itens de terceiros
+   * (o caso de produtos de afiliados), a API de Catálogo funciona normalmente:
+   * `/products/{catalogProductId}/items` lista os anúncios (com preço) que
+   * disputam a buy box daquele produto de catálogo.
+   */
+  async getItemPriceViaCatalog(catalogProductId: string, itemId: string): Promise<{ price: number; originalPrice?: number } | null> {
+    return rateLimiter.acquire().then(() =>
+      withRetry(async () => {
+        const data = await mercadoLivreRequest<MLCatalogItemsResponse>(`/products/${catalogProductId}/items`);
+        const match = data.results.find((result) => result.item_id === itemId);
+        if (!match) return null;
+        return { price: match.price, originalPrice: match.original_price ?? undefined };
       }),
     );
   }
