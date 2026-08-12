@@ -22,7 +22,7 @@ export type ChartfmStoreProduct = {
   platform: Platform;
   categoryName: string | null;
   categorySlug: string | null;
-  /** Link de compra resolvido (afiliado ou productUrl). Sem link o item não entra na lista. */
+  /** Link de afiliado resolvido. Sem afiliado o item não entra na lista. */
   goUrl: string;
 };
 
@@ -53,19 +53,28 @@ function toNumber(value: { toNumber(): number } | null | undefined): number | nu
 }
 
 /**
- * Prioriza o link de afiliado da mesma plataforma do produto; sem isso, o
- * primeiro que existir; sem nenhum, cai no link direto do produto.
+ * Só link de afiliado. Nunca cai no productUrl/externalUrl normal:
+ * a Loja do ChartFM precisa monetizar o clique.
+ *
+ * Ordem: ProductSource da mesma plataforma → qualquer ProductSource →
+ * AffiliateLink da mesma plataforma → qualquer AffiliateLink.
  */
 export function resolveChartfmGoUrl(
-  productUrl: string | null,
   platform: Platform,
   sources: { platform: Platform; affiliateUrl: string | null }[],
+  affiliateLinks: { platform: Platform; affiliateUrl: string }[] = [],
 ): string | null {
   const sameSource = sources.find((s) => s.platform === platform && s.affiliateUrl);
   if (sameSource?.affiliateUrl) return sameSource.affiliateUrl;
   const anySource = sources.find((s) => s.affiliateUrl);
   if (anySource?.affiliateUrl) return anySource.affiliateUrl;
-  return productUrl ?? null;
+
+  const sameLink = affiliateLinks.find((l) => l.platform === platform && l.affiliateUrl);
+  if (sameLink?.affiliateUrl) return sameLink.affiliateUrl;
+  const anyLink = affiliateLinks.find((l) => l.affiliateUrl);
+  if (anyLink?.affiliateUrl) return anyLink.affiliateUrl;
+
+  return null;
 }
 
 export function clampPageSize(raw: number | undefined): number {
@@ -96,12 +105,32 @@ export async function getChartfmStoreListing(options: {
     where: {
       projectId: project.id,
       active: true,
-      products: { some: { status: "ACTIVE" } },
+      products: {
+        some: {
+          status: "ACTIVE",
+          OR: [
+            { sources: { some: { affiliateUrl: { not: null } } } },
+            { affiliateLinks: { some: {} } },
+          ],
+        },
+      },
     },
     select: {
       slug: true,
       name: true,
-      _count: { select: { products: { where: { status: "ACTIVE" } } } },
+      _count: {
+        select: {
+          products: {
+            where: {
+              status: "ACTIVE",
+              OR: [
+                { sources: { some: { affiliateUrl: { not: null } } } },
+                { affiliateLinks: { some: {} } },
+              ],
+            },
+          },
+        },
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -134,6 +163,11 @@ export async function getChartfmStoreListing(options: {
     projectId: project.id,
     status: "ACTIVE" as const,
     ...(categoryFilter ? { categoryId: categoryFilter.id } : {}),
+    // Sem afiliado a Loja não lista: clique sem comissão não entra no catálogo.
+    OR: [
+      { sources: { some: { affiliateUrl: { not: null } } } },
+      { affiliateLinks: { some: {} } },
+    ],
   };
 
   const total = await prisma.product.count({ where });
@@ -148,7 +182,6 @@ export async function getChartfmStoreListing(options: {
       slug: true,
       brand: true,
       imageUrl: true,
-      productUrl: true,
       price: true,
       originalPrice: true,
       discountPercent: true,
@@ -158,6 +191,10 @@ export async function getChartfmStoreListing(options: {
       source: true,
       category: { select: { name: true, slug: true } },
       sources: { select: { platform: true, affiliateUrl: true } },
+      affiliateLinks: {
+        select: { platform: true, affiliateUrl: true },
+        orderBy: { createdAt: "desc" },
+      },
     },
     orderBy: [{ discountPercent: "desc" }, { createdAt: "desc" }],
     skip: total === 0 ? 0 : (page - 1) * pageSize,
@@ -166,7 +203,7 @@ export async function getChartfmStoreListing(options: {
 
   const products: ChartfmStoreProduct[] = [];
   for (const row of rows) {
-    const goUrl = resolveChartfmGoUrl(row.productUrl, row.source, row.sources);
+    const goUrl = resolveChartfmGoUrl(row.source, row.sources, row.affiliateLinks);
     if (!goUrl) continue;
     products.push({
       id: row.id,
@@ -211,15 +248,18 @@ export async function getChartfmStoreGoTarget(productId: string): Promise<Chartf
       project: { slug: CHARTFM_PROJECT_SLUG, active: true },
     },
     select: {
-      productUrl: true,
       source: true,
       category: { select: { slug: true } },
       sources: { select: { platform: true, affiliateUrl: true } },
+      affiliateLinks: {
+        select: { platform: true, affiliateUrl: true },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
   if (!row) return null;
 
-  const url = resolveChartfmGoUrl(row.productUrl, row.source, row.sources);
+  const url = resolveChartfmGoUrl(row.source, row.sources, row.affiliateLinks);
   if (!url) return null;
 
   return {
