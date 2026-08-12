@@ -22,7 +22,7 @@ function formatCurrency(value: number): string {
  * Gera e publica automaticamente um post de blog a partir de um produto com
  * link de afiliado (docs/especificacao-automacao-produtos-chartfm.md §10/§11:
  * "publicar automaticamente no blog"). Estrutura editorial mínima
- * (introdução/produto/conclusão/disclosure) em vez de só "Produto X por R$ Y".
+ * (introdução/produto/conclusão) em vez de só "Produto X por R$ Y".
  *
  * Idempotente: um produto só gera um BlogPost automático (verificado por
  * productId) — evita duplicar posts a cada vez que o link é reeditado.
@@ -57,10 +57,6 @@ export async function generateAutoBlogPost(product: Product, trackedUrl: string)
     `${priceLine}`,
     "",
     `👉 [Confira a oferta](${trackedUrl})`,
-    "",
-    "---",
-    "",
-    "*Este conteúdo contém link de afiliado. Podemos receber uma comissão se você realizar uma compra, sem custo adicional para você.*",
   ].join("\n");
 
   const blogPost = await prisma.blogPost.create({

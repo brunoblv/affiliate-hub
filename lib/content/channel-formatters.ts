@@ -57,7 +57,7 @@ function formatWhatsApp(data: ProductPostData, affiliateUrl?: string): ChannelPo
     ...benefitLines,
   ]);
 
-  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⚠️ Preço pode mudar.", disclosure]);
+  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⚠️ Preço pode mudar."]);
 
   return { headline, body, cta, disclosure, fullText };
 }
@@ -79,7 +79,7 @@ function formatTelegram(data: ProductPostData, affiliateUrl?: string): ChannelPo
     ...benefitLines,
   ]);
 
-  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⏰ Pode mudar sem aviso.", disclosure]);
+  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⏰ Pode mudar sem aviso."]);
 
   return { headline, body, cta, disclosure, fullText };
 }
@@ -101,17 +101,7 @@ function formatFacebook(data: ProductPostData, affiliateUrl?: string): ChannelPo
     ...benefitLines,
   ]);
 
-  const fullText = joinLines([
-    headline,
-    "",
-    body,
-    "",
-    cta,
-    linkLine(affiliateUrl),
-    "",
-    "⚠️ Valores e disponibilidade podem mudar.",
-    disclosure,
-  ]);
+  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", "⚠️ Valores e disponibilidade podem mudar."]);
 
   return { headline, body, cta, disclosure, fullText };
 }
@@ -141,7 +131,7 @@ function formatInstagramFeed(data: ProductPostData, affiliateUrl?: string): Chan
     ...benefitLines,
   ]);
 
-  const caption = joinLines([body, "", cta, "", "⚠️ Preço sujeito a alteração.", disclosure]);
+  const caption = joinLines([body, "", cta, "", "⚠️ Preço sujeito a alteração."]);
 
   // affiliateUrl não entra na legenda (Instagram não permite link clicável em texto) — fica só registrado para reuso futuro (ex: link da bio/stories).
   void affiliateUrl;
@@ -187,7 +177,7 @@ function formatGeneric(data: ProductPostData, affiliateUrl?: string): ChannelPos
     ...benefitLines,
   ]);
 
-  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl), "", disclosure]);
+  const fullText = joinLines([headline, "", body, "", cta, linkLine(affiliateUrl)]);
 
   return { headline, body, cta, disclosure, fullText };
 }
