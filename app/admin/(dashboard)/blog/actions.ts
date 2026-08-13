@@ -76,4 +76,5 @@ export async function setBlogPostStatusAction(postId: string, status: BlogPostSt
   revalidatePath(`/admin/blog/${postId}`);
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePath("/");
 }
