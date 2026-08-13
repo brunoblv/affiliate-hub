@@ -19,7 +19,7 @@
     "meta:bootstrap": "tsx scripts/bootstrap-meta-from-env.ts",
     "meta:ensure-pages": "tsx scripts/ensure-facebook-pages.ts",
     "ml:update-prices": "tsx scripts/update-mercado-livre-prices.ts",
-    "whatsapp:login": "tsx scripts/whatsapp-login.ts",
+    "whatsapp:login": "tsx scripts/whatsapp-login.mts",
     "telegram:get-chat-id": "tsx scripts/telegram-get-chat-id.ts"
   },
   "dependencies": {

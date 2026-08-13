@@ -13,7 +13,7 @@ const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".wha
  * automação, nunca o principal.
  *
  * Uso (na pasta Sistema-afiliados, com terminal disponível pra escanear o QR):
- *   npx tsx scripts/whatsapp-login.ts
+ *   npx tsx scripts/whatsapp-login.mts
  *
  * Depois de conectar, lista os grupos participantes com seus JIDs — copie o
  * JID do grupo desejado para o campo "Chat ID / JID do grupo" ao cadastrar o

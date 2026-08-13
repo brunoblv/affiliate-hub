@@ -21,7 +21,7 @@ function connect(): Promise<WASocket> {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
-          logger.warn("PUBLISH", "WhatsApp: sessão não autenticada — rode `npx tsx scripts/whatsapp-login.ts` para conectar.");
+          logger.warn("PUBLISH", "WhatsApp: sessão não autenticada — rode `npx tsx scripts/whatsapp-login.mts` para conectar.");
         }
 
         if (connection === "open") {
@@ -37,7 +37,7 @@ function connect(): Promise<WASocket> {
 
           reject(
             loggedOut
-              ? new Error("Sessão do WhatsApp desconectada (logout) — rode `npx tsx scripts/whatsapp-login.ts` novamente.")
+              ? new Error("Sessão do WhatsApp desconectada (logout) — rode `npx tsx scripts/whatsapp-login.mts` novamente.")
               : new Error("Conexão do WhatsApp caiu — tente publicar novamente em instantes."),
           );
         }
@@ -50,7 +50,7 @@ function connect(): Promise<WASocket> {
  * Obtém (ou reconecta) o socket autenticado do WhatsApp via Baileys —
  * biblioteca NÃO-OFICIAL que simula um cliente WhatsApp Web real (não há API
  * pública do WhatsApp para postar em grupos). Requer sessão já criada via
- * `npx tsx scripts/whatsapp-login.ts` (escaneando o QR code uma vez); as
+ * `npx tsx scripts/whatsapp-login.mts` (escaneando o QR code uma vez); as
  * credenciais ficam salvas em `WHATSAPP_AUTH_DIR` e são reaproveitadas nas
  * próximas conexões, sem precisar escanear de novo.
  */

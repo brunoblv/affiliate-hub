@@ -6,7 +6,7 @@ import type { Publisher, PublishableContent, PublishResult } from "./publisher";
 /**
  * Publica em um grupo do WhatsApp via Baileys — ver aviso sobre biblioteca
  * não-oficial em lib/whatsapp/session.ts. O JID do grupo (`externalChatId`
- * do ProjectChannel) é obtido rodando `npx tsx scripts/whatsapp-login.ts`.
+ * do ProjectChannel) é obtido rodando `npx tsx scripts/whatsapp-login.mts`.
  */
 export class WhatsAppPublisher implements Publisher {
   readonly channel = Channel.WHATSAPP;
