@@ -2,6 +2,7 @@ import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
 import { PublicationStatus } from "@/lib/generated/prisma/client";
 import { generateContentForProduct } from "@/lib/content";
+import { resolveProjectChannel, PROJECT_SCOPED_CHANNELS } from "@/lib/publishing/resolve-project-channel";
 import { getEligibleProducts } from "./eligible-products";
 
 export interface RunScheduleSlotResult {
@@ -27,6 +28,21 @@ export async function runScheduleSlot(slotId: string): Promise<RunScheduleSlotRe
   let publicationsCreated = 0;
 
   for (const { productId } of eligible) {
+    let projectChannelId: string | undefined;
+    if (PROJECT_SCOPED_CHANNELS.has(slot.channel)) {
+      const product = await prisma.product.findUniqueOrThrow({ where: { id: productId }, select: { projectId: true } });
+      const projectChannel = await resolveProjectChannel(product.projectId, slot.channel);
+      if (!projectChannel) {
+        logger.warn("JOB", `ScheduleSlot "${slot.name}": projeto sem canal ${slot.channel} configurado — pulando produto`, {
+          slotId,
+          productId,
+          projectId: product.projectId,
+        });
+        continue;
+      }
+      projectChannelId = projectChannel.id;
+    }
+
     const content = await generateContentForProduct({
       productId,
       channel: slot.channel,
@@ -37,6 +53,7 @@ export async function runScheduleSlot(slotId: string): Promise<RunScheduleSlotRe
       data: {
         contentId: content.id,
         channel: slot.channel,
+        projectChannelId,
         status: PublicationStatus.QUEUED,
         scheduledAt,
       },

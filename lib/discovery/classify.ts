@@ -25,6 +25,10 @@ export function classifyPromotionBucket(title: string, platform?: Platform): str
   const normalizedTitle = normalize(title);
 
   for (const bucket of DISCOVERY_BUCKETS) {
+    // Buckets restritos a uma plataforma (ex.: Achadinhos Tik Tok → só TIKTOK_SHOP)
+    // não podem "roubar" produtos de outra plataforma só por bater palavra-chave.
+    if (bucket.platforms && (!platform || !bucket.platforms.includes(platform))) continue;
+
     const matches = bucket.keywords.some((keyword) =>
       normalize(keyword)
         .split(" ")

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
 import { AutopilotMode, ContentStatus, PublicationStatus } from "@/lib/generated/prisma/client";
 import { generateContentForProduct } from "@/lib/content";
+import { resolveProjectChannel, PROJECT_SCOPED_CHANNELS } from "@/lib/publishing/resolve-project-channel";
 import { getEligibleProducts } from "./eligible-products";
 import { nextAvailableTime } from "./next-available-time";
 
@@ -36,6 +37,21 @@ export async function runAutopilotRule(ruleId: string): Promise<RunAutopilotRule
   let publicationsCreated = 0;
 
   for (const { productId } of eligible) {
+    let projectChannelId: string | undefined;
+    if (PROJECT_SCOPED_CHANNELS.has(rule.channel)) {
+      const product = await prisma.product.findUniqueOrThrow({ where: { id: productId }, select: { projectId: true } });
+      const projectChannel = await resolveProjectChannel(product.projectId, rule.channel);
+      if (!projectChannel) {
+        logger.warn("AUTOPILOT", `Regra "${rule.name}": projeto sem canal ${rule.channel} configurado — pulando produto`, {
+          ruleId,
+          productId,
+          projectId: product.projectId,
+        });
+        continue;
+      }
+      projectChannelId = projectChannel.id;
+    }
+
     const content = await generateContentForProduct({
       productId,
       channel: rule.channel,
@@ -56,7 +72,7 @@ export async function runAutopilotRule(ruleId: string): Promise<RunAutopilotRule
     const scheduledAt = await nextAvailableTime(rule.channel);
 
     await prisma.publication.create({
-      data: { contentId: content.id, channel: rule.channel, status: PublicationStatus.QUEUED, scheduledAt },
+      data: { contentId: content.id, channel: rule.channel, projectChannelId, status: PublicationStatus.QUEUED, scheduledAt },
     });
 
     publicationsCreated += 1;
