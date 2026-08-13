@@ -1,7 +1,7 @@
 import "dotenv/config";
 import path from "node:path";
 import qrcodeTerminal from "qrcode-terminal";
-import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
 
 const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".whatsapp-auth");
 
@@ -51,7 +51,21 @@ async function main() {
     }
 
     if (connection === "close") {
+      const statusCode = (lastDisconnect?.error as { output?: { statusCode?: number } } | undefined)?.output?.statusCode;
+
+      // Logo após aceitar o QR, o WhatsApp sempre fecha a conexão pedindo
+      // restart (código 515) — é esperado, não é falha: reconectar reaproveita
+      // as credenciais recém-salvas e completa o login sem pedir QR de novo.
+      if (statusCode === DisconnectReason.restartRequired) {
+        console.log("Restart necessário após parear — reconectando...");
+        await main();
+        return;
+      }
+
       console.log("Conexão encerrada.", lastDisconnect?.error?.message ?? "");
+      if (statusCode === DisconnectReason.loggedOut) {
+        console.log("Sessão desconectada pelo WhatsApp — apague a pasta de sessão e rode o login de novo.");
+      }
       process.exit(0);
     }
   });

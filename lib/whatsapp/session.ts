@@ -6,7 +6,7 @@ const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".wha
 
 let socketPromise: Promise<WASocket> | null = null;
 
-function connect(): Promise<WASocket> {
+function connect(attempt = 0): Promise<WASocket> {
   return new Promise((resolve, reject) => {
     void (async () => {
       // Import dinâmico: página/rota que nunca publica no WhatsApp não deve
@@ -32,6 +32,16 @@ function connect(): Promise<WASocket> {
         if (connection === "close") {
           const statusCode = (lastDisconnect?.error as { output?: { statusCode?: number } } | undefined)?.output?.statusCode;
           const loggedOut = statusCode === DisconnectReason.loggedOut;
+
+          // O WhatsApp fecha a conexão pedindo restart em algumas situações
+          // (ex: logo após um novo pareamento) — não é falha, só reconectar.
+          if (statusCode === DisconnectReason.restartRequired && attempt < 3) {
+            logger.info("PUBLISH", "WhatsApp: restart necessário, reconectando", { attempt });
+            socketPromise = connect(attempt + 1);
+            socketPromise.then(resolve, reject);
+            return;
+          }
+
           logger.warn("PUBLISH", "WhatsApp: conexão fechada", { statusCode, loggedOut });
           socketPromise = null;
 
