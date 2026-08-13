@@ -18,6 +18,7 @@ export function ProjectSubnav({ projectSlug }: { projectSlug: string }) {
     { href: `${base}/canais`, label: "Página e grupos" },
     { href: `${base}/publicacoes`, label: "Publicações" },
     { href: `${base}/grupos`, label: "Central de Grupos" },
+    { href: `${base}/tiktok`, label: "TikTok (fila)" },
     { href: `${base}/analytics`, label: "Analytics" },
   ];
 
