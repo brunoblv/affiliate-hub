@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
-import { Channel } from "@/lib/generated/prisma/client";
+import { Channel, type AffiliateLink, type Product } from "@/lib/generated/prisma/client";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateAutoBlogPost } from "@/lib/blog/generate-post";
 import { publishToFacebook } from "./publish-to-facebook";
+import { publishToChannelGroups } from "./publish-to-channel-group";
 
 export interface AttachAffiliateLinkInput {
   productId: string;
@@ -41,6 +42,7 @@ export async function attachAffiliateLinkAndPublish(input: AttachAffiliateLinkIn
   }
 
   const facebookResult = await publishToFacebook(product, link);
+  const otherChannelsResult = await publishToOtherChannels(product, input.affiliateUrl, input.subId);
 
   const trackedUrl = `${getSiteUrl()}/go/${link.shortCode}`;
   const blogPost = await generateAutoBlogPost(product, trackedUrl);
@@ -48,8 +50,38 @@ export async function attachAffiliateLinkAndPublish(input: AttachAffiliateLinkIn
   logger.info("AFFILIATE_SYNC", "Link de afiliado cadastrado — publicação automática disparada", {
     productId: product.id,
     ...facebookResult,
+    ...otherChannelsResult,
     blogPostId: blogPost.id,
   });
 
   return { link, blogPost, ...facebookResult };
+}
+
+/**
+ * Além do Facebook, publica automaticamente nos grupos de Telegram/WhatsApp
+ * do mesmo projeto (spec: um único cadastro de link deve valer pros 3
+ * canais — antes disso, cada canal exigia um cadastro manual separado na
+ * tela do produto). Reaproveita a mesma URL de afiliado; sem efeito nos
+ * projetos sem canal Telegram/WhatsApp configurado.
+ */
+async function publishToOtherChannels(product: Product, affiliateUrl: string, subId?: string) {
+  let telegramPublished = 0;
+  let whatsappPublished = 0;
+
+  for (const channel of [Channel.TELEGRAM, Channel.WHATSAPP] as const) {
+    let link = await prisma.affiliateLink.findFirst({ where: { productId: product.id, channel } });
+    if (!link) {
+      link = await prisma.affiliateLink.create({
+        data: { productId: product.id, platform: product.source, channel, affiliateUrl, subId },
+      });
+    } else if (link.affiliateUrl !== affiliateUrl) {
+      link = await prisma.affiliateLink.update({ where: { id: link.id }, data: { affiliateUrl } });
+    }
+
+    const result = await publishToChannelGroups(product, link as AffiliateLink, channel);
+    if (channel === Channel.TELEGRAM) telegramPublished = result.published;
+    else whatsappPublished = result.published;
+  }
+
+  return { telegramPublished, whatsappPublished };
 }
