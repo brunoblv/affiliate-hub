@@ -83,7 +83,7 @@ export default async function ImportMercadoLivreProductsPage({
                 placeholder={[
                   "https://www.mercadolivre.com.br/.../p/MLB66132984",
                   "https://www.mercadolivre.com.br/.../p/MLB48896933;https://mercadolivre.com/sec/seu-link-afiliado",
-                  "MLB63036814",
+                  "MLB63036814\thttps://www.mercadolivre.com.br/.../p/MLB63036814\thttps://meli.la/seu-link-afiliado",
                 ].join("\n")}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               />
@@ -91,7 +91,12 @@ export default async function ImportMercadoLivreProductsPage({
                 Cole o link completo da página do produto (precisa conter <code>/p/MLB...</code>) ou apenas o código do
                 catálogo (ex: <code>MLB66132984</code>). Opcionalmente, depois de <code>;</code> ou um Tab, cole o seu
                 link de afiliado gerado no Portal de Afiliados — isso agenda a publicação automática (Página + blog)
-                assim que salvar. Quando um catálogo tem mais de um vendedor, o anúncio mais barato é escolhido.
+                assim que salvar. Também aceita colar direto uma tabela de 3 colunas (código, link, link afiliado) —
+                cada coluna é identificada pelo conteúdo, não pela posição. Quando um catálogo tem mais de um
+                vendedor, o anúncio mais barato é escolhido.
+                <br />
+                <strong>Atenção:</strong> só funciona pra anúncios de catálogo (URL com <code>/p/MLB...</code>).
+                Anúncios sem catálogo (URL com <code>/up/MLBU...</code>) não são suportados por essa tela ainda.
               </p>
             </div>
 

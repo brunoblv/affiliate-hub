@@ -763,6 +763,31 @@ model BlogPostProduct {
 }
 
 // ---------------------------------------------------------------------------
+// Newsletter (form "Quero receber" na home pública)
+// ---------------------------------------------------------------------------
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+model NewsletterSubscriber {
+  id     String           @id @default(cuid())
+  email  String           @unique
+  status NewsletterStatus @default(ACTIVE)
+
+  /**
+   * Usado no link de descadastro de um clique (política de privacidade).
+   */
+  unsubscribeToken String @unique @default(cuid())
+
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("newsletter_subscribers")
+}
+
+// ---------------------------------------------------------------------------
 // Bloqueios (docs/especificacao-automacao-produtos-chartfm.md §27) — regras
 // mínimas do Rules Engine: produtos com essas características são ignorados
 // na descoberta em vez de virarem Product/conteúdo.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/database";
 import { Button } from "@/components/ui/button";
+import { NewsletterForm } from "./newsletter-form";
 
 const STORE_LABEL: Record<string, string> = {
   MERCADO_LIVRE: "Mercado Livre",
@@ -190,14 +191,7 @@ export default async function HomePage() {
             <div className="mb-1 font-heading text-lg font-semibold text-foreground">Receba boas ideias para sua casa</div>
             <div className="text-sm text-muted-foreground">Dicas, ferramentas e ofertas selecionadas, sem spam.</div>
           </div>
-          <form className="flex gap-2.5">
-            <input
-              type="email"
-              placeholder="seu@email.com"
-              className="min-w-[220px] rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground"
-            />
-            <Button size="lg" className="px-5">Quero receber</Button>
-          </form>
+          <NewsletterForm />
         </div>
       </div>
     </>

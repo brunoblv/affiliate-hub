@@ -86,9 +86,21 @@ export async function importMercadoLivreProductsAction(formData: FormData) {
       const rowNumber = i + 1;
       const line = lines[i];
 
-      const [codeOrUrlRaw, affiliateUrlRaw] = line.split(/\t|;/).map((part) => part?.trim());
-      const codeOrUrl = codeOrUrlRaw ?? "";
-      const affiliateUrl = affiliateUrlRaw || undefined;
+      const fields = line
+        .split(/\t|;/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      // Aceita tanto o formato de 2 colunas (código/URL;link afiliado) quanto
+      // uma tabela colada com 3 colunas (ID, Link cru, Link afiliado, ex.:
+      // export do Portal de Afiliados) — identifica cada coluna pelo
+      // conteúdo em vez de assumir a posição fixa, senão o link cru do
+      // Mercado Livre (coluna do meio) acaba sendo salvo como se fosse o
+      // link de afiliado.
+      const codeOrUrl = fields.find((field) => extractCatalogProductId(field)) ?? fields[0] ?? "";
+      const affiliateUrl = [...fields]
+        .reverse()
+        .find((field) => field.startsWith("http") && field !== codeOrUrl && !extractCatalogProductId(field));
 
       const catalogProductId = extractCatalogProductId(codeOrUrl);
       if (!catalogProductId) {
