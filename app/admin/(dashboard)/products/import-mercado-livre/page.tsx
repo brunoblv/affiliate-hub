@@ -90,8 +90,9 @@ export default async function ImportMercadoLivreProductsPage({
               <p className="text-xs text-muted-foreground">
                 Cole o link completo da página do produto (precisa conter <code>/p/MLB...</code>) ou apenas o código do
                 catálogo (ex: <code>MLB66132984</code>). Opcionalmente, depois de <code>;</code> ou um Tab, cole o seu
-                link de afiliado gerado no Portal de Afiliados — isso agenda a publicação automática (Página + blog)
-                assim que salvar. Também aceita colar direto uma tabela de 3 colunas (código, link, link afiliado) —
+                link de afiliado gerado no Portal de Afiliados — isso já cadastra o link na hora e enfileira a
+                publicação automática nos canais configurados (Facebook/Telegram/WhatsApp), espaçada ao longo do dia.
+                Também aceita colar direto uma tabela de 3 colunas (código, link, link afiliado) —
                 cada coluna é identificada pelo conteúdo, não pela posição. Quando um catálogo tem mais de um
                 vendedor, o anúncio mais barato é escolhido.
                 <br />
@@ -122,7 +123,7 @@ export default async function ImportMercadoLivreProductsPage({
                   <span>Criados: {summary.created}</span>
                   <span>Atualizados: {summary.updated}</span>
                   <span>Ignorados: {summary.ignored}</span>
-                  <span>Links agendados: {summary.linksScheduled}</span>
+                  <span>Links de afiliado cadastrados: {summary.linksAttached}</span>
                 </div>
                 {summary.errors.length > 0 && (
                   <div className="space-y-1">

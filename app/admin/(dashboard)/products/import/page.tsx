@@ -85,7 +85,7 @@ export default async function ImportProductsPage({
                   <span>Criados: {summary.created}</span>
                   <span>Atualizados: {summary.updated}</span>
                   <span>Ignorados: {summary.ignored}</span>
-                  <span>Links agendados: {summary.linksScheduled}</span>
+                  <span>Links de afiliado cadastrados: {summary.linksAttached}</span>
                 </div>
                 {summary.errors.length > 0 && (
                   <div className="space-y-1">

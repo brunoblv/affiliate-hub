@@ -5,7 +5,7 @@ import { prisma } from "@/lib/database";
 import { Platform, type Prisma } from "@/lib/generated/prisma/client";
 import { mercadoLivreClient } from "@/lib/mercado-livre/client";
 import { runScoringPipeline } from "@/lib/scoring";
-import { queuePublish, nextPostingSlot, getPublishSchedule } from "@/lib/scheduler";
+import { attachAffiliateLinkAndPublish } from "@/lib/affiliate/attach-link";
 import { logger } from "@/lib/logging";
 
 const DIACRITICS_REGEX = /[̀-ͯ]/g;
@@ -37,7 +37,7 @@ export interface MlImportSummary {
   created: number;
   updated: number;
   ignored: number;
-  linksScheduled: number;
+  linksAttached: number;
   errors: MlImportRowError[];
 }
 
@@ -72,15 +72,12 @@ export async function importMercadoLivreProductsAction(formData: FormData) {
     created: 0,
     updated: 0,
     ignored: 0,
-    linksScheduled: 0,
+    linksAttached: 0,
     errors: [],
   };
 
   try {
     await mercadoLivreClient.authenticate();
-
-    const publishSchedule = await getPublishSchedule();
-    let nextSlot = nextPostingSlot(new Date(), publishSchedule);
 
     for (let i = 0; i < lines.length; i++) {
       const rowNumber = i + 1;
@@ -183,13 +180,12 @@ export async function importMercadoLivreProductsAction(formData: FormData) {
 
         if (affiliateUrl) {
           try {
-            await queuePublish({ productId: product.id, affiliateUrl }, nextSlot);
-            summary.linksScheduled += 1;
-            nextSlot = nextPostingSlot(nextSlot, publishSchedule);
+            await attachAffiliateLinkAndPublish({ productId: product.id, affiliateUrl });
+            summary.linksAttached += 1;
           } catch (error) {
             summary.errors.push({
               row: rowNumber,
-              message: `Produto salvo, mas falha ao agendar publicação: ${error instanceof Error ? error.message : String(error)}`,
+              message: `Produto salvo, mas falha ao cadastrar link de afiliado: ${error instanceof Error ? error.message : String(error)}`,
             });
           }
         }

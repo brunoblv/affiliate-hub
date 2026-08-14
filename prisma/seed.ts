@@ -240,6 +240,13 @@ async function main() {
       url: "https://www.facebook.com/1303950226131311",
       cooldownDays: 3,
     },
+    {
+      projectId: chartfmProject.id,
+      name: "Página ChartFM",
+      externalPageId: "101036418391156",
+      url: "https://www.facebook.com/101036418391156",
+      cooldownDays: 7,
+    },
   ] as const;
 
   for (const page of facebookPages) {
