@@ -1,0 +1,386 @@
+// Affiliate Hub v2 — schema enxuto
+// Blog (CMS) + catálogo de produtos + fila de distribuição.
+// Ver especificacao-affiliate-hub-v2.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Admin (NextAuth)
+// ---------------------------------------------------------------------------
+
+enum PapelUsuario {
+  ADMIN
+  EDITOR
+}
+
+model Usuario {
+  id           String       @id @default(cuid())
+  nome         String?
+  email        String       @unique
+  senhaHash    String?
+  papel        PapelUsuario @default(EDITOR)
+  emailVerificadoEm DateTime?
+
+  contas   Conta[]
+  sessoes  Sessao[]
+  posts    Post[]
+
+  criadoEm DateTime @default(now())
+
+  @@map("usuarios")
+}
+
+model Conta {
+  id                String  @id @default(cuid())
+  usuarioId         String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("contas")
+}
+
+model Sessao {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  usuarioId    String
+  expires      DateTime
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("sessoes")
+}
+
+// ---------------------------------------------------------------------------
+// CONTEÚDO — blog editável pelo CMS
+// ---------------------------------------------------------------------------
+
+enum TipoPost {
+  JORNADA // editorial: "Como escolhemos o sofá"
+  PRODUTO // página de um produto só
+  LISTA   // roundup com vários produtos
+}
+
+enum StatusPost {
+  RASCUNHO
+  PUBLICADO
+}
+
+model Post {
+  id       String @id @default(cuid())
+  tipo     TipoPost
+  titulo   String
+  slug     String @unique
+  resumo   String?
+
+  /// Markdown. Imagens no meio do texto via ![alt](url) e cards de produto
+  /// via shortcode em linha própria: [produto:slug-do-produto]
+  corpo    String @db.Text
+
+  capaId   String?
+  capa     Midia? @relation("CapaDoPost", fields: [capaId], references: [id], onDelete: SetNull)
+
+  seoTitulo     String?
+  metaDescricao String?
+
+  status      StatusPost @default(RASCUNHO)
+  publicadoEm DateTime?
+
+  autorId String?
+  autor   Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+
+  produtos ItemDePost[]
+  midias   MidiaEmPost[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([status, publicadoEm])
+  @@index([tipo])
+  @@map("posts")
+}
+
+/// Produto exibido dentro de um post (PRODUTO ou LISTA), na ordem do texto.
+model ItemDePost {
+  id        String  @id @default(cuid())
+  postId    String
+  produtoId String
+  ordem     Int     @default(0)
+  /// Ex.: "1. Sofá retrátil 3 lugares"
+  rotulo    String?
+  /// Por que esse produto, em 1-2 frases suas.
+  nota      String? @db.Text
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, produtoId])
+  @@index([postId, ordem])
+  @@map("itens_de_post")
+}
+
+// ---------------------------------------------------------------------------
+// MÍDIA — biblioteca de imagens do CMS
+// ---------------------------------------------------------------------------
+
+model Midia {
+  id          String  @id @default(cuid())
+  /// URL pública servida pelo site (ex.: /midia/2026/08/sofa-abc123.webp)
+  url         String  @unique
+  /// Caminho no disco/bucket, relativo a MEDIA_ROOT.
+  caminho     String
+  nomeOriginal String
+  mimeType    String
+  tamanhoBytes Int
+  largura     Int?
+  altura      Int?
+  /// Texto alternativo — obrigatório para acessibilidade e SEO.
+  alt         String?
+
+  capaDe   Post[]        @relation("CapaDoPost")
+  usosEmPosts MidiaEmPost[]
+
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("midias")
+}
+
+/// Rastreia quais imagens estão embutidas no corpo de cada post.
+/// Serve para avisar antes de excluir uma mídia ainda em uso.
+model MidiaEmPost {
+  postId  String
+  midiaId String
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  midia Midia @relation(fields: [midiaId], references: [id], onDelete: Cascade)
+
+  @@id([postId, midiaId])
+  @@map("midias_em_posts")
+}
+
+// ---------------------------------------------------------------------------
+// CATÁLOGO
+// ---------------------------------------------------------------------------
+
+enum Plataforma {
+  MERCADO_LIVRE
+  AMAZON
+  SHOPEE
+  OUTRA
+}
+
+model Produto {
+  id         String     @id @default(cuid())
+  plataforma Plataforma
+  /// ID na plataforma de origem (ex.: MLB1234567890)
+  idExterno  String
+  slug       String     @unique
+
+  nome      String
+  descricao String? @db.Text
+  /// string[] — até 6 URLs de imagem vindas da API da plataforma.
+  imagens   Json    @default("[]")
+
+  precoAtual    Decimal  @db.Decimal(12, 2)
+  precoOriginal Decimal? @db.Decimal(12, 2)
+  moeda         String   @default("BRL")
+
+  /// Link de afiliado colado por você. Nunca exibido direto: sempre via /go.
+  linkAfiliado String
+  /// Código do redirecionador rastreado: /go/:codigoCurto
+  codigoCurto  String @unique
+
+  /// Resposta íntegra da API no último sync — só para depuração.
+  dadosBrutos Json?
+
+  ativo          Boolean   @default(true)
+  sincronizadoEm DateTime?
+
+  itens       ItemDePost[]
+  publicacoes Publicacao[]
+  cliques     Clique[]
+  precos      HistoricoPreco[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([plataforma, idExterno])
+  @@index([ativo])
+  @@map("produtos")
+}
+
+/// Só para mostrar "de R$ X por R$ Y" com honestidade e detectar produto fora do ar.
+model HistoricoPreco {
+  id        String   @id @default(cuid())
+  produtoId String
+  preco     Decimal  @db.Decimal(12, 2)
+  registradoEm DateTime @default(now())
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId, registradoEm])
+  @@map("historico_precos")
+}
+
+// ---------------------------------------------------------------------------
+// DISTRIBUIÇÃO
+// ---------------------------------------------------------------------------
+
+enum Rede {
+  FACEBOOK_PAGE
+  INSTAGRAM
+  TELEGRAM
+}
+
+model Canal {
+  id        String  @id @default(cuid())
+  nome      String
+  rede      Rede
+  /// page_id (Facebook), ig_user_id (Instagram) ou chat_id (Telegram).
+  idExterno String
+  ativo     Boolean @default(true)
+
+  /// string[] no formato "HH:mm", no fuso TZ_APP. Ex.: ["09:00","13:00","19:30"]
+  horarios Json @default("[]")
+
+  /// Minutos mínimos entre duas publicações neste canal.
+  intervaloMinimoMin Int @default(90)
+  /// Máximo de publicações por dia neste canal.
+  tetoDiario         Int @default(6)
+  /// Dias antes de o mesmo produto poder repetir neste canal.
+  cooldownDias       Int @default(30)
+
+  publicacoes Publicacao[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([rede, idExterno])
+  @@index([ativo])
+  @@map("canais")
+}
+
+enum StatusPublicacao {
+  PENDENTE
+  PUBLICANDO
+  PUBLICADA
+  FALHOU
+  CANCELADA
+}
+
+model Publicacao {
+  id        String @id @default(cuid())
+  produtoId String
+  canalId   String
+
+  agendadaPara DateTime
+  status       StatusPublicacao @default(PENDENTE)
+
+  /// Texto já renderizado no agendamento — auditável e editável antes de sair.
+  texto       String  @db.Text
+  imagemUrl   String?
+  /// URL do post no blog (Facebook/Instagram) ou /go/:codigo (Telegram).
+  linkDestino String
+
+  tentativas    Int       @default(0)
+  idPostExterno String?
+  erro          String?   @db.Text
+  publicadaEm   DateTime?
+
+  /// produtoId:canalId:instante — barra duplicata mesmo com dois workers.
+  chaveIdempotencia String @unique
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  canal   Canal   @relation(fields: [canalId], references: [id], onDelete: Cascade)
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([status, agendadaPara])
+  @@index([canalId, agendadaPara])
+  @@index([produtoId, canalId, publicadaEm])
+  @@map("publicacoes")
+}
+
+// ---------------------------------------------------------------------------
+// APOIO
+// ---------------------------------------------------------------------------
+
+model Credencial {
+  id       String  @id @default(cuid())
+  /// "mercado_livre" | "meta" | "telegram"
+  provedor String  @unique
+  /// JSON cifrado com AES-256-GCM (lib/integrations/crypto.ts).
+  payload  String  @db.Text
+  ativo    Boolean @default(true)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@map("credenciais")
+}
+
+model Clique {
+  id        String  @id @default(cuid())
+  produtoId String
+  /// "blog" | "facebook" | "telegram" | "instagram" — parâmetro ?o= do /go
+  origem    String?
+  /// Hash do IP + user agent. Nunca o IP em claro (LGPD).
+  visitante String?
+  referer   String?
+
+  criadoEm DateTime @default(now())
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId, criadoEm])
+  @@index([origem, criadoEm])
+  @@map("cliques")
+}
+
+model Assinante {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  ativo      Boolean  @default(true)
+  /// Descadastro em um clique, sem login.
+  tokenBaixa String   @unique @default(cuid())
+  criadoEm   DateTime @default(now())
+  baixaEm    DateTime?
+
+  @@map("assinantes")
+}
+
+enum NivelLog {
+  INFO
+  ERRO
+}
+
+/// Log mínimo do que o worker fez — o suficiente para explicar um post que não saiu.
+model Log {
+  id       String   @id @default(cuid())
+  nivel    NivelLog
+  area     String
+  mensagem String   @db.Text
+  contexto Json?
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("logs")
+}

@@ -1,31 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  LayoutDashboard,
-  Package,
-  Flame,
-  FolderTree,
-  FileText,
-  LayoutTemplate,
-  Megaphone,
-  Send,
-  CalendarClock,
-  Radio,
-  Plug,
-  BarChart3,
-  MousePointerClick,
-  Wallet,
-  Bot,
-  ListChecks,
-  Briefcase,
-  ScrollText,
-  Settings,
-  Sparkles,
-  Newspaper,
-  Radar,
-  ShieldBan,
-} from "lucide-react";
-
-export { Sparkles as AFFILIATE_PROJECT_ICON };
+import { LayoutDashboard, Package, Newspaper, Send, Radio, Plug, Users } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -38,61 +12,32 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-/** Menu da área administrativa (spec §41). */
+/**
+ * Menu da área administrativa v2 (docs/hub/especificacao-affiliate-hub-v2.md §10)
+ * — as 7 telas da spec, completas.
+ */
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Geral",
-    items: [{ title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard }],
-  },
-  {
-    title: "Catálogo",
-    items: [
-      { title: "Projetos", href: "/admin/projects", icon: Sparkles },
-      { title: "Produtos", href: "/admin/products", icon: Package },
-      { title: "Oportunidades", href: "/admin/opportunities", icon: Flame },
-      { title: "Categorias", href: "/admin/categories", icon: FolderTree },
-    ],
+    items: [{ title: "Painel", href: "/admin", icon: LayoutDashboard }],
   },
   {
     title: "Conteúdo",
     items: [
-      { title: "Conteúdo", href: "/admin/content", icon: FileText },
-      { title: "Templates", href: "/admin/templates", icon: LayoutTemplate },
-      { title: "Campanhas", href: "/admin/campaigns", icon: Megaphone },
-      { title: "Blog", href: "/admin/blog", icon: Newspaper },
+      { title: "Produtos", href: "/admin/produtos", icon: Package },
+      { title: "Posts", href: "/admin/posts", icon: Newspaper },
     ],
   },
   {
     title: "Distribuição",
     items: [
-      { title: "Publicações", href: "/admin/publications", icon: Send },
-      { title: "Agenda", href: "/admin/schedules", icon: CalendarClock },
-      { title: "Canais", href: "/admin/channels", icon: Radio },
-      { title: "Integrações", href: "/admin/integrations", icon: Plug },
+      { title: "Fila", href: "/admin/fila", icon: Send },
+      { title: "Canais", href: "/admin/canais", icon: Radio },
+      { title: "Integrações", href: "/admin/integracoes", icon: Plug },
     ],
   },
   {
-    title: "Analytics",
-    items: [
-      { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-      { title: "Cliques", href: "/admin/analytics/clicks", icon: MousePointerClick },
-      { title: "Conversões", href: "/admin/analytics/conversions", icon: BarChart3 },
-      { title: "Comissões", href: "/admin/analytics/commissions", icon: Wallet },
-    ],
-  },
-  {
-    title: "Automação",
-    items: [
-      { title: "Central de Automação", href: "/admin/automacao", icon: Radar },
-      { title: "Bloqueios", href: "/admin/automacao/bloqueios", icon: ShieldBan },
-      { title: "Autopilot", href: "/admin/autopilot", icon: Bot },
-      { title: "Regras", href: "/admin/autopilot/rules", icon: ListChecks },
-      { title: "Jobs", href: "/admin/jobs", icon: Briefcase },
-      { title: "Logs", href: "/admin/logs", icon: ScrollText },
-    ],
-  },
-  {
-    title: "Sistema",
-    items: [{ title: "Configurações", href: "/admin/settings", icon: Settings }],
+    title: "Assinantes",
+    items: [{ title: "Assinantes", href: "/admin/assinantes", icon: Users }],
   },
 ];

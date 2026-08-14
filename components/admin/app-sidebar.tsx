@@ -13,26 +13,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NAV_GROUPS, AFFILIATE_PROJECT_ICON, type NavGroup } from "./nav-items";
+import { NAV_GROUPS } from "./nav-items";
 
-export interface AppSidebarProject {
-  slug: string;
-  name: string;
-}
-
-export function AppSidebar({ projects = [] }: { projects?: AppSidebarProject[] }) {
+export function AppSidebar() {
   const pathname = usePathname();
-
-  const projectsGroup: NavGroup = {
-    title: "Afiliados",
-    items: projects.map((p) => ({
-      title: p.name,
-      href: `/admin/afiliados/${p.slug}`,
-      icon: AFFILIATE_PROJECT_ICON,
-    })),
-  };
-
-  const groups = projects.length > 0 ? [...NAV_GROUPS.slice(0, 4), projectsGroup, ...NAV_GROUPS.slice(4)] : NAV_GROUPS;
 
   return (
     <Sidebar>
@@ -48,13 +32,14 @@ export function AppSidebar({ projects = [] }: { projects?: AppSidebarProject[] }
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {groups.map((group) => (
+        {NAV_GROUPS.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
-                  const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                  const isActive =
+                    pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(`${item.href}/`));
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton isActive={isActive} render={<Link href={item.href} />}>

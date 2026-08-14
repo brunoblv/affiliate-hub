@@ -38,7 +38,7 @@ export function LoginForm({ callbackUrl, error }: { callbackUrl?: string; error?
         return;
       }
 
-      router.push(callbackUrl || "/admin/dashboard");
+      router.push(callbackUrl || "/admin");
       router.refresh();
     });
   }
@@ -46,7 +46,7 @@ export function LoginForm({ callbackUrl, error }: { callbackUrl?: string; error?
   function handleGoogleSignIn() {
     setFormError(null);
     startTransition(async () => {
-      await signIn("google", { callbackUrl: callbackUrl || "/admin/dashboard" });
+      await signIn("google", { callbackUrl: callbackUrl || "/admin" });
     });
   }
 

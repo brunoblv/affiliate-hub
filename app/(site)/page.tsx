@@ -1,17 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/database";
 import { Button } from "@/components/ui/button";
+import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
 import { NewsletterForm } from "./newsletter-form";
-
-const STORE_LABEL: Record<string, string> = {
-  MERCADO_LIVRE: "Mercado Livre",
-  SHOPEE: "Shopee",
-  AMAZON: "Amazon",
-  TIKTOK_SHOP: "TikTok Shop",
-  ALIEXPRESS: "AliExpress",
-  MAGALU: "Magalu",
-  OUTRAS: "Outras lojas",
-};
 
 const TOOLS = [
   { title: "Calculadora de tinta", description: "Descubra quantos litros você precisa comprar.", href: "/ferramentas/calculadora-de-tinta" },
@@ -30,19 +21,22 @@ function readingTime(text: string) {
 }
 
 export default async function HomePage() {
-  const [categories, posts, deals] = await Promise.all([
-    prisma.category.findMany({ where: { active: true }, orderBy: { name: "asc" }, take: 8 }),
-    prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
+  const [posts, produtos] = await Promise.all([
+    prisma.post.findMany({
+      where: { status: "PUBLICADO" },
+      orderBy: { publicadoEm: "desc" },
       take: 3,
     }),
-    prisma.product.findMany({
-      where: { status: "ACTIVE", discountPercent: { not: null } },
-      orderBy: { discountPercent: "desc" },
-      take: 3,
+    prisma.produto.findMany({
+      where: { ativo: true },
+      orderBy: { criadoEm: "desc" },
+      take: 12,
     }),
   ]);
+
+  const deals = produtos
+    .filter((produto) => descontoPercentual(produto) !== null)
+    .slice(0, 3);
 
   return (
     <>
@@ -72,25 +66,6 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* Categorias */}
-      {categories.length > 0 && (
-        <div id="categorias" className="mx-auto max-w-[1200px] px-5 pb-14 sm:px-10">
-          <div className="mb-4 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">EXPLORE POR CATEGORIA</div>
-          <div className="flex flex-wrap gap-3">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categoria/${category.slug}`}
-                className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-sage"
-              >
-                <span className="size-2 rounded-[2px] bg-sage" />
-                {category.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Conteúdos recentes */}
       {posts.length > 0 && (
         <div className="mx-auto max-w-[1200px] px-5 pb-16 sm:px-10">
@@ -100,18 +75,13 @@ export default async function HomePage() {
             {posts.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
                 <div className="mb-3.5 flex h-44 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_8px,var(--background)_8px,var(--background)_16px)]">
-                  {post.coverImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.coverImageUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
-                  )}
+                  <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
                 </div>
                 <h3 className="mt-1.5 font-heading text-[17px] font-semibold text-foreground group-hover:underline">
-                  {post.title}
+                  {post.titulo}
                 </h3>
-                {post.excerpt && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>}
-                <span className="mt-2 block text-xs font-medium text-muted-foreground">{readingTime(post.body)} min de leitura</span>
+                {post.resumo && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.resumo}</p>}
+                <span className="mt-2 block text-xs font-medium text-muted-foreground">{readingTime(post.corpo)} min de leitura</span>
               </Link>
             ))}
           </div>
@@ -128,39 +98,38 @@ export default async function HomePage() {
               <span className="text-xs font-medium text-muted-foreground">Atualizado hoje</span>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              {deals.map((product) => (
-                <Link key={product.id} href={`/produtos/${product.slug}`} className="block overflow-hidden rounded-xl bg-card">
-                  <div className="flex aspect-square items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)] p-3 sm:p-4">
-                    {product.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="max-h-full max-w-full object-contain"
-                      />
-                    ) : (
-                      <span className="font-mono text-[11px] text-muted-foreground">produto</span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-muted-foreground">{STORE_LABEL[product.source] ?? product.source}</span>
-                      {product.discountPercent && (
-                        <span className="rounded-full bg-olive px-2 py-0.5 text-xs font-bold text-white">
-                          -{Number(product.discountPercent).toFixed(0)}%
-                        </span>
+              {deals.map((produto) => {
+                const desconto = descontoPercentual(produto);
+                const imagem = primeiraImagem(produto);
+                return (
+                  <Link key={produto.id} href={`/produtos/${produto.slug}`} className="block overflow-hidden rounded-xl bg-card">
+                    <div className="flex aspect-square items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)] p-3 sm:p-4">
+                      {imagem ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={imagem} alt={produto.nome} className="max-h-full max-w-full object-contain" />
+                      ) : (
+                        <span className="font-mono text-[11px] text-muted-foreground">produto</span>
                       )}
                     </div>
-                    <div className="mb-1.5 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</div>
-                    <div className="flex items-baseline gap-2">
-                      {product.originalPrice && (
-                        <span className="text-xs text-muted-foreground line-through">{formatCurrency(Number(product.originalPrice))}</span>
-                      )}
-                      <span className="text-lg font-bold text-foreground">{formatCurrency(Number(product.price))}</span>
+                    <div className="p-4">
+                      <div className="mb-2 flex items-center justify-end">
+                        {desconto !== null && (
+                          <span className="rounded-full bg-olive px-2 py-0.5 text-xs font-bold text-white">
+                            -{desconto}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="mb-1.5 line-clamp-2 text-sm font-semibold text-foreground">{produto.nome}</div>
+                      <div className="flex items-baseline gap-2">
+                        {produto.precoOriginal && (
+                          <span className="text-xs text-muted-foreground line-through">{formatCurrency(Number(produto.precoOriginal))}</span>
+                        )}
+                        <span className="text-lg font-bold text-foreground">{formatCurrency(Number(produto.precoAtual))}</span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>

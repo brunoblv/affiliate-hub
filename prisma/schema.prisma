@@ -1,5 +1,6 @@
-// Prisma schema — Sistema de Automação de Afiliados
-// Ver especificacoes-sistema-afiliados.md para o desenho completo
+// Affiliate Hub v2 — schema enxuto
+// Blog (CMS) + catálogo de produtos + fila de distribuição.
+// Ver docs/hub/especificacao-affiliate-hub-v2.md
 
 generator client {
   provider = "prisma-client"
@@ -11,7 +12,10 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Autenticação / usuários administrativos
+// Admin (NextAuth) — nomes em inglês de propósito: @auth/prisma-adapter
+// resolve os models pelo nome do client gerado (prisma.user/.account/.session),
+// então não pode ser traduzido para Usuario/Conta/Sessao como no restante do
+// schema, sob pena de o adapter quebrar em silêncio.
 // ---------------------------------------------------------------------------
 
 enum UserRole {
@@ -31,6 +35,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  posts    Post[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -70,872 +75,318 @@ model Session {
 }
 
 // ---------------------------------------------------------------------------
-// Plataformas / canais (enums compartilhados)
+// CONTEÚDO — blog editável pelo CMS
 // ---------------------------------------------------------------------------
 
-enum Platform {
-  SHOPEE
-  TIKTOK_SHOP
-  AMAZON
-  ALIEXPRESS
-  MAGALU
-  MERCADO_LIVRE
-  OUTRAS
+enum TipoPost {
+  JORNADA // editorial: "Como escolhemos o sofá"
+  PRODUTO // página de um produto só
+  LISTA // roundup com vários produtos
 }
 
-enum Channel {
-  FACEBOOK
+enum StatusPost {
+  RASCUNHO
+  PUBLICADO
+}
+
+model Post {
+  id     String   @id @default(cuid())
+  tipo   TipoPost
+  titulo String
+  slug   String   @unique
+  resumo String?
+
+  /// Markdown. Imagens no meio do texto via ![alt](url) e cards de produto
+  /// via shortcode em linha própria: [produto:slug-do-produto]
+  corpo String @db.Text
+
+  capaId String?
+  capa   Midia?  @relation("CapaDoPost", fields: [capaId], references: [id], onDelete: SetNull)
+
+  seoTitulo     String?
+  metaDescricao String?
+
+  status      StatusPost @default(RASCUNHO)
+  publicadoEm DateTime?
+
+  autorId String?
+  autor   User?   @relation(fields: [autorId], references: [id], onDelete: SetNull)
+
+  produtos ItemDePost[]
+  midias   MidiaEmPost[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([status, publicadoEm])
+  @@index([tipo])
+  @@map("posts")
+}
+
+/// Produto exibido dentro de um post (PRODUTO ou LISTA), na ordem do texto.
+model ItemDePost {
+  id        String  @id @default(cuid())
+  postId    String
+  produtoId String
+  ordem     Int     @default(0)
+  /// Ex.: "1. Sofá retrátil 3 lugares"
+  rotulo    String?
+  /// Por que esse produto, em 1-2 frases suas.
+  nota      String? @db.Text
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, produtoId])
+  @@index([postId, ordem])
+  @@map("itens_de_post")
+}
+
+// ---------------------------------------------------------------------------
+// MÍDIA — biblioteca de imagens do CMS
+// ---------------------------------------------------------------------------
+
+model Midia {
+  id           String @id @default(cuid())
+  /// URL pública servida pelo site (ex.: /midia/2026/08/sofa-abc123.webp)
+  url          String @unique
+  /// Caminho no disco/bucket, relativo a MEDIA_ROOT.
+  caminho      String
+  nomeOriginal String
+  mimeType     String
+  tamanhoBytes Int
+  largura      Int?
+  altura       Int?
+  /// Texto alternativo — obrigatório para acessibilidade e SEO.
+  alt          String?
+
+  capaDe      Post[]        @relation("CapaDoPost")
+  usosEmPosts MidiaEmPost[]
+
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("midias")
+}
+
+/// Rastreia quais imagens estão embutidas no corpo de cada post.
+/// Serve para avisar antes de excluir uma mídia ainda em uso.
+model MidiaEmPost {
+  postId  String
+  midiaId String
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  midia Midia @relation(fields: [midiaId], references: [id], onDelete: Cascade)
+
+  @@id([postId, midiaId])
+  @@map("midias_em_posts")
+}
+
+// ---------------------------------------------------------------------------
+// CATÁLOGO
+// ---------------------------------------------------------------------------
+
+enum Plataforma {
+  MERCADO_LIVRE
+  AMAZON
+  SHOPEE
+  OUTRA
+}
+
+model Produto {
+  id         String     @id @default(cuid())
+  plataforma Plataforma
+  /// ID na plataforma de origem (ex.: MLB1234567890)
+  idExterno  String
+  slug       String     @unique
+
+  nome      String
+  descricao String? @db.Text
+  /// string[] — até 6 URLs de imagem vindas da API da plataforma.
+  imagens   Json    @default("[]")
+
+  precoAtual    Decimal  @db.Decimal(12, 2)
+  precoOriginal Decimal? @db.Decimal(12, 2)
+  moeda         String   @default("BRL")
+
+  /// Link de afiliado colado por você. Nunca exibido direto: sempre via /go.
+  linkAfiliado String
+  /// Código do redirecionador rastreado: /go/:codigoCurto
+  codigoCurto  String @unique
+
+  /// Resposta íntegra da API no último sync — só para depuração.
+  dadosBrutos Json?
+
+  ativo          Boolean   @default(true)
+  sincronizadoEm DateTime?
+
+  itens       ItemDePost[]
+  publicacoes Publicacao[]
+  cliques     Clique[]
+  precos      HistoricoPreco[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([plataforma, idExterno])
+  @@index([ativo])
+  @@map("produtos")
+}
+
+/// Só para mostrar "de R$ X por R$ Y" com honestidade e detectar produto fora do ar.
+model HistoricoPreco {
+  id           String   @id @default(cuid())
+  produtoId    String
+  preco        Decimal  @db.Decimal(12, 2)
+  registradoEm DateTime @default(now())
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId, registradoEm])
+  @@map("historico_precos")
+}
+
+// ---------------------------------------------------------------------------
+// DISTRIBUIÇÃO
+// ---------------------------------------------------------------------------
+
+enum Rede {
+  FACEBOOK_PAGE
   INSTAGRAM
-  TIKTOK
   TELEGRAM
-  WHATSAPP
-  WEBSITE
-  BLOG
-  PINTEREST
-  OUTROS
 }
 
-enum EntityStatus {
-  ACTIVE
-  INACTIVE
-  BLOCKED
-  ARCHIVED
-}
-
-// ---------------------------------------------------------------------------
-// Projetos de afiliados (spec docs/modulo-afiliados-umbanda.md)
-//
-// Um AffiliateProject separa completamente dados, categorias, campanhas,
-// canais e conteúdo entre operações que compartilham o mesmo motor
-// (Affiliate Commerce Engine), ex.: Meu Novo Lar (HOME) e Umbanda (UMBANDA).
-// ---------------------------------------------------------------------------
-
-enum ProjectType {
-  HOME
-  UMBANDA
-  MUSICA
-  ACHADINHOS
-}
-
-model AffiliateProject {
-  id          String      @id @default(cuid())
-  name        String
-  slug        String      @unique
-  type        ProjectType
-  description String?
-  active      Boolean     @default(true)
-
-  categories Category[]
-  products   Product[]
-  campaigns  Campaign[]
-  channels   ProjectChannel[]
-  contents   Content[]
-  blogPosts  BlogPost[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("affiliate_projects")
-}
-
-enum ProjectChannelType {
-  PUBLIC_PAGE
-  PUBLIC_GROUP
-  PRIVATE_GROUP
-  PROFILE
-}
-
-/**
- * Página ou grupo concreto (ex.: a Página do Facebook, um grupo público) usado como canal de distribuição de um projeto.
- */
-model ProjectChannel {
-  id        String             @id @default(cuid())
-  projectId String
-  name      String
-  platform  Channel
-  url       String?
-  type      ProjectChannelType
-  active    Boolean            @default(true)
-  notes     String?            @db.Text
-
-  /**
-   * ID da Página do Facebook (Graph API) — obrigatório para publicar automaticamente em canais PUBLIC_PAGE.
-   */
-  externalPageId String?
-
-  /**
-   * Identificador do destino para canais de grupo com API de envio direto:
-   * chat_id do Telegram (Bot API) ou JID do grupo do WhatsApp (Baileys).
-   */
-  externalChatId String?
-
-  allowOffers     Boolean   @default(true)
-  allowLinks      Boolean   @default(true)
-  /**
-   * Controle de frequência (docs/especificacao-automacao-produtos-chartfm.md §16): dias mínimos entre publicações do mesmo produto neste canal.
-   */
-  cooldownDays    Int       @default(7)
-  lastPublishedAt DateTime?
-
-  project      AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  publications Publication[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@map("project_channels")
-}
-
-// ---------------------------------------------------------------------------
-// Categorias
-// ---------------------------------------------------------------------------
-
-model Category {
-  id          String  @id @default(cuid())
-  projectId   String
-  name        String
-  slug        String  @unique
-  description String?
-  parentId    String?
-  active      Boolean @default(true)
-
-  project  AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent   Category?        @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
-  children Category[]       @relation("CategoryToCategory")
-
-  products Product[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([parentId])
-  @@index([projectId])
-  @@map("categories")
-}
-
-// ---------------------------------------------------------------------------
-// Produtos
-// ---------------------------------------------------------------------------
-
-model Product {
-  id          String   @id @default(cuid())
-  projectId   String
-  source      Platform
-  externalId  String
-  name        String
-  slug        String   @unique
-  description String?  @db.Text
-  brand       String?
-  categoryId  String?
-
-  imageUrl   String?
-  productUrl String?
-
-  price           Decimal  @db.Decimal(12, 2)
-  originalPrice   Decimal? @db.Decimal(12, 2)
-  discountPercent Decimal? @db.Decimal(5, 2)
-
-  rating      Decimal? @db.Decimal(3, 2)
-  reviewCount Int?     @default(0)
-  soldCount   Int?     @default(0)
-
-  commissionPercent Decimal? @db.Decimal(5, 2)
-  commissionValue   Decimal? @db.Decimal(12, 2)
-
-  currency String @default("BRL")
-
-  status EntityStatus @default(ACTIVE)
-
-  project  AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  category Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-
-  sources          ProductSource[]
-  scores           ProductScore[]
-  opportunities    Opportunity[]
-  affiliateLinks   AffiliateLink[]
-  contents         Content[]
-  campaignProducts CampaignProduct[]
-  priceHistory     ProductPriceHistory[]
-  blogPosts        BlogPost[]
-  blogPostProducts BlogPostProduct[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([source, externalId])
-  @@index([categoryId])
-  @@index([status])
-  @@index([projectId])
-  @@map("products")
-}
-
-/**
- * Histórico de preço — base para detectar quedas de preço (OpportunityType.PRICE_DROP, spec §9).
- */
-model ProductPriceHistory {
+model Canal {
   id        String  @id @default(cuid())
-  productId String
-  price     Decimal @db.Decimal(12, 2)
+  nome      String
+  rede      Rede
+  /// page_id (Facebook), ig_user_id (Instagram) ou chat_id (Telegram).
+  idExterno String
+  ativo     Boolean @default(true)
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// string[] no formato "HH:mm", no fuso TZ_APP. Ex.: ["09:00","13:00","19:30"]
+  horarios Json @default("[]")
 
-  recordedAt DateTime @default(now())
+  /// Minutos mínimos entre duas publicações neste canal.
+  intervaloMinimoMin Int @default(90)
+  /// Máximo de publicações por dia neste canal.
+  tetoDiario         Int @default(6)
+  /// Dias antes de o mesmo produto poder repetir neste canal.
+  cooldownDias       Int @default(30)
 
-  @@index([productId, recordedAt])
-  @@map("product_price_history")
+  publicacoes Publicacao[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([rede, idExterno])
+  @@index([ativo])
+  @@map("canais")
 }
 
-model ProductSource {
-  id           String    @id @default(cuid())
-  productId    String
-  platform     Platform
-  externalId   String
-  externalUrl  String?
-  affiliateUrl String?
-  storeName    String?
-  rawData      Json?
-  lastSyncedAt DateTime?
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([platform, externalId])
-  @@index([productId])
-  @@map("product_sources")
+enum StatusPublicacao {
+  PENDENTE
+  PUBLICANDO
+  PUBLICADA
+  FALHOU
+  CANCELADA
 }
 
-// ---------------------------------------------------------------------------
-// Score & Oportunidades
-// ---------------------------------------------------------------------------
-
-model ProductScore {
+model Publicacao {
   id        String @id @default(cuid())
-  productId String
+  produtoId String
+  canalId   String
 
-  discountScore   Decimal @default(0) @db.Decimal(5, 2)
-  ratingScore     Decimal @default(0) @db.Decimal(5, 2)
-  salesScore      Decimal @default(0) @db.Decimal(5, 2)
-  commissionScore Decimal @default(0) @db.Decimal(5, 2)
-  priceScore      Decimal @default(0) @db.Decimal(5, 2)
-  trendScore      Decimal @default(0) @db.Decimal(5, 2)
-  conversionScore Decimal @default(0) @db.Decimal(5, 2)
+  agendadaPara DateTime
+  status       StatusPublicacao @default(PENDENTE)
 
-  totalScore Decimal @db.Decimal(5, 2)
+  /// Texto já renderizado no agendamento — auditável e editável antes de sair.
+  texto       String  @db.Text
+  imagemUrl   String?
+  /// URL do post no blog (Facebook/Instagram) ou /go/:codigo (Telegram).
+  linkDestino String
 
-  calculatedAt DateTime @default(now())
+  tentativas    Int       @default(0)
+  idPostExterno String?
+  erro          String?   @db.Text
+  publicadaEm   DateTime?
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// produtoId:canalId:instante — barra duplicata mesmo com dois workers.
+  chaveIdempotencia String @unique
 
-  @@index([productId])
-  @@index([totalScore])
-  @@map("product_scores")
-}
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  canal   Canal   @relation(fields: [canalId], references: [id], onDelete: Cascade)
 
-enum OpportunityType {
-  PRICE_DROP
-  HIGH_DISCOUNT
-  HIGH_SALES
-  TRENDING
-  HIGH_COMMISSION
-  HIGH_CONVERSION
-  NEW_PRODUCT
-  CAMPAIGN
-}
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-enum OpportunityStatus {
-  OPEN
-  IN_PROGRESS
-  CONVERTED
-  DISMISSED
-}
-
-model Opportunity {
-  id        String            @id @default(cuid())
-  productId String
-  type      OpportunityType
-  score     Decimal           @db.Decimal(5, 2)
-  reason    String?           @db.Text
-  metadata  Json?
-  status    OpportunityStatus @default(OPEN)
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-  @@index([status])
-  @@map("opportunities")
+  @@index([status, agendadaPara])
+  @@index([canalId, agendadaPara])
+  @@index([produtoId, canalId, publicadaEm])
+  @@map("publicacoes")
 }
 
 // ---------------------------------------------------------------------------
-// Links de afiliado & tracking
+// APOIO
 // ---------------------------------------------------------------------------
 
-model AffiliateLink {
-  id        String @id @default(cuid())
-  productId String
+model Credencial {
+  id       String  @id @default(cuid())
+  /// "mercado_livre" | "meta" | "telegram"
+  provedor String  @unique
+  /// JSON cifrado com AES-256-GCM (lib/integrations/crypto.ts).
+  payload  String  @db.Text
+  ativo    Boolean @default(true)
 
-  platform Platform
-  channel  Channel
+  atualizadoEm DateTime @updatedAt
 
-  affiliateUrl String  @db.Text
-  subId        String?
-  shortCode    String  @unique @default(cuid())
-
-  clicks      Int     @default(0)
-  conversions Int     @default(0)
-  commission  Decimal @default(0) @db.Decimal(12, 2)
-
-  product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  clicksLog        Click[]
-  blogPostProducts BlogPostProduct[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-  @@index([shortCode])
-  @@map("affiliate_links")
+  @@map("credenciais")
 }
 
-model Click {
-  id              String @id @default(cuid())
-  affiliateLinkId String
-
-  ipHash    String?
-  userAgent String? @db.Text
-  referer   String? @db.Text
-
-  country String?
-  device  String?
-  browser String?
-
-  affiliateLink AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([affiliateLinkId])
-  @@index([createdAt])
-  @@map("clicks")
-}
-
-// ---------------------------------------------------------------------------
-// Campanhas
-// ---------------------------------------------------------------------------
-
-enum CampaignStatus {
-  DRAFT
-  SCHEDULED
-  ACTIVE
-  PAUSED
-  FINISHED
-  CANCELLED
-}
-
-model Campaign {
-  id          String  @id @default(cuid())
-  projectId   String
-  name        String
-  /**
-   * Código curto usado em tags/UTM, ex.: UMB-LIVROS (spec docs/modulo-afiliados-umbanda.md).
-   */
-  code        String?
-  channel     String?
-  description String? @db.Text
-
-  startAt DateTime?
-  endAt   DateTime?
-
-  status CampaignStatus @default(DRAFT)
-
-  project  AffiliateProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  products CampaignProduct[]
-  contents Content[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([projectId, code])
-  @@index([projectId])
-  @@map("campaigns")
-}
-
-model CampaignProduct {
-  id         String @id @default(cuid())
-  campaignId String
-  productId  String
-
-  priority Int          @default(0)
-  status   EntityStatus @default(ACTIVE)
-
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([campaignId, productId])
-  @@map("campaign_products")
-}
-
-// ---------------------------------------------------------------------------
-// Conteúdo
-// ---------------------------------------------------------------------------
-
-enum ContentType {
-  FACEBOOK_POST
-  INSTAGRAM_POST
-  INSTAGRAM_STORY
-  INSTAGRAM_REEL
-  TIKTOK_VIDEO
-  TELEGRAM_POST
-  WHATSAPP_POST
-  BLOG_ARTICLE
-}
-
-enum ContentStatus {
-  DRAFT
-  PENDING_APPROVAL
-  APPROVED
-  REJECTED
-  PUBLISHED
-}
-
-model Content {
-  id String @id @default(cuid())
-
-  projectId  String
-  productId  String?
-  campaignId String?
-
-  type        ContentType
-  title       String?
-  description String?     @db.Text
-  caption     String?     @db.Text
-  hashtags    String?
-
-  imageUrl String?
-  videoUrl String?
-
-  status ContentStatus @default(DRAFT)
-
-  project      AffiliateProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  product      Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
-  campaign     Campaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  publications Publication[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-  @@index([campaignId])
-  @@index([projectId])
-  @@map("contents")
-}
-
-model ContentTemplate {
-  id       String      @id @default(cuid())
-  name     String
-  channel  Channel
-  type     ContentType
-  template String      @db.Text
-  active   Boolean     @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("content_templates")
-}
-
-// ---------------------------------------------------------------------------
-// Publicações
-// ---------------------------------------------------------------------------
-
-enum PublicationStatus {
-  DRAFT
-  QUEUED
-  PUBLISHING
-  PUBLISHED
-  FAILED
-  CANCELLED
-}
-
-model Publication {
+model Clique {
   id        String  @id @default(cuid())
-  contentId String
-  channel   Channel
+  produtoId String
+  /// "blog" | "facebook" | "telegram" | "instagram" — parâmetro ?o= do /go
+  origem    String?
+  /// Hash do IP + user agent. Nunca o IP em claro (LGPD).
+  visitante String?
+  referer   String?
 
-  /**
-   * Página ou grupo específico de destino (docs/especificacao-automacao-produtos-chartfm.md §14/§15). Ausente = publicação legada sem canal específico.
-   */
-  projectChannelId String?
-  /**
-   * true = grupo do Facebook em fluxo assistido (Central de Grupos): o sistema não chama a API, o admin copia/cola manualmente e marca como publicado.
-   */
-  assisted         Boolean @default(false)
+  criadoEm DateTime @default(now())
 
-  scheduledAt DateTime?
-  publishedAt DateTime?
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
-  status PublicationStatus @default(DRAFT)
-
-  externalPostId String?
-
-  error    String? @db.Text
-  attempts Int     @default(0)
-
-  content        Content         @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  projectChannel ProjectChannel? @relation(fields: [projectChannelId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([contentId])
-  @@index([status])
-  @@index([scheduledAt])
-  @@index([projectChannelId])
-  @@map("publications")
+  @@index([produtoId, criadoEm])
+  @@index([origem, criadoEm])
+  @@map("cliques")
 }
 
-// ---------------------------------------------------------------------------
-// Scheduler (spec §25)
-// ---------------------------------------------------------------------------
+model Assinante {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  ativo      Boolean   @default(true)
+  /// Descadastro em um clique, sem login.
+  tokenBaixa String    @unique @default(cuid())
+  criadoEm   DateTime  @default(now())
+  baixaEm    DateTime?
 
-/**
- * Horário recorrente de publicação configurável pelo usuário: canal,
- * horário, categoria, quantidade de posts, campanha, tipo de conteúdo,
- * score mínimo, faixa de preço e desconto mínimo.
- * categoryId/campaignId são referências soltas (sem FK) para não acoplar o
- * agendamento ao ciclo de vida de Category/Campaign.
- */
-model ScheduleSlot {
-  id   String @id @default(cuid())
-  name String
-
-  channel Channel
-
-  /**
-   * Horário no formato HH:mm (horário local do servidor).
-   */
-  time String
-
-  categoryId  String?
-  campaignId  String?
-  contentType ContentType?
-
-  minScore    Decimal? @db.Decimal(5, 2)
-  minDiscount Decimal? @db.Decimal(5, 2)
-  minPrice    Decimal? @db.Decimal(12, 2)
-  maxPrice    Decimal? @db.Decimal(12, 2)
-
-  postsPerSlot Int     @default(1)
-  active       Boolean @default(true)
-
-  lastRunAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([active])
-  @@map("schedule_slots")
+  @@map("assinantes")
 }
 
-// ---------------------------------------------------------------------------
-// Autopilot
-// ---------------------------------------------------------------------------
-
-enum AutopilotMode {
-  MANUAL
-  SEMI_AUTOMATIC
-  AUTOMATIC
-}
-
-model AutopilotRule {
-  id     String  @id @default(cuid())
-  name   String
-  active Boolean @default(true)
-
-  mode    AutopilotMode @default(SEMI_AUTOMATIC)
-  channel Channel       @default(FACEBOOK)
-
-  minScore      Decimal? @db.Decimal(5, 2)
-  minDiscount   Decimal? @db.Decimal(5, 2)
-  minRating     Decimal? @db.Decimal(3, 2)
-  minCommission Decimal? @db.Decimal(5, 2)
-  minSales      Int?
-  maxPrice      Decimal? @db.Decimal(12, 2)
-  minPrice      Decimal? @db.Decimal(12, 2)
-
-  allowedCategoryIds Json? // string[]
-  blockedCategoryIds Json? // string[]
-
-  maxPublicationsPerDay Int? @default(10)
-
-  targetCampaignId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("autopilot_rules")
-}
-
-// ---------------------------------------------------------------------------
-// Blog (docs/especificacao-automacao-produtos-chartfm.md §10/§11) — canal
-// público, acessível sem autenticação, com posts manuais (editorial) e
-// posts automáticos gerados a partir de produtos com link de afiliado.
-// ---------------------------------------------------------------------------
-
-enum BlogPostStatus {
-  DRAFT
-  PUBLISHED
-}
-
-model BlogPost {
-  id        String  @id @default(cuid())
-  projectId String?
-  productId String?
-
-  title           String
-  slug            String  @unique
-  excerpt         String?
-  body            String  @db.Text
-  coverImageUrl   String?
-  seoTitle        String?
-  metaDescription String?
-
-  status      BlogPostStatus @default(DRAFT)
-  publishedAt DateTime?
-
-  /**
-   * MANUAL (escrito pelo admin) ou MERCADO_LIVRE_AUTO / TIKTOK_SHOP_AUTO / AMAZON_AUTO (gerado automaticamente).
-   */
-  source String @default("MANUAL")
-
-  project AffiliateProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  product Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
-  items   BlogPostProduct[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@index([status])
-  @@index([publishedAt])
-  @@map("blog_posts")
-}
-
-/**
- * Um produto dentro de um post "roundup" (ex: "Rotina Coreana de 10 Passos"),
- * com vários produtos numa mesma landing page — cada um com seu próprio CTA
- * (docs/rotina-coreana-10-passos-post.md). `affiliateLinkId` aponta pro
- * AffiliateLink (canal BLOG) já existente/criado pro produto — nunca um link
- * cru, seguindo a mesma regra do resto do sistema (AGENTS.md).
- */
-model BlogPostProduct {
-  id              String  @id @default(cuid())
-  blogPostId      String
-  productId       String
-  affiliateLinkId String
-  order           Int     @default(0)
-  /**
-   * Ex: "1. Óleo de limpeza" — rótulo/etapa opcional exibido acima do produto.
-   */
-  label           String?
-  /**
-   * Ex: "Remove maquiagem sem ressecar a pele." — contexto curto exibido junto do CTA.
-   */
-  note            String? @db.Text
-
-  blogPost      BlogPost      @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
-  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  affiliateLink AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([blogPostId, productId])
-  @@index([blogPostId, order])
-  @@index([productId])
-  @@map("blog_post_products")
-}
-
-// ---------------------------------------------------------------------------
-// Newsletter (form "Quero receber" na home pública)
-// ---------------------------------------------------------------------------
-
-enum NewsletterStatus {
-  ACTIVE
-  UNSUBSCRIBED
-}
-
-model NewsletterSubscriber {
-  id     String           @id @default(cuid())
-  email  String           @unique
-  status NewsletterStatus @default(ACTIVE)
-
-  /**
-   * Usado no link de descadastro de um clique (política de privacidade).
-   */
-  unsubscribeToken String @unique @default(cuid())
-
-  subscribedAt   DateTime  @default(now())
-  unsubscribedAt DateTime?
-
-  @@map("newsletter_subscribers")
-}
-
-// ---------------------------------------------------------------------------
-// Bloqueios (docs/especificacao-automacao-produtos-chartfm.md §27) — regras
-// mínimas do Rules Engine: produtos com essas características são ignorados
-// na descoberta em vez de virarem Product/conteúdo.
-// ---------------------------------------------------------------------------
-
-enum BlocklistType {
-  SELLER
-  CATEGORY
-  KEYWORD
-}
-
-model Blocklist {
-  id     String        @id @default(cuid())
-  type   BlocklistType
-  value  String
-  active Boolean       @default(true)
-  notes  String?
-
-  createdAt DateTime @default(now())
-
-  @@unique([type, value])
-  @@map("blocklist")
-}
-
-// ---------------------------------------------------------------------------
-// Jobs / Logs / Configurações
-// ---------------------------------------------------------------------------
-
-enum JobStatus {
-  PENDING
-  RUNNING
-  COMPLETED
-  FAILED
-}
-
-model Job {
-  id       String    @id @default(cuid())
-  queue    String
-  name     String
-  status   JobStatus @default(PENDING)
-  payload  Json?
-  result   Json?
-  error    String?   @db.Text
-  attempts Int       @default(0)
-
-  /**
-   * Quando setado, o job só deve ser processado a partir deste horário (fila com atraso — ex: publicações espalhadas ao longo do dia).
-   */
-  scheduledAt DateTime?
-
-  startedAt  DateTime?
-  finishedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([queue])
-  @@index([status])
-  @@map("jobs")
-}
-
-enum LogLevel {
-  DEBUG
+enum NivelLog {
   INFO
-  WARN
-  ERROR
+  ERRO
 }
 
+/// Log mínimo do que o worker fez — o suficiente para explicar um post que não saiu.
 model Log {
-  id      String   @id @default(cuid())
-  level   LogLevel @default(INFO)
-  scope   String // e.g. PRODUCT_SYNC, CONTENT, PUBLISH, WEBHOOK
-  message String   @db.Text
-  meta    Json?
+  id       String   @id @default(cuid())
+  nivel    NivelLog
+  area     String
+  mensagem String   @db.Text
+  contexto Json?
+  criadoEm DateTime @default(now())
 
-  createdAt DateTime @default(now())
-
-  @@index([scope])
-  @@index([level])
-  @@index([createdAt])
+  @@index([criadoEm])
   @@map("logs")
-}
-
-model Setting {
-  id    String @id @default(cuid())
-  key   String @unique
-  value Json
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("settings")
-}
-
-// ---------------------------------------------------------------------------
-// Credenciais de integração (tokens criptografados por provider)
-// ---------------------------------------------------------------------------
-
-/**
- * Superset de Platform (fontes de produto) + provedores de publicação
- * (Meta/Instagram) que também guardam tokens OAuth em IntegrationCredential.
- */
-enum IntegrationProvider {
-  SHOPEE
-  TIKTOK_SHOP
-  MERCADO_LIVRE
-  AMAZON
-  ALIEXPRESS
-  MAGALU
-  META
-  INSTAGRAM
-  OUTRAS
-}
-
-model IntegrationCredential {
-  id       String              @id @default(cuid())
-  provider IntegrationProvider
-  label    String?
-
-  encryptedPayload String @db.Text // JSON criptografado com tokens/segredos
-
-  active Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([provider, label])
-  @@map("integration_credentials")
-}
-
-/**
- * Páginas do Facebook conectadas via Meta Graph API.
- * accessToken = Page Access Token (criptografado), usado para publicar em cada Página.
- */
-model MetaFacebookPage {
-  id          String  @id @default(cuid())
-  pageId      String  @unique
-  name        String
-  accessToken String  @db.Text
-  active      Boolean @default(true)
-
-  /**
-   * Conta Instagram Business vinculada à Página (quando houver).
-   */
-  instagramBusinessAccountId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("meta_facebook_pages")
 }
