@@ -24,6 +24,9 @@ export async function getEligibleProducts(slot: ScheduleSlot): Promise<EligibleP
       gte: slot.minPrice ?? undefined,
       lte: slot.maxPrice ?? undefined,
     },
+    // Nunca seleciona produto sem link de afiliado já cadastrado pro canal —
+    // sem isso o post sairia com o placeholder "[LINK]" (AGENTS.md).
+    affiliateLinks: { some: { channel: slot.channel } },
     contents: {
       none: {
         type: contentType,

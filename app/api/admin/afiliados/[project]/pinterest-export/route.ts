@@ -5,8 +5,9 @@ import { buildPinterestBulkCsv, type PinterestExportProduct } from "@/lib/pinter
 import { Channel } from "@/lib/generated/prisma/client";
 
 /**
- * Exporta produtos do projeto no CSV de bulk upload do Pinterest.
- * Query: ?board=NomeDoBoard&status=ACTIVE&onlyWithLink=1
+ * Exporta produtos do projeto no CSV de bulk upload do Pinterest — só
+ * produtos com link de afiliado real (nunca a URL crua da loja).
+ * Query: ?board=NomeDoBoard&status=ACTIVE
  */
 export async function GET(
   request: Request,
@@ -26,7 +27,6 @@ export async function GET(
   }
 
   const status = searchParams.get("status")?.trim();
-  const onlyWithLink = searchParams.get("onlyWithLink") === "1";
   const publishDate = searchParams.get("publishDate")?.trim() || undefined;
 
   const products = await prisma.product.findMany({
@@ -66,13 +66,13 @@ export async function GET(
       brand: p.brand,
       categoryName: p.category?.name ?? null,
       trackingShortCode: anyLink?.shortCode ?? null,
-      affiliateOrProductUrl: anyLink?.affiliateUrl ?? source?.affiliateUrl ?? source?.externalUrl ?? p.productUrl,
+      // Nunca cai pra source.externalUrl/product.productUrl — link sem afiliado não pode ser exportado.
+      affiliateOrProductUrl: anyLink?.affiliateUrl ?? source?.affiliateUrl ?? null,
     };
   });
 
-  const eligible = onlyWithLink
-    ? mapped.filter((p) => Boolean(p.trackingShortCode || p.affiliateOrProductUrl))
-    : mapped;
+  // Sempre exclui produtos sem link de afiliado real — nunca exporta URL crua da loja.
+  const eligible = mapped.filter((p) => Boolean(p.trackingShortCode || p.affiliateOrProductUrl));
 
   try {
     const { csv, exported, skipped } = buildPinterestBulkCsv(eligible, { board, publishDate });

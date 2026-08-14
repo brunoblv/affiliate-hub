@@ -9,8 +9,11 @@ export class FacebookPublisher implements Publisher {
   constructor(private readonly pageId: string) {}
 
   async publish(content: PublishableContent): Promise<PublishResult> {
+    // content.description é só o corpo do texto (sem CTA/link/disclosure —
+    // ver lib/content/channel-formatters.ts); o link de afiliado só existe em
+    // content.caption (texto completo formatado). Sem isso, o post ia sem link.
     const result = await metaClient.publishFacebookPost(this.pageId, {
-      message: [content.title, content.description].filter(Boolean).join("\n\n"),
+      message: content.caption ?? [content.title, content.description].filter(Boolean).join("\n\n"),
       imageUrl: content.imageUrl ?? undefined,
     });
     return { externalPostId: result.id };

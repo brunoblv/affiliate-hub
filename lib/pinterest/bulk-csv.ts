@@ -89,11 +89,12 @@ function buildKeywords(product: PinterestExportProduct): string {
   return [...new Set(tags.map((t) => t.trim().toLowerCase()))].join(", ");
 }
 
-function resolveLink(product: PinterestExportProduct, siteUrl: string): string {
+/** Nunca cai pra product.productUrl (URL crua da loja, sem afiliado) — retorna null se não houver link real. */
+function resolveLink(product: PinterestExportProduct, siteUrl: string): string | null {
   if (product.trackingShortCode) {
     return `${siteUrl}/go/${product.trackingShortCode}`;
   }
-  return product.affiliateOrProductUrl ?? product.productUrl ?? "";
+  return product.affiliateOrProductUrl || null;
 }
 
 /**
@@ -120,6 +121,11 @@ export function buildPinterestBulkCsv(
     }
 
     const link = resolveLink(product, siteUrl);
+    if (!link) {
+      skipped += 1;
+      continue;
+    }
+
     rows.push({
       Title: uniqueTitle(product.name, product.id, usedTitles),
       "Media URL": mediaUrl,

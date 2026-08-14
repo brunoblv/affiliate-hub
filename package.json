@@ -16,6 +16,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:ensure-chartfm": "tsx scripts/ensure-chartfm-project.ts",
     "db:ensure-achadinhos": "tsx scripts/ensure-achadinhos-tiktok-project.ts",
+    "db:seed-schedules": "tsx scripts/seed-ideal-schedules.ts",
     "meta:bootstrap": "tsx scripts/bootstrap-meta-from-env.ts",
     "meta:ensure-pages": "tsx scripts/ensure-facebook-pages.ts",
     "ml:update-prices": "tsx scripts/update-mercado-livre-prices.ts",

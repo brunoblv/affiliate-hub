@@ -19,16 +19,22 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/**
+ * Só retorna link de afiliado de verdade — nunca a URL crua do produto
+ * (product.productUrl / source.externalUrl), já que divulgar um link sem
+ * comissão contraria o próprio objetivo do sistema. Sem link cadastrado
+ * ainda, o CTA fica desabilitado ("Link indisponível") em vez de vazar a
+ * URL da loja sem rastreio.
+ */
 function resolveCtaUrl(product: {
-  productUrl: string | null;
   affiliateLinks: Array<{ shortCode: string }>;
-  sources: Array<{ affiliateUrl: string | null; externalUrl: string | null }>;
+  sources: Array<{ affiliateUrl: string | null }>;
 }) {
   const tracked = product.affiliateLinks[0];
   if (tracked) return `${getSiteUrl()}/go/${tracked.shortCode}`;
 
   const source = product.sources[0];
-  return source?.affiliateUrl || source?.externalUrl || product.productUrl || null;
+  return source?.affiliateUrl || null;
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {

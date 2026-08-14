@@ -11,7 +11,6 @@ const selectClassName =
 export function PinterestExportForm({ projectSlug }: { projectSlug: string }) {
   const [board, setBoard] = useState("");
   const [status, setStatus] = useState("ACTIVE");
-  const [onlyWithLink, setOnlyWithLink] = useState(false);
 
   function download() {
     const trimmed = board.trim();
@@ -23,7 +22,6 @@ export function PinterestExportForm({ projectSlug }: { projectSlug: string }) {
       board: trimmed,
       status,
     });
-    if (onlyWithLink) params.set("onlyWithLink", "1");
     window.location.href = `/api/admin/afiliados/${projectSlug}/pinterest-export?${params.toString()}`;
   }
 
@@ -39,7 +37,8 @@ export function PinterestExportForm({ projectSlug }: { projectSlug: string }) {
           required
         />
         <p className="text-xs text-muted-foreground">
-          Tem que bater com o nome do board (ou board/seção). Só entram produtos com URL de imagem pública.
+          Tem que bater com o nome do board (ou board/seção). Só entram produtos com URL de imagem pública e link de
+          afiliado já cadastrado.
         </p>
       </div>
       <div className="space-y-2">
@@ -53,17 +52,6 @@ export function PinterestExportForm({ projectSlug }: { projectSlug: string }) {
           <option value="ACTIVE">Ativos</option>
           <option value="INACTIVE">Inativos</option>
         </select>
-      </div>
-      <div className="flex items-end">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            className="size-4"
-            checked={onlyWithLink}
-            onChange={(e) => setOnlyWithLink(e.target.checked)}
-          />
-          Só com link (afiliado ou produto)
-        </label>
       </div>
       <div className="sm:col-span-2">
         <Button type="button" size="sm" onClick={download}>

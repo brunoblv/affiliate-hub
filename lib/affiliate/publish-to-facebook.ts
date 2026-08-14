@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
 import { generateContent } from "@/lib/ai";
-import { publishToProjectChannel } from "@/lib/publishing";
+import { nextAvailableTime } from "@/lib/autopilot";
 import { getSiteUrl } from "@/lib/site-url";
 import {
   Channel,
@@ -22,11 +22,15 @@ export interface PublishToFacebookResult {
 }
 
 /**
- * Dispara a publicação no Facebook do projeto do produto assim que o link de
- * afiliado é cadastrado (docs/especificacao-automacao-produtos-chartfm.md
- * §13/§14): a Página é publicada automaticamente via Graph API; grupos
- * públicos entram na fila da Central de Grupos (fluxo assistido — o sistema
- * NÃO tenta publicar em grupos via API, spec §14).
+ * Enfileira a publicação no Facebook do projeto do produto assim que o link
+ * de afiliado é cadastrado (docs/especificacao-automacao-produtos-chartfm.md
+ * §13/§14): a Página entra na fila `Publication` (QUEUED) para o próximo
+ * horário configurado em /admin/schedules (nextAvailableTime) — sem isso,
+ * publica imediatamente, mesmo comportamento de antes. O schedulerTick
+ * publica de fato quando o horário vence, com espaçamento entre produtos em
+ * vez de tudo em rajada. Grupos públicos entram na fila da Central de Grupos
+ * (fluxo assistido — o sistema NÃO tenta publicar em grupos via API, spec
+ * §14).
  *
  * Gera uma única Content compartilhada e cria uma Publication por canal
  * (Página + cada grupo), respeitando o cooldown configurado em cada canal.
@@ -99,23 +103,16 @@ export async function publishToFacebook(product: Product, link: AffiliateLink): 
         continue;
       }
 
-      const publication = await prisma.publication.create({
+      await prisma.publication.create({
         data: {
           contentId: content.id,
           channel: Channel.FACEBOOK,
           projectChannelId: channel.id,
           status: PublicationStatus.QUEUED,
-          scheduledAt: new Date(),
+          scheduledAt: await nextAvailableTime(Channel.FACEBOOK),
         },
       });
-
-      try {
-        await publishToProjectChannel(publication.id, channel.externalPageId);
-        result.pagePublished += 1;
-        await prisma.projectChannel.update({ where: { id: channel.id }, data: { lastPublishedAt: new Date() } });
-      } catch {
-        // O erro já foi persistido em Publication.error por publishToProjectChannel.
-      }
+      result.pagePublished += 1;
     } else {
       await prisma.publication.create({
         data: {

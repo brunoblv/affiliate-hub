@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/database";
 import { generateContent } from "@/lib/ai";
 import { logger } from "@/lib/logging";
+import { getSiteUrl } from "@/lib/site-url";
 import { Channel, ContentStatus } from "@/lib/generated/prisma/client";
 import { CHANNEL_TO_CONTENT_TYPE } from "./channel-map";
 import { marketplaceLabel } from "./product-post";
@@ -21,6 +22,11 @@ export async function generateContentForProduct(options: GenerateContentForProdu
 
   const product = await prisma.product.findUniqueOrThrow({ where: { id: productId } });
 
+  // Reaproveita o link de afiliado já cadastrado pro canal (se existir) — nunca
+  // gera post com o placeholder "[LINK]" quando já existe link real (AGENTS.md).
+  const existingLink = await prisma.affiliateLink.findFirst({ where: { productId, channel } });
+  const affiliateUrl = existingLink ? `${getSiteUrl()}/go/${existingLink.shortCode}` : undefined;
+
   const generated = await generateContent({
     product: {
       name: product.name,
@@ -34,6 +40,7 @@ export async function generateContentForProduct(options: GenerateContentForProdu
     channel,
     marketplace: marketplaceLabel(product.source),
     productSource: product.source,
+    affiliateUrl,
   });
 
   const content = await prisma.content.create({

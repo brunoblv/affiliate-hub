@@ -31,6 +31,10 @@ export async function getEligibleProducts(rule: AutopilotRule, limit: number): P
       : blockedCategoryIds?.length
         ? { notIn: blockedCategoryIds }
         : undefined,
+    // Nunca seleciona produto sem link de afiliado já cadastrado pro canal —
+    // Autopilot aprova sozinho, sem revisão humana, então não pode gerar post
+    // com o placeholder "[LINK]" (AGENTS.md).
+    affiliateLinks: { some: { channel: rule.channel } },
     contents: {
       none: {
         type: CHANNEL_TO_CONTENT_TYPE[rule.channel],

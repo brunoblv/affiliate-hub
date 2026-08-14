@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
 import { generateContent } from "@/lib/ai";
-import { getPublisher } from "@/lib/publishing";
+import { nextAvailableTime } from "@/lib/autopilot";
 import { getSiteUrl } from "@/lib/site-url";
 import { marketplaceLabel } from "@/lib/content/product-post";
 import { toProductFacts } from "./product-facts";
@@ -21,10 +21,12 @@ export interface PublishToChannelGroupResult {
 }
 
 /**
- * Publica automaticamente em todo ProjectChannel ativo de `channel` (Telegram
- * ou WhatsApp — ambos têm envio direto por API/Baileys, ao contrário dos
- * grupos do Facebook que exigem o fluxo assistido da Central de Grupos, ver
- * lib/affiliate/publish-to-facebook.ts).
+ * Enfileira (QUEUED, próximo horário configurado em /admin/schedules) a
+ * publicação em todo ProjectChannel ativo de `channel` (Telegram ou WhatsApp
+ * — ambos têm envio direto por API/Baileys, ao contrário dos grupos do
+ * Facebook que exigem o fluxo assistido da Central de Grupos, ver
+ * lib/affiliate/publish-to-facebook.ts). O schedulerTick publica de fato
+ * quando o horário vence — espaçando produtos em vez de postar tudo junto.
  */
 export async function publishToChannelGroups(
   product: Product,
@@ -84,36 +86,16 @@ export async function publishToChannelGroups(
       continue;
     }
 
-    const publication = await prisma.publication.create({
+    await prisma.publication.create({
       data: {
         contentId: content.id,
         channel,
         projectChannelId: projectChannel.id,
-        status: PublicationStatus.PUBLISHING,
-        scheduledAt: new Date(),
-        attempts: 1,
+        status: PublicationStatus.QUEUED,
+        scheduledAt: await nextAvailableTime(channel),
       },
     });
-
-    try {
-      const publisher = getPublisher(channel, { chatId: projectChannel.externalChatId });
-      const publishResult = await publisher.publish(content);
-
-      await prisma.publication.update({
-        where: { id: publication.id },
-        data: { status: PublicationStatus.PUBLISHED, publishedAt: new Date(), externalPostId: publishResult.externalPostId },
-      });
-      await prisma.projectChannel.update({ where: { id: projectChannel.id }, data: { lastPublishedAt: new Date() } });
-
-      result.published += 1;
-    } catch (error) {
-      await prisma.publication.update({
-        where: { id: publication.id },
-        data: { status: PublicationStatus.FAILED, error: error instanceof Error ? error.message : String(error) },
-      });
-      logger.error("PUBLISH", `${channel}: falha ao publicar no grupo`, { channelId: projectChannel.id, error });
-      result.failed += 1;
-    }
+    result.published += 1;
   }
 
   return result;
