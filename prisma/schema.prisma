@@ -258,6 +258,7 @@ model Product {
   campaignProducts CampaignProduct[]
   priceHistory     ProductPriceHistory[]
   blogPosts        BlogPost[]
+  blogPostProducts BlogPostProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -389,8 +390,9 @@ model AffiliateLink {
   conversions Int     @default(0)
   commission  Decimal @default(0) @db.Decimal(12, 2)
 
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  clicksLog Click[]
+  product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  clicksLog        Click[]
+  blogPostProducts BlogPostProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -715,6 +717,7 @@ model BlogPost {
 
   project AffiliateProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   product Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+  items   BlogPostProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -723,6 +726,40 @@ model BlogPost {
   @@index([status])
   @@index([publishedAt])
   @@map("blog_posts")
+}
+
+/**
+ * Um produto dentro de um post "roundup" (ex: "Rotina Coreana de 10 Passos"),
+ * com vários produtos numa mesma landing page — cada um com seu próprio CTA
+ * (docs/rotina-coreana-10-passos-post.md). `affiliateLinkId` aponta pro
+ * AffiliateLink (canal BLOG) já existente/criado pro produto — nunca um link
+ * cru, seguindo a mesma regra do resto do sistema (AGENTS.md).
+ */
+model BlogPostProduct {
+  id              String  @id @default(cuid())
+  blogPostId      String
+  productId       String
+  affiliateLinkId String
+  order           Int     @default(0)
+  /**
+   * Ex: "1. Óleo de limpeza" — rótulo/etapa opcional exibido acima do produto.
+   */
+  label           String?
+  /**
+   * Ex: "Remove maquiagem sem ressecar a pele." — contexto curto exibido junto do CTA.
+   */
+  note            String? @db.Text
+
+  blogPost      BlogPost      @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  affiliateLink AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([blogPostId, productId])
+  @@index([blogPostId, order])
+  @@index([productId])
+  @@map("blog_post_products")
 }
 
 // ---------------------------------------------------------------------------
@@ -771,7 +808,9 @@ model Job {
   error    String?   @db.Text
   attempts Int       @default(0)
 
-  /** Quando setado, o job só deve ser processado a partir deste horário (fila com atraso — ex: publicações espalhadas ao longo do dia). */
+  /**
+   * Quando setado, o job só deve ser processado a partir deste horário (fila com atraso — ex: publicações espalhadas ao longo do dia).
+   */
   scheduledAt DateTime?
 
   startedAt  DateTime?

@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
 import { Channel, type AffiliateLink, type Product } from "@/lib/generated/prisma/client";
-import { getSiteUrl } from "@/lib/site-url";
-import { generateAutoBlogPost } from "@/lib/blog/generate-post";
 import { publishToFacebook } from "./publish-to-facebook";
 import { publishToChannelGroups } from "./publish-to-channel-group";
 
@@ -16,11 +14,12 @@ export interface AttachAffiliateLinkInput {
 
 /**
  * Gatilho central: assim que um link de afiliado é cadastrado para o canal
- * Facebook, publica automaticamente na Página do projeto do produto, enfileira
- * a publicação nos grupos (fluxo assistido) e gera um post de blog automático
- * — o mesmo caminho seja o produto vindo da descoberta automática (Mercado
- * Livre/TikTok) ou cadastrado manualmente (Amazon/Shopee, spec §5 "mesmo
- * esquema").
+ * Facebook, publica automaticamente na Página do projeto do produto e
+ * enfileira a publicação nos grupos (fluxo assistido) — o mesmo caminho seja
+ * o produto vindo da descoberta automática (Mercado Livre/TikTok) ou
+ * cadastrado manualmente (Amazon/Shopee, spec §5 "mesmo esquema"). Produtos
+ * não viram post de blog automaticamente — ficam só na aba Produtos/Ofertas;
+ * posts de blog são só os "roundup" manuais (admin/blog).
  */
 export async function attachAffiliateLinkAndPublish(input: AttachAffiliateLinkInput) {
   const product = await prisma.product.findUniqueOrThrow({ where: { id: input.productId } });
@@ -44,17 +43,13 @@ export async function attachAffiliateLinkAndPublish(input: AttachAffiliateLinkIn
   const facebookResult = await publishToFacebook(product, link);
   const otherChannelsResult = await publishToOtherChannels(product, input.affiliateUrl, input.subId);
 
-  const trackedUrl = `${getSiteUrl()}/go/${link.shortCode}`;
-  const blogPost = await generateAutoBlogPost(product, trackedUrl);
-
   logger.info("AFFILIATE_SYNC", "Link de afiliado cadastrado — publicação automática disparada", {
     productId: product.id,
     ...facebookResult,
     ...otherChannelsResult,
-    blogPostId: blogPost.id,
   });
 
-  return { link, blogPost, ...facebookResult };
+  return { link, ...facebookResult };
 }
 
 /**
