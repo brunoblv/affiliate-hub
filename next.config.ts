@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   // Permite carregar assets/HMR do dev server quando acessado via túnel ngrok
   // (necessário para o fluxo OAuth do Mercado Livre, que exige redirect_uri público).
   allowedDevOrigins: ["litigate-epidemic-dynamite.ngrok-free.dev"],
+  // Baileys (WhatsApp) tenta um import dinâmico opcional de "jimp" (fallback
+  // de processamento de imagem, não instalado — usamos sharp) e o bundler
+  // tenta resolvê-lo estaticamente e quebra o build. Deixar o pacote de fora
+  // do bundle do servidor resolve via require nativo em runtime.
+  serverExternalPackages: ["@whiskeysockets/baileys"],
   // Necessário em produção (self-hosted atrás de nginx): o Next.js compara o
   // header Origin com o Host visto internamente pelo servidor para bloquear
   // CSRF em Server Actions; sem isso, cliques em botões que chamam Server
