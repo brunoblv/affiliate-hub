@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { descontoPercentual } from "@/lib/produtos";
 
+const LABEL_DESTINO: Record<string, string> = {
+  MEU_NOVO_LAR: "Meu Novo Lar",
+  TIKTOK_SHOP: "TikTok Shop",
+  UMBANDA: "Umbanda",
+};
+
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -38,6 +44,7 @@ export default async function ProdutosAdminPage() {
             <TableRow>
               <TableHead>Produto</TableHead>
               <TableHead>Plataforma</TableHead>
+              <TableHead>Destino</TableHead>
               <TableHead>Preço</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -53,6 +60,7 @@ export default async function ProdutosAdminPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{produto.plataforma}</TableCell>
+                  <TableCell>{LABEL_DESTINO[produto.destino] ?? produto.destino}</TableCell>
                   <TableCell>
                     {formatCurrency(Number(produto.precoAtual))}
                     {desconto !== null && <span className="ml-2 text-xs text-muted-foreground">-{desconto}%</span>}

@@ -1,5 +1,6 @@
 import { Rede, type Canal } from "@/lib/database";
 import { obterTokenDePagina, obterTokenPorContaInstagram } from "@/lib/meta/credentials";
+import { getWhatsAppSocket } from "@/lib/whatsapp/session";
 
 const VERSAO_GRAPH = process.env.META_GRAPH_VERSION ?? "v21.0";
 const GRAPH = `https://graph.facebook.com/${VERSAO_GRAPH}`;
@@ -23,10 +24,14 @@ export function obterPublicador(canal: Canal): Publicador {
   switch (canal.rede) {
     case Rede.FACEBOOK_PAGE:
       return new PublicadorFacebook(canal.idExterno);
+    case Rede.FACEBOOK_GROUP:
+      return new PublicadorFacebookGrupo(canal.idExterno);
     case Rede.INSTAGRAM:
       return new PublicadorInstagram(canal.idExterno);
     case Rede.TELEGRAM:
       return new PublicadorTelegram(canal.idExterno);
+    case Rede.WHATSAPP:
+      return new PublicadorWhatsApp(canal.idExterno);
     default:
       throw new Error(`Rede sem publicador: ${canal.rede}`);
   }
@@ -72,6 +77,28 @@ class PublicadorFacebook implements Publicador {
     const resposta = await chamarGraph<{ id: string }>(`${this.pageId}/feed`, {
       message: conteudo.texto,
       link: conteudo.link,
+      access_token: token,
+    });
+
+    return { idExterno: resposta.id };
+  }
+}
+
+/**
+ * Grupo do Facebook. Diferente da Página, a API de grupos exige o token de
+ * usuário (nunca token de Página) com a permissão `publish_to_groups`, e o
+ * app precisa estar instalado no grupo — configuração feita uma vez direto
+ * no Facebook, fora do alcance deste código.
+ */
+class PublicadorFacebookGrupo implements Publicador {
+  constructor(private readonly groupId: string) {}
+
+  async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
+    const token = process.env.META_USER_TOKEN;
+    if (!token) throw new Error("META_USER_TOKEN não configurado — grupo do Facebook publica com token de usuário.");
+
+    const resposta = await chamarGraph<{ id: string }>(`${this.groupId}/feed`, {
+      message: `${conteudo.texto}\n\n${conteudo.link}`,
       access_token: token,
     });
 
@@ -144,5 +171,30 @@ class PublicadorTelegram implements Publicador {
     }
 
     return { idExterno: String(json.result.message_id) };
+  }
+}
+
+/**
+ * Grupo do WhatsApp via Baileys — ver aviso sobre biblioteca não-oficial em
+ * lib/whatsapp/session.ts. O JID do grupo (identificador externo do canal) é
+ * obtido rodando `npm run whatsapp:login`.
+ */
+class PublicadorWhatsApp implements Publicador {
+  constructor(private readonly groupJid: string) {}
+
+  async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
+    if (!this.groupJid) throw new Error("Canal do WhatsApp sem JID de grupo configurado (identificador externo).");
+
+    const legenda = `${conteudo.texto}\n\n${conteudo.link}`;
+    const sock = await getWhatsAppSocket();
+
+    const resultado = conteudo.imagemUrl
+      ? await sock.sendMessage(this.groupJid, { image: { url: conteudo.imagemUrl }, caption: legenda })
+      : await sock.sendMessage(this.groupJid, { text: legenda });
+
+    const idExterno = resultado?.key?.id;
+    if (!idExterno) throw new Error("WhatsApp: envio não retornou message id.");
+
+    return { idExterno };
   }
 }

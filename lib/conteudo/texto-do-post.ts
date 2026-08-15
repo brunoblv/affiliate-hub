@@ -1,4 +1,4 @@
-import { Rede, type Produto } from "@/lib/database";
+import { Destino, Rede, type Produto } from "@/lib/database";
 
 /**
  * Texto do post social, montado por template determinístico.
@@ -52,13 +52,16 @@ export function montarTextoDoPost({ produto, rede, link, comentario }: EntradaTe
 
   switch (rede) {
     case Rede.FACEBOOK_PAGE:
-      linhas.push("Detalhes e comparação no site:");
+      // Destino UMBANDA não tem post no blog — o link vai direto pra oferta.
+      linhas.push(produto.destino === Destino.UMBANDA ? "Pegar agora:" : "Detalhes e comparação no site:");
       break;
     case Rede.INSTAGRAM:
       // No Instagram o link da legenda não é clicável.
       linhas.push("Link na bio.");
       break;
     case Rede.TELEGRAM:
+    case Rede.WHATSAPP:
+    case Rede.FACEBOOK_GROUP:
       linhas.push("Pegar agora:");
       break;
   }

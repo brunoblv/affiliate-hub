@@ -10,8 +10,16 @@ import type { CanalFormState } from "@/app/admin/(dashboard)/canais/actions";
 
 const REDES = [
   { value: "FACEBOOK_PAGE", label: "Página do Facebook" },
+  { value: "FACEBOOK_GROUP", label: "Grupo do Facebook" },
   { value: "INSTAGRAM", label: "Instagram" },
   { value: "TELEGRAM", label: "Telegram" },
+  { value: "WHATSAPP", label: "WhatsApp" },
+];
+
+const DESTINOS = [
+  { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
+  { value: "TIKTOK_SHOP", label: "TikTok Shop" },
+  { value: "UMBANDA", label: "Umbanda" },
 ];
 
 export function CanalForm({
@@ -49,8 +57,33 @@ export function CanalForm({
       </div>
 
       <div className="space-y-1.5">
+        <Label htmlFor="destino">Destino</Label>
+        <select
+          id="destino"
+          name="destino"
+          defaultValue={canal?.destino ?? "MEU_NOVO_LAR"}
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {DESTINOS.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Só produtos deste destino são distribuídos por este canal.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="idExterno">Identificador externo</Label>
-        <Input id="idExterno" name="idExterno" defaultValue={canal?.idExterno} placeholder="page_id / ig_user_id / chat_id" required />
+        <Input
+          id="idExterno"
+          name="idExterno"
+          defaultValue={canal?.idExterno}
+          placeholder="page_id / group_id / ig_user_id / chat_id / JID do grupo (WhatsApp)"
+          required
+        />
       </div>
 
       <div className="space-y-1.5">

@@ -1,4 +1,4 @@
-import { prisma, Rede, type Canal, type Produto } from "@/lib/database";
+import { prisma, Destino, Rede, type Canal, type Produto } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { montarTextoDoPost } from "@/lib/conteudo/texto-do-post";
 import { registrar } from "@/lib/log";
@@ -6,10 +6,20 @@ import { getSiteUrl } from "@/lib/site-url";
 
 /**
  * Redes que levam para o blog (§2 da spec): o visitante vê o conteúdo e os
- * anúncios antes de sair. Telegram recebe o link rastreado direto, porque ali
- * o público é de oferta e um intermediário derruba a conversão.
+ * anúncios antes de sair. Grupos (Telegram, WhatsApp, grupo do Facebook)
+ * recebem o link rastreado direto, porque ali o público é de oferta e um
+ * intermediário derruba a conversão. Destino UMBANDA não tem post no blog —
+ * vai sempre direto, mesmo na Página do Facebook.
  */
 const REDES_QUE_APONTAM_PARA_O_BLOG = new Set<Rede>([Rede.FACEBOOK_PAGE, Rede.INSTAGRAM]);
+
+const ORIGEM_POR_REDE: Record<Rede, string> = {
+  [Rede.FACEBOOK_PAGE]: "facebook",
+  [Rede.FACEBOOK_GROUP]: "facebook-grupo",
+  [Rede.INSTAGRAM]: "instagram",
+  [Rede.TELEGRAM]: "telegram",
+  [Rede.WHATSAPP]: "whatsapp",
+};
 
 export interface ResultadoEnfileiramento {
   canalId: string;
@@ -19,20 +29,20 @@ export interface ResultadoEnfileiramento {
   motivoPulado?: string;
 }
 
-function linkDestino(rede: Rede, produto: Produto, slugDoPost: string | null): string {
+function linkDestino(canal: Canal, produto: Produto, slugDoPost: string | null): string {
   const siteUrl = getSiteUrl();
+  const apontaParaBlog = produto.destino !== Destino.UMBANDA && REDES_QUE_APONTAM_PARA_O_BLOG.has(canal.rede);
 
-  if (REDES_QUE_APONTAM_PARA_O_BLOG.has(rede)) {
+  if (apontaParaBlog) {
     if (!slugDoPost) {
       throw new Error(
-        `Produto "${produto.slug}" não tem post publicado no blog — ${rede} só publica com link do site.`,
+        `Produto "${produto.slug}" não tem post publicado no blog — ${canal.rede} só publica com link do site.`,
       );
     }
-    const origem = rede === Rede.FACEBOOK_PAGE ? "facebook" : "instagram";
-    return `${siteUrl}/blog/${slugDoPost}?utm_source=${origem}&utm_medium=social`;
+    return `${siteUrl}/blog/${slugDoPost}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
   }
 
-  return `${siteUrl}/go/${produto.codigoCurto}?o=telegram`;
+  return `${siteUrl}/go/${produto.codigoCurto}?o=${ORIGEM_POR_REDE[canal.rede]}`;
 }
 
 /** Primeira imagem do produto, ou undefined se a API não trouxe nenhuma. */
@@ -67,7 +77,7 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
   const slugDoPost = produto.itens[0]?.post.slug ?? null;
 
   const canais = await prisma.canal.findMany({
-    where: { ativo: true, ...(canalIds?.length ? { id: { in: canalIds } } : {}) },
+    where: { ativo: true, destino: produto.destino, ...(canalIds?.length ? { id: { in: canalIds } } : {}) },
   });
 
   const resultados: ResultadoEnfileiramento[] = [];
@@ -91,9 +101,9 @@ async function enfileirarNoCanal(
     return { ...base, motivoPulado: `Já publicado neste canal nos últimos ${canal.cooldownDias} dias` };
   }
 
-  let destino: string;
+  let link: string;
   try {
-    destino = linkDestino(canal.rede, produto, slugDoPost);
+    link = linkDestino(canal, produto, slugDoPost);
   } catch (erro) {
     return { ...base, motivoPulado: erro instanceof Error ? erro.message : String(erro) };
   }
@@ -104,7 +114,7 @@ async function enfileirarNoCanal(
     return { ...base, motivoPulado: "Sem horário livre nos próximos 30 dias" };
   }
 
-  const texto = montarTextoDoPost({ produto, rede: canal.rede, link: destino });
+  const texto = montarTextoDoPost({ produto, rede: canal.rede, link });
 
   const chaveIdempotencia = `${produto.id}:${canal.id}:${vaga.agendadaPara.toISOString()}`;
 
@@ -116,7 +126,7 @@ async function enfileirarNoCanal(
         agendadaPara: vaga.agendadaPara,
         texto,
         imagemUrl: primeiraImagem(produto),
-        linkDestino: destino,
+        linkDestino: link,
         chaveIdempotencia,
       },
     });

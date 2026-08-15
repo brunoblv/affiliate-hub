@@ -12,7 +12,13 @@ const PLATAFORMAS = [
   { value: "MERCADO_LIVRE", label: "Mercado Livre" },
   { value: "AMAZON", label: "Amazon" },
   { value: "SHOPEE", label: "Shopee" },
-  { value: "OUTRA", label: "Outra" },
+  { value: "TIKTOK_SHOP", label: "TikTok Shop" },
+];
+
+const DESTINOS = [
+  { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
+  { value: "TIKTOK_SHOP", label: "TikTok Shop" },
+  { value: "UMBANDA", label: "Umbanda" },
 ];
 
 export function ProdutoForm({
@@ -47,6 +53,25 @@ export function ProdutoForm({
           <Label htmlFor="idExterno">ID na plataforma</Label>
           <Input id="idExterno" name="idExterno" defaultValue={produto?.idExterno} placeholder="MLB1234567890" required />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="destino">Destino</Label>
+        <select
+          id="destino"
+          name="destino"
+          defaultValue={produto?.destino ?? "MEU_NOVO_LAR"}
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {DESTINOS.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Site e grupos onde este produto é divulgado — nem sempre é o mesmo da Plataforma.
+        </p>
       </div>
 
       <div className="space-y-1.5">

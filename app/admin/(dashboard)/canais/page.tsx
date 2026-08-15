@@ -7,6 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+const LABEL_DESTINO: Record<string, string> = {
+  MEU_NOVO_LAR: "Meu Novo Lar",
+  TIKTOK_SHOP: "TikTok Shop",
+  UMBANDA: "Umbanda",
+};
+
 export default async function CanaisAdminPage() {
   const canais = await prisma.canal.findMany({ orderBy: { criadoEm: "desc" } });
 
@@ -28,6 +34,7 @@ export default async function CanaisAdminPage() {
             <TableRow>
               <TableHead>Canal</TableHead>
               <TableHead>Rede</TableHead>
+              <TableHead>Destino</TableHead>
               <TableHead>Horários</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -41,6 +48,7 @@ export default async function CanaisAdminPage() {
                   </Link>
                 </TableCell>
                 <TableCell>{canal.rede}</TableCell>
+                <TableCell>{LABEL_DESTINO[canal.destino] ?? canal.destino}</TableCell>
                 <TableCell>{((canal.horarios as unknown as string[]) ?? []).join(", ") || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={canal.ativo ? "default" : "secondary"}>{canal.ativo ? "Ativo" : "Inativo"}</Badge>

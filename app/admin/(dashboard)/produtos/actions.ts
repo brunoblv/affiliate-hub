@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma, Plataforma, TipoPost } from "@/lib/database";
+import { prisma, Destino, Plataforma, TipoPost } from "@/lib/database";
 import { gerarCodigoCurto, slugify } from "@/lib/produtos";
 import { buscarItemMercadoLivre } from "@/lib/mercado-livre/client";
 import { enfileirarProduto, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
@@ -23,6 +23,7 @@ function parseImagens(raw: string): string[] {
 function readForm(formData: FormData) {
   const nome = String(formData.get("nome") ?? "").trim();
   const plataforma = String(formData.get("plataforma") ?? "") as Plataforma;
+  const destino = String(formData.get("destino") ?? "") as Destino;
   const idExterno = String(formData.get("idExterno") ?? "").trim();
   const descricao = String(formData.get("descricao") ?? "").trim();
   const precoAtual = String(formData.get("precoAtual") ?? "").trim();
@@ -32,7 +33,7 @@ function readForm(formData: FormData) {
   const linkAfiliado = String(formData.get("linkAfiliado") ?? "").trim();
   const ativo = formData.get("ativo") === "on";
 
-  return { nome, plataforma, idExterno, descricao, precoAtual, precoOriginal, imagens, linkAfiliado, ativo };
+  return { nome, plataforma, destino, idExterno, descricao, precoAtual, precoOriginal, imagens, linkAfiliado, ativo };
 }
 
 export async function createProdutoAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
@@ -45,6 +46,7 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
   const produto = await prisma.produto.create({
     data: {
       plataforma: dados.plataforma,
+      destino: dados.destino,
       idExterno: dados.idExterno,
       slug: slugify(dados.nome),
       nome: dados.nome,
@@ -77,6 +79,7 @@ export async function updateProdutoAction(
     where: { id },
     data: {
       plataforma: dados.plataforma,
+      destino: dados.destino,
       idExterno: dados.idExterno,
       nome: dados.nome,
       descricao: dados.descricao || null,

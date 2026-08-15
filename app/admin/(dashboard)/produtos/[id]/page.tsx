@@ -5,6 +5,12 @@ import { ProdutoForm } from "@/components/admin/produto-form";
 import { DistribuirProdutoButton } from "@/components/admin/distribuir-produto-button";
 import { updateProdutoAction, distribuirProdutoAction } from "../actions";
 
+const LABEL_DESTINO: Record<string, string> = {
+  MEU_NOVO_LAR: "Meu Novo Lar",
+  TIKTOK_SHOP: "TikTok Shop",
+  UMBANDA: "Umbanda",
+};
+
 export default async function EditarProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const produto = await prisma.produto.findUnique({ where: { id } });
@@ -20,7 +26,8 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
       <div className="max-w-2xl border-t border-border pt-6">
         <h2 className="text-sm font-medium">Distribuição</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Agenda o produto nos canais ativos, respeitando horários, cooldown e teto diário de cada um.
+          Agenda o produto nos canais ativos do mesmo destino ({LABEL_DESTINO[produto.destino] ?? produto.destino}),
+          respeitando horários, cooldown e teto diário de cada um.
         </p>
         <div className="mt-3">
           <DistribuirProdutoButton action={distribuir} />

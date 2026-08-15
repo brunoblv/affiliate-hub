@@ -190,7 +190,16 @@ enum Plataforma {
   MERCADO_LIVRE
   AMAZON
   SHOPEE
-  OUTRA
+  TIKTOK_SHOP
+}
+
+/// Onde o produto é divulgado (site + grupos) — independente da Plataforma
+/// (a loja de origem). Um produto do Mercado Livre pode ser de Umbanda, por
+/// exemplo: a Plataforma é de onde ele foi comprado, o Destino é pra quem.
+enum Destino {
+  MEU_NOVO_LAR
+  TIKTOK_SHOP
+  UMBANDA
 }
 
 model Produto {
@@ -199,6 +208,8 @@ model Produto {
   /// ID na plataforma de origem (ex.: MLB1234567890)
   idExterno  String
   slug       String     @unique
+  /// Site/grupos onde é divulgado — ver enum Destino.
+  destino    Destino    @default(MEU_NOVO_LAR)
 
   nome      String
   descricao String? @db.Text
@@ -230,6 +241,7 @@ model Produto {
 
   @@unique([plataforma, idExterno])
   @@index([ativo])
+  @@index([destino])
   @@map("produtos")
 }
 
@@ -252,15 +264,20 @@ model HistoricoPreco {
 
 enum Rede {
   FACEBOOK_PAGE
+  FACEBOOK_GROUP
   INSTAGRAM
   TELEGRAM
+  WHATSAPP
 }
 
 model Canal {
   id        String  @id @default(cuid())
   nome      String
   rede      Rede
-  /// page_id (Facebook), ig_user_id (Instagram) ou chat_id (Telegram).
+  /// Site/grupos que este canal atende — ver enum Destino.
+  destino   Destino @default(MEU_NOVO_LAR)
+  /// page_id (Facebook page), group_id (Facebook group), ig_user_id (Instagram),
+  /// chat_id (Telegram) ou JID do grupo (WhatsApp/Baileys).
   idExterno String
   ativo     Boolean @default(true)
 
@@ -281,6 +298,7 @@ model Canal {
 
   @@unique([rede, idExterno])
   @@index([ativo])
+  @@index([destino])
   @@map("canais")
 }
 
@@ -303,7 +321,8 @@ model Publicacao {
   /// Texto já renderizado no agendamento — auditável e editável antes de sair.
   texto       String  @db.Text
   imagemUrl   String?
-  /// URL do post no blog (Facebook/Instagram) ou /go/:codigo (Telegram).
+  /// URL do post no blog (Página do Facebook/Instagram, exceto Destino UMBANDA)
+  /// ou /go/:codigo (Telegram, WhatsApp, grupo do Facebook e Umbanda).
   linkDestino String
 
   tentativas    Int       @default(0)

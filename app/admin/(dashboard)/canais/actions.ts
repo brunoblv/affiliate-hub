@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma, Rede } from "@/lib/database";
+import { prisma, Destino, Rede } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
 
 export interface CanalFormState {
@@ -20,6 +20,7 @@ function parseHorarios(raw: string): string[] {
 function readForm(formData: FormData) {
   const nome = String(formData.get("nome") ?? "").trim();
   const rede = String(formData.get("rede") ?? "") as Rede;
+  const destino = String(formData.get("destino") ?? "") as Destino;
   const idExterno = String(formData.get("idExterno") ?? "").trim();
   const horarios = parseHorarios(String(formData.get("horarios") ?? ""));
   const intervaloMinimoMin = Number(formData.get("intervaloMinimoMin") ?? 90);
@@ -27,7 +28,7 @@ function readForm(formData: FormData) {
   const cooldownDias = Number(formData.get("cooldownDias") ?? 30);
   const ativo = formData.get("ativo") === "on";
 
-  return { nome, rede, idExterno, horarios, intervaloMinimoMin, tetoDiario, cooldownDias, ativo };
+  return { nome, rede, destino, idExterno, horarios, intervaloMinimoMin, tetoDiario, cooldownDias, ativo };
 }
 
 export async function createCanalAction(_prev: CanalFormState, formData: FormData): Promise<CanalFormState> {
@@ -40,6 +41,7 @@ export async function createCanalAction(_prev: CanalFormState, formData: FormDat
     data: {
       nome: dados.nome,
       rede: dados.rede,
+      destino: dados.destino,
       idExterno: dados.idExterno,
       horarios: dados.horarios,
       intervaloMinimoMin: dados.intervaloMinimoMin,
@@ -64,6 +66,7 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
     data: {
       nome: dados.nome,
       rede: dados.rede,
+      destino: dados.destino,
       idExterno: dados.idExterno,
       horarios: dados.horarios,
       intervaloMinimoMin: dados.intervaloMinimoMin,

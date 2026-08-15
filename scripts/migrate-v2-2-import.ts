@@ -80,7 +80,7 @@ const PLATAFORMA_MAP: Record<string, Plataforma> = {
 };
 
 function mapPlataforma(source: string): Plataforma {
-  return PLATAFORMA_MAP[source] ?? Plataforma.OUTRA;
+  return PLATAFORMA_MAP[source] ?? Plataforma.TIKTOK_SHOP;
 }
 
 async function main() {

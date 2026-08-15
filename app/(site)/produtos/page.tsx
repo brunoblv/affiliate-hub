@@ -12,7 +12,7 @@ const STORE_LABEL: Record<string, string> = {
   MERCADO_LIVRE: "Mercado Livre",
   AMAZON: "Amazon",
   SHOPEE: "Shopee",
-  OUTRA: "Outras lojas",
+  TIKTOK_SHOP: "TikTok Shop",
 };
 
 function formatCurrency(value: number) {
