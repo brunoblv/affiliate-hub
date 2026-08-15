@@ -4,12 +4,15 @@ import { prisma } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
 import { registrar } from "@/lib/log";
 import { formatarLocal } from "@/lib/agenda/fuso";
+import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
 const LOTE = 5;
 const MAX_TENTATIVAS = 4;
 const ESPERA_ENTRE_TENTATIVAS_MIN = 10;
+/** Preço de afiliado não muda a cada minuto — loop independente do de publicação. */
+const INTERVALO_SYNC_PRECOS_MS = 6 * 60 * 60 * 1000;
 
 let rodando = false;
 let encerrando = false;
@@ -145,6 +148,24 @@ async function loop(): Promise<void> {
   process.exit(0);
 }
 
+/**
+ * Loop independente do de publicação: sincroniza preço/nome/imagem dos
+ * produtos do Mercado Livre a cada INTERVALO_SYNC_PRECOS_MS. Roda em paralelo,
+ * sem competir pelo `rodando` do tick de publicação.
+ */
+async function loopSincronizacaoPrecos(): Promise<void> {
+  while (!encerrando) {
+    try {
+      await sincronizarPrecosMercadoLivre();
+    } catch (erro) {
+      await registrar("ERRO", "PRODUTO_SYNC", "Sync de preços do Mercado Livre falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_SYNC_PRECOS_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -155,3 +176,4 @@ process.on("SIGINT", () => encerrar("SIGINT"));
 process.on("SIGTERM", () => encerrar("SIGTERM"));
 
 void loop();
+void loopSincronizacaoPrecos();
