@@ -4,6 +4,7 @@
 BEGIN;
 
 ALTER TABLE "logs" RENAME TO "logs_v1_bak";
+ALTER TABLE "logs_v1_bak" RENAME CONSTRAINT "logs_pkey" TO "logs_v1_bak_pkey";
 
 -- CreateEnum
 CREATE TYPE "TipoPost" AS ENUM ('JORNADA', 'PRODUTO', 'LISTA');
