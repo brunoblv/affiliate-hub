@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/database";
+import { resolverCapa } from "@/lib/conteudo/capa";
 
 const PAGE_SIZE = 12;
 
@@ -28,6 +29,7 @@ export default async function BlogIndexPage({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [featured, ...rest] = posts;
+  const capaDestaque = featured ? resolverCapa(featured.capa, true) : null;
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-10">
@@ -42,9 +44,9 @@ export default async function BlogIndexPage({
         <>
           <Link href={`/blog/${featured.slug}`} className="mt-9 grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
             <div className="flex h-80 items-center justify-center overflow-hidden rounded-xl bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_10px,var(--background)_10px,var(--background)_20px)]">
-              {featured.capa ? (
+              {capaDestaque ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={featured.capa.url} alt={featured.capa.alt ?? ""} className="h-full w-full object-cover" />
+                <img src={capaDestaque.src} alt={capaDestaque.alt} className="h-full w-full object-cover" />
               ) : (
                 <span className="font-mono text-xs text-muted-foreground">imagem destaque</span>
               )}

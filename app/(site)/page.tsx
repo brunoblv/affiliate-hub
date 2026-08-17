@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/database";
 import { Button } from "@/components/ui/button";
 import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
+import { CAPA_EDITORIAL, resolverCapa } from "@/lib/conteudo/capa";
 import { NewsletterForm } from "./newsletter-form";
 
 const TOOLS = [
@@ -62,23 +63,14 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="overflow-hidden rounded-2xl">
-          {posts[0]?.capa ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={posts[0].capa.url}
-              alt={posts[0].capa.alt ?? posts[0].titulo}
-              className="h-auto w-full object-cover"
-            />
-          ) : (
-            <Image
-              src="/hero-sala-aconchegante.jpg"
-              alt="Sala aconchegante com cozinha integrada, paleta Hudson Bay e iluminação quente"
-              width={1024}
-              height={682}
-              priority
-              className="h-auto w-full object-cover"
-            />
-          )}
+          <Image
+            src={CAPA_EDITORIAL.src}
+            alt={CAPA_EDITORIAL.alt}
+            width={1024}
+            height={682}
+            priority
+            className="h-auto w-full object-cover"
+          />
         </div>
       </div>
 
@@ -88,12 +80,14 @@ export default async function HomePage() {
           <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">CONTEÚDOS RECENTES</div>
           <h2 className="mb-7 font-heading text-2xl font-semibold text-foreground sm:text-[26px]">Ideias para o seu lar</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {posts.map((post) => (
-              <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+            {posts.map((post, indice) => {
+              const capa = resolverCapa(post.capa, indice === 0);
+              return (
+                <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
                 <div className="mb-3.5 flex h-44 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_8px,var(--background)_8px,var(--background)_16px)]">
-                  {post.capa ? (
+                  {capa ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.capa.url} alt={post.capa.alt ?? ""} className="h-full w-full object-cover" />
+                    <img src={capa.src} alt={capa.alt} className="h-full w-full object-cover" />
                   ) : (
                     <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
                   )}
@@ -103,8 +97,9 @@ export default async function HomePage() {
                 </h3>
                 {post.resumo && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.resumo}</p>}
                 <span className="mt-2 block text-xs font-medium text-muted-foreground">{readingTime(post.corpo)} min de leitura</span>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

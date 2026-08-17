@@ -2,16 +2,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/database";
 import { CorpoDoPost } from "@/components/corpo-do-post";
+import { resolverCapa } from "@/lib/conteudo/capa";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    include: { capa: true },
-  });
+  const [post, primeiro] = await Promise.all([
+    prisma.post.findUnique({
+      where: { slug },
+      include: { capa: true },
+    }),
+    prisma.post.findFirst({
+      where: { status: "PUBLICADO" },
+      orderBy: { publicadoEm: "desc" },
+      select: { id: true },
+    }),
+  ]);
 
   if (!post || post.status !== "PUBLICADO") notFound();
+
+  const capa = resolverCapa(post.capa, post.id === primeiro?.id);
 
   return (
     <article className="mx-auto w-full max-w-2xl px-6 py-12">
@@ -24,9 +34,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <p className="mt-2 text-sm text-muted-foreground">{post.publicadoEm.toLocaleDateString("pt-BR")}</p>
       )}
 
-      {post.capa && (
+      {capa && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.capa.url} alt={post.capa.alt ?? ""} className="mt-6 w-full rounded-lg object-cover" />
+        <img src={capa.src} alt={capa.alt} className="mt-6 w-full rounded-lg object-cover" />
       )}
 
       <div className="prose mt-8 max-w-none text-[15px]">
