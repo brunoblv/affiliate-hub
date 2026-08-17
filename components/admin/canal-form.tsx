@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Canal } from "@/lib/database";
 import type { CanalFormState } from "@/app/admin/(dashboard)/canais/actions";
 
@@ -30,7 +31,8 @@ export function CanalForm({
   action: (prev: CanalFormState, formData: FormData) => Promise<CanalFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<CanalFormState, FormData>(action, { status: "idle" });
-  const horarios = ((canal?.horarios as unknown as string[]) ?? []).join(", ");
+  const horarios = ((canal?.horarios as unknown as string[]) ?? []).join(", ") || "09:00, 13:00, 19:30";
+  useFeedbackFormulario(state);
 
   return (
     <form action={formAction} className="max-w-xl space-y-5">

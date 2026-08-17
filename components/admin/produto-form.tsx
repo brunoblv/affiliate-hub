@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Produto } from "@/lib/database";
 import type { ProdutoFormState } from "@/app/admin/(dashboard)/produtos/actions";
 
@@ -30,6 +31,7 @@ export function ProdutoForm({
 }) {
   const [state, formAction, isPending] = useActionState<ProdutoFormState, FormData>(action, { status: "idle" });
   const imagens = ((produto?.imagens as unknown as string[]) ?? []).join("\n");
+  useFeedbackFormulario(state);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5">

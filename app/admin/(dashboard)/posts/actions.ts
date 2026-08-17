@@ -8,7 +8,7 @@ import { slugify } from "@/lib/produtos";
 import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
 
 export interface PostFormState {
-  status: "idle" | "error";
+  status: "idle" | "error" | "success";
   message?: string;
 }
 
@@ -130,7 +130,7 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
   revalidatePath(`/admin/posts/${id}`);
   revalidarSitePublico(atual.slug);
 
-  return { status: "idle" };
+  return { status: "success", message: "Alterações salvas." };
 }
 
 /**
@@ -138,10 +138,14 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
  * em si ficam, só o vínculo com o post cai. Apagar direto no banco deixava a
  * home servindo o post excluído até o ISR virar, por isso revalida aqui.
  */
-export async function deletePostAction(id: string): Promise<void> {
-  const post = await prisma.post.delete({ where: { id }, select: { slug: true } });
+export async function deletePostAction(id: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const post = await prisma.post.delete({ where: { id }, select: { slug: true } });
 
-  revalidatePath("/admin/posts");
-  revalidarSitePublico(post.slug);
-  redirect("/admin/posts");
+    revalidatePath("/admin/posts");
+    revalidarSitePublico(post.slug);
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir o post." };
+  }
 }

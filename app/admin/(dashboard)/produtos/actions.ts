@@ -2,13 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma, Destino, Plataforma, TipoPost } from "@/lib/database";
+import { prisma, Destino, Plataforma } from "@/lib/database";
 import { gerarCodigoCurto, slugify } from "@/lib/produtos";
 import { buscarItemMercadoLivre } from "@/lib/mercado-livre/client";
 import { enfileirarProduto, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 
 export interface ProdutoFormState {
-  status: "idle" | "error";
+  status: "idle" | "error" | "success";
   message?: string;
 }
 
@@ -68,6 +69,8 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
     },
   });
 
+  await garantirPostPublicadoDoProduto(produto);
+
   revalidatePath("/admin/produtos");
   revalidarSitePublico(produto.slug);
   redirect(`/admin/produtos/${produto.id}`);
@@ -104,12 +107,12 @@ export async function updateProdutoAction(
   revalidatePath(`/admin/produtos/${id}`);
   revalidarSitePublico(produto.slug);
 
-  return { status: "idle" };
+  return { status: "success", message: "Alterações salvas." };
 }
 
 /**
  * Fase 2 (spec §5.1): cola ID + link de afiliado → GET /items/{id} preenche o
- * resto, e um Post PRODUTO em RASCUNHO é criado automaticamente pra revisão.
+ * resto, e um Post PRODUTO publicado é criado automaticamente no blog.
  * O link de afiliado nunca vem da API — é sempre colado por quem cadastra.
  */
 export async function importarMercadoLivreAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
@@ -146,25 +149,27 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
     },
   });
 
-  const post = await prisma.post.create({
-    data: {
-      tipo: TipoPost.PRODUTO,
-      titulo: item.title,
-      slug: `${slug}-${produto.id.slice(-6)}`,
-      corpo: `[produto:${slug}]\n\n`,
-    },
-  });
-
-  await prisma.itemDePost.create({ data: { postId: post.id, produtoId: produto.id, ordem: 0 } });
+  const publicado = await garantirPostPublicadoDoProduto(produto);
 
   revalidatePath("/admin/produtos");
   revalidarSitePublico(produto.slug);
-  redirect(`/admin/posts/${post.id}`);
+  redirect(`/admin/posts/${publicado.id}`);
 }
 
 /** Agenda a distribuição do produto em todos os canais ativos (spec §5.2). */
 export async function distribuirProdutoAction(produtoId: string): Promise<ResultadoEnfileiramento[]> {
-  const resultados = await enfileirarProduto(produtoId);
-  revalidatePath("/admin/fila");
-  return resultados;
+  try {
+    const resultados = await enfileirarProduto(produtoId);
+    revalidatePath("/admin/fila");
+    revalidatePath(`/admin/produtos/${produtoId}`);
+    return resultados;
+  } catch (erro) {
+    return [
+      {
+        canalId: "erro",
+        canal: "Distribuição",
+        motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o produto.",
+      },
+    ];
+  }
 }

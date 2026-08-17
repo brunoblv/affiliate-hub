@@ -30,6 +30,7 @@ const CAMPOS: Record<string, keyof PartesData> = {
 export function partesNoFuso(instante: Date, fuso: string = FUSO_APP): PartesData {
   const formatador = new Intl.DateTimeFormat("en-CA", {
     timeZone: fuso,
+    hourCycle: "h23",
     hour12: false,
     year: "numeric",
     month: "2-digit",
@@ -79,9 +80,9 @@ export function paraUtc(
   return new Date(segunda);
 }
 
-/** "19:30" → { hora: 19, minuto: 30 }. Lança se o formato estiver errado. */
+/** "19:30" ou "9:00" → { hora: 19, minuto: 30 }. Lança se o formato estiver errado. */
 export function lerHorario(texto: string): { hora: number; minuto: number } {
-  const casamento = /^(\d{2}):(\d{2})$/.exec(texto.trim());
+  const casamento = /^(\d{1,2}):(\d{2})$/.exec(texto.trim());
   if (!casamento) throw new Error(`Horário inválido: "${texto}". Use HH:mm.`);
 
   const hora = Number(casamento[1]);

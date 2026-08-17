@@ -2,11 +2,13 @@
 
 import { useActionState, useRef, useState } from "react";
 import type { MDXEditorMethods } from "@mdxeditor/editor";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EditorDoCorpo } from "@/components/admin/editor-do-corpo-dinamico";
+import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Post } from "@/lib/database";
 import type { PostFormState } from "@/app/admin/(dashboard)/posts/actions";
 
@@ -38,6 +40,7 @@ export function PostForm({
   action: (prev: PostFormState, formData: FormData) => Promise<PostFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<PostFormState, FormData>(action, { status: "idle" });
+  useFeedbackFormulario(state);
   const [corpo, setCorpo] = useState(post?.corpo ?? "");
   const [capa, setCapa] = useState<CapaPreview | null>(post?.capa ?? null);
   const [enviandoCapa, setEnviandoCapa] = useState(false);
@@ -52,8 +55,9 @@ export function PostForm({
     try {
       const midia = await enviarMidia(arquivo);
       setCapa({ id: midia.id, url: midia.url, alt: midia.alt });
+      toast.success("Capa enviada.");
     } catch (erro) {
-      alert(erro instanceof Error ? erro.message : "Falha no upload da capa.");
+      toast.error(erro instanceof Error ? erro.message : "Falha no upload da capa.");
     } finally {
       setEnviandoCapa(false);
       event.target.value = "";

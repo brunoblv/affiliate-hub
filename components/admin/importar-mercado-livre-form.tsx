@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { ProdutoFormState } from "@/app/admin/(dashboard)/produtos/actions";
 
 export function ImportarMercadoLivreForm({
@@ -12,6 +13,7 @@ export function ImportarMercadoLivreForm({
   action: (prev: ProdutoFormState, formData: FormData) => Promise<ProdutoFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<ProdutoFormState, FormData>(action, { status: "idle" });
+  useFeedbackFormulario(state);
 
   return (
     <form action={formAction} className="max-w-lg space-y-5">

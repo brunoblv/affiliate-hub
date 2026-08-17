@@ -3,7 +3,7 @@ import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { ProdutoForm } from "@/components/admin/produto-form";
 import { DistribuirProdutoButton } from "@/components/admin/distribuir-produto-button";
-import { updateProdutoAction, distribuirProdutoAction } from "../actions";
+import { updateProdutoAction } from "../actions";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -17,7 +17,6 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
   if (!produto) notFound();
 
   const action = updateProdutoAction.bind(null, id);
-  const distribuir = distribuirProdutoAction.bind(null, id);
 
   return (
     <div className="space-y-8">
@@ -30,7 +29,7 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
           respeitando horários, cooldown e teto diário de cada um.
         </p>
         <div className="mt-3">
-          <DistribuirProdutoButton action={distribuir} />
+          <DistribuirProdutoButton produtoId={id} />
         </div>
       </div>
     </div>

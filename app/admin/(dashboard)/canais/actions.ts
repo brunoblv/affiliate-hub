@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Rede } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
+import { HORARIOS_PADRAO } from "@/lib/agenda/proximo-horario";
 
 export interface CanalFormState {
-  status: "idle" | "error";
+  status: "idle" | "error" | "success";
   message?: string;
 }
 
@@ -43,7 +44,7 @@ export async function createCanalAction(_prev: CanalFormState, formData: FormDat
       rede: dados.rede,
       destino: dados.destino,
       idExterno: dados.idExterno,
-      horarios: dados.horarios,
+      horarios: dados.horarios.length > 0 ? dados.horarios : HORARIOS_PADRAO,
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
@@ -68,7 +69,7 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
       rede: dados.rede,
       destino: dados.destino,
       idExterno: dados.idExterno,
-      horarios: dados.horarios,
+      horarios: dados.horarios.length > 0 ? dados.horarios : HORARIOS_PADRAO,
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
@@ -79,7 +80,7 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
   revalidatePath("/admin/canais");
   revalidatePath(`/admin/canais/${id}`);
 
-  return { status: "idle" };
+  return { status: "success", message: "Alterações salvas." };
 }
 
 export interface ResultadoTeste {

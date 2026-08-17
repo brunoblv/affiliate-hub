@@ -1,19 +1,42 @@
 import { prisma, type Canal } from "@/lib/database";
 import { FUSO_APP, inicioDoDia, lerHorario, paraUtc, partesNoFuso } from "./fuso";
 
-/** Até onde procurar antes de desistir. */
-const DIAS_MAXIMOS_DE_BUSCA = 30;
-
+/** Até onde procurar depois da última publicação (ou de agora, se a fila estiver vazia). */
+const DIAS_MAXIMOS_DE_BUSCA = 90;
+const MAX_ITERACOES = 180;
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+/** Usado quando o canal foi salvo sem horários — o formulário deixa o campo vazio por padrão. */
+export const HORARIOS_PADRAO = ["09:00", "13:00", "19:30"];
 
 export interface ResultadoAgenda {
   agendadaPara: Date;
 }
 
+export function horariosDoCanal(canal: Canal): string[] {
+  const bruto = Array.isArray(canal.horarios) ? canal.horarios : [];
+  const textos = bruto
+    .flatMap((item) => String(item).split(/[,\n]/))
+    .map((texto) => texto.trim())
+    .filter(Boolean);
+
+  const validos: string[] = [];
+  for (const texto of textos) {
+    try {
+      const { hora, minuto } = lerHorario(texto);
+      validos.push(`${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`);
+    } catch {
+      throw new Error(`Horário inválido no canal "${canal.nome}": "${texto}". Use HH:mm.`);
+    }
+  }
+
+  return validos.length > 0 ? [...new Set(validos)] : HORARIOS_PADRAO;
+}
+
 /**
  * Encontra o próximo horário livre de um canal, obedecendo, nesta ordem:
  *
- * 1. só horários configurados em `canal.horarios`;
+ * 1. só horários configurados em `canal.horarios` (ou o padrão, se vazio);
  * 2. no futuro (nunca reagenda para trás);
  * 3. `intervaloMinimoMin` desde a publicação vizinha mais próxima;
  * 4. `tetoDiario` de publicações naquele dia;
@@ -26,17 +49,22 @@ export async function proximoHorarioLivre(
   canal: Canal,
   apartirDe: Date = new Date(),
 ): Promise<ResultadoAgenda | null> {
-  const horarios = (canal.horarios as unknown as string[]) ?? [];
-
-  if (horarios.length === 0) return null;
-
-  const horariosOrdenados = [...horarios]
+  const horariosOrdenados = horariosDoCanal(canal)
     .map((texto) => lerHorario(texto))
     .sort((a, b) => a.hora - b.hora || a.minuto - b.minuto);
 
-  const limite = new Date(apartirDe.getTime() + DIAS_MAXIMOS_DE_BUSCA * MS_POR_DIA);
+  const teto = Math.max(1, canal.tetoDiario);
+  const intervaloMs = Math.max(0, canal.intervaloMinimoMin) * 60 * 1000;
 
-  // Carrega de uma vez tudo que já está reservado na janela de busca.
+  const ultima = await prisma.publicacao.findFirst({
+    where: { canalId: canal.id, status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] } },
+    orderBy: { agendadaPara: "desc" },
+    select: { agendadaPara: true },
+  });
+
+  const ancora = Math.max(apartirDe.getTime(), ultima?.agendadaPara.getTime() ?? 0);
+  const limite = new Date(ancora + DIAS_MAXIMOS_DE_BUSCA * MS_POR_DIA);
+
   const ocupadas = await prisma.publicacao.findMany({
     where: {
       canalId: canal.id,
@@ -48,33 +76,36 @@ export async function proximoHorarioLivre(
   });
 
   const instantesOcupados = ocupadas.map((p) => p.agendadaPara.getTime());
-  const intervaloMs = canal.intervaloMinimoMin * 60 * 1000;
 
-  for (let deslocamentoDias = 0; deslocamentoDias <= DIAS_MAXIMOS_DE_BUSCA; deslocamentoDias++) {
-    const diaBase = new Date(apartirDe.getTime() + deslocamentoDias * MS_POR_DIA);
-    const { ano, mes, dia } = partesNoFuso(diaBase, FUSO_APP);
+  let cursor = inicioDoDia(apartirDe);
 
-    const comecoDoDia = inicioDoDia(diaBase).getTime();
-    const fimDoDia = comecoDoDia + MS_POR_DIA;
+  for (let dias = 0; dias <= MAX_ITERACOES && cursor.getTime() <= limite.getTime(); dias++) {
+    const { ano, mes, dia } = partesNoFuso(cursor, FUSO_APP);
+    const comecoDoDia = cursor.getTime();
+    const fimDoDia = paraUtc(ano, mes, dia + 1, 0, 0, FUSO_APP).getTime();
 
     const jaAgendadasNoDia = instantesOcupados.filter((t) => t >= comecoDoDia && t < fimDoDia).length;
 
-    if (jaAgendadasNoDia >= canal.tetoDiario) continue;
+    if (jaAgendadasNoDia < teto) {
+      let vagasRestantes = teto - jaAgendadasNoDia;
 
-    let vagasRestantes = canal.tetoDiario - jaAgendadasNoDia;
+      for (const { hora, minuto } of horariosOrdenados) {
+        if (vagasRestantes <= 0) break;
 
-    for (const { hora, minuto } of horariosOrdenados) {
-      if (vagasRestantes <= 0) break;
+        const candidato = paraUtc(ano, mes, dia, hora, minuto, FUSO_APP).getTime();
 
-      const candidato = paraUtc(ano, mes, dia, hora, minuto).getTime();
+        if (candidato <= apartirDe.getTime()) continue;
 
-      if (candidato <= apartirDe.getTime()) continue;
+        const conflita = instantesOcupados.some((t) => Math.abs(t - candidato) < intervaloMs);
+        if (conflita) continue;
 
-      const conflita = instantesOcupados.some((t) => Math.abs(t - candidato) < intervaloMs);
-      if (conflita) continue;
-
-      return { agendadaPara: new Date(candidato) };
+        return { agendadaPara: new Date(candidato) };
+      }
     }
+
+    const proximo = paraUtc(ano, mes, dia + 1, 0, 0, FUSO_APP);
+    if (proximo.getTime() <= cursor.getTime()) break;
+    cursor = proximo;
   }
 
   return null;
