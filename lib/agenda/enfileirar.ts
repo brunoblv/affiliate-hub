@@ -1,4 +1,4 @@
-import { prisma, Destino, Rede, type Canal, type Produto } from "@/lib/database";
+import { prisma, Destino, Plataforma, Rede, type Canal, type Produto } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { montarTextoDoPost } from "@/lib/conteudo/texto-do-post";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
@@ -77,6 +77,11 @@ function pulado(canalId: string, canal: string, motivoPulado: string): Resultado
   return { canalId, canal, motivoPulado };
 }
 
+/** Achadinhos do TikTok Shop são one-shot: um post e não volta. */
+function ehProdutoTikTok(produto: Produto): boolean {
+  return produto.destino === Destino.TIKTOK_SHOP || produto.plataforma === Plataforma.TIKTOK_SHOP;
+}
+
 /**
  * Agenda a distribuição de um produto nos canais ativos.
  *
@@ -119,11 +124,66 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     ];
   }
 
+  if (ehProdutoTikTok(produto)) {
+    const ORDEM_REDE: Record<Rede, number> = {
+      [Rede.FACEBOOK_PAGE]: 0,
+      [Rede.INSTAGRAM]: 1,
+      [Rede.FACEBOOK_GROUP]: 2,
+      [Rede.TELEGRAM]: 3,
+      [Rede.WHATSAPP]: 4,
+    };
+    canais.sort((a, b) => ORDEM_REDE[a.rede] - ORDEM_REDE[b.rede] || a.nome.localeCompare(b.nome, "pt-BR"));
+  }
+
+  if (canais.length === 0) {
+    const destino = LABEL_DESTINO[produto.destino] ?? produto.destino;
+    return [
+      pulado(
+        produto.destino,
+        "Nenhum canal",
+        `Nenhum canal ativo para o destino ${destino}. Cadastre ou ative um canal com o mesmo destino.`,
+      ),
+    ];
+  }
+
+  if (ehProdutoTikTok(produto)) {
+    const jaPostou = await prisma.publicacao.findFirst({
+      where: {
+        produtoId: produto.id,
+        status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+      },
+      include: { canal: { select: { nome: true } } },
+      orderBy: { agendadaPara: "asc" },
+    });
+
+    if (jaPostou) {
+      return [
+        pulado(
+          jaPostou.canalId,
+          jaPostou.canal.nome,
+          `Produto TikTok Shop já foi agendado em ${jaPostou.canal.nome} — publica só uma vez.`,
+        ),
+      ];
+    }
+  }
+
   const resultados: ResultadoEnfileiramento[] = [];
+  let agendadoTikTokEm: string | null = null;
 
   for (const canal of canais) {
+    if (agendadoTikTokEm) {
+      resultados.push(
+        pulado(canal.id, canal.nome, `Produto TikTok Shop publica só uma vez — já agendado em ${agendadoTikTokEm}.`),
+      );
+      continue;
+    }
+
     try {
-      resultados.push(await enfileirarNoCanal(canal, produto, slugDoPost));
+      const resultado = await enfileirarNoCanal(canal, produto, slugDoPost);
+      resultados.push(resultado);
+      if (ehProdutoTikTok(produto) && resultado.agendadaPara) {
+        agendadoTikTokEm = canal.nome;
+      }
     } catch (erro) {
       resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
     }

@@ -27,6 +27,9 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
         <p className="mt-1 text-xs text-muted-foreground">
           Agenda o produto nos canais ativos do mesmo destino ({LABEL_DESTINO[produto.destino] ?? produto.destino}),
           respeitando horários, cooldown e teto diário de cada um.
+          {produto.destino === "TIKTOK_SHOP" || produto.plataforma === "TIKTOK_SHOP"
+            ? " Produto TikTok Shop entra na fila uma única vez."
+            : null}
         </p>
         <div className="mt-3">
           <DistribuirProdutoButton produtoId={id} />
