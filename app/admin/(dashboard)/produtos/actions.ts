@@ -12,6 +12,14 @@ export interface ProdutoFormState {
   message?: string;
 }
 
+/** Home, /ofertas e /produtos listam produto e preço — todas ficam velhas junto. */
+function revalidarSitePublico(slug: string): void {
+  revalidatePath("/");
+  revalidatePath("/ofertas");
+  revalidatePath("/produtos");
+  revalidatePath(`/produtos/${slug}`);
+}
+
 function parseImagens(raw: string): string[] {
   return raw
     .split("\n")
@@ -61,6 +69,7 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
   });
 
   revalidatePath("/admin/produtos");
+  revalidarSitePublico(produto.slug);
   redirect(`/admin/produtos/${produto.id}`);
 }
 
@@ -75,7 +84,7 @@ export async function updateProdutoAction(
     return { status: "error", message: "Nome, ID externo, preço e link de afiliado são obrigatórios." };
   }
 
-  await prisma.produto.update({
+  const produto = await prisma.produto.update({
     where: { id },
     data: {
       plataforma: dados.plataforma,
@@ -93,6 +102,7 @@ export async function updateProdutoAction(
 
   revalidatePath("/admin/produtos");
   revalidatePath(`/admin/produtos/${id}`);
+  revalidarSitePublico(produto.slug);
 
   return { status: "idle" };
 }
@@ -148,6 +158,7 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
   await prisma.itemDePost.create({ data: { postId: post.id, produtoId: produto.id, ordem: 0 } });
 
   revalidatePath("/admin/produtos");
+  revalidarSitePublico(produto.slug);
   redirect(`/admin/posts/${post.id}`);
 }
 

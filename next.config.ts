@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   // tenta resolvê-lo estaticamente e quebra o build. Deixar o pacote de fora
   // do bundle do servidor resolve via require nativo em runtime.
   serverExternalPackages: ["@whiskeysockets/baileys"],
+  transpilePackages: ["@mdxeditor/editor"],
   // Necessário em produção (self-hosted atrás de nginx): o Next.js compara o
   // header Origin com o Host visto internamente pelo servidor para bloquear
   // CSRF em Server Actions; sem isso, cliques em botões que chamam Server

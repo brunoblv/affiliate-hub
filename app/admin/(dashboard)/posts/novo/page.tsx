@@ -12,7 +12,7 @@ export default async function NovoPostPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Novo post" description="Markdown, com imagens e cards de produto embutidos." />
+      <PageHeader title="Novo post" description="Editor visual, com imagens no servidor e cards de produto." />
       <PostForm produtos={produtos} action={createPostAction} />
     </div>
   );

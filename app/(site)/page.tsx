@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/database";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export default async function HomePage() {
   const [posts, produtos] = await Promise.all([
     prisma.post.findMany({
       where: { status: "PUBLICADO" },
+      include: { capa: true },
       orderBy: { publicadoEm: "desc" },
       take: 3,
     }),
@@ -59,10 +61,24 @@ export default async function HomePage() {
             </Button>
           </div>
         </div>
-        <div className="flex h-64 items-center justify-center rounded-2xl bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_10px,var(--background)_10px,var(--background)_20px)] sm:h-80">
-          <span className="rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground">
-            foto editorial — sala aconchegante
-          </span>
+        <div className="overflow-hidden rounded-2xl">
+          {posts[0]?.capa ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={posts[0].capa.url}
+              alt={posts[0].capa.alt ?? posts[0].titulo}
+              className="h-auto w-full object-cover"
+            />
+          ) : (
+            <Image
+              src="/hero-sala-aconchegante.jpg"
+              alt="Sala aconchegante com cozinha integrada, paleta Hudson Bay e iluminação quente"
+              width={1024}
+              height={682}
+              priority
+              className="h-auto w-full object-cover"
+            />
+          )}
         </div>
       </div>
 
@@ -75,7 +91,12 @@ export default async function HomePage() {
             {posts.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
                 <div className="mb-3.5 flex h-44 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_8px,var(--background)_8px,var(--background)_16px)]">
-                  <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
+                  {post.capa ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.capa.url} alt={post.capa.alt ?? ""} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
+                  )}
                 </div>
                 <h3 className="mt-1.5 font-heading text-[17px] font-semibold text-foreground group-hover:underline">
                   {post.titulo}

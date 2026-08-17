@@ -1,10 +1,12 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import type { MDXEditorMethods } from "@mdxeditor/editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { EditorDoCorpo } from "@/components/admin/editor-do-corpo-dinamico";
 import type { Post } from "@/lib/database";
 import type { PostFormState } from "@/app/admin/(dashboard)/posts/actions";
 
@@ -14,61 +16,75 @@ const TIPOS = [
   { value: "LISTA", label: "Lista (roundup com vários produtos)" },
 ];
 
+type CapaPreview = { id: string; url: string; alt: string | null };
+
+async function enviarMidia(arquivo: File, alt?: string) {
+  const formData = new FormData();
+  formData.set("arquivo", arquivo);
+  if (alt) formData.set("alt", alt);
+  const resposta = await fetch("/api/admin/midia", { method: "POST", body: formData });
+  const json = await resposta.json();
+  if (!resposta.ok) throw new Error(json.erro ?? "Falha no upload");
+  return json as CapaPreview;
+}
+
 export function PostForm({
   post,
   produtos,
   action,
 }: {
-  post?: Post;
+  post?: Post & { capa?: CapaPreview | null };
   produtos: Array<{ slug: string; nome: string }>;
   action: (prev: PostFormState, formData: FormData) => Promise<PostFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<PostFormState, FormData>(action, { status: "idle" });
   const [corpo, setCorpo] = useState(post?.corpo ?? "");
-  const [enviandoImagem, setEnviandoImagem] = useState(false);
-  const corpoRef = useRef<HTMLTextAreaElement>(null);
+  const [capa, setCapa] = useState<CapaPreview | null>(post?.capa ?? null);
+  const [enviandoCapa, setEnviandoCapa] = useState(false);
+  const editorRef = useRef<MDXEditorMethods>(null);
   const produtoSelectRef = useRef<HTMLSelectElement>(null);
 
-  function inserirNoCorpo(texto: string) {
-    const textarea = corpoRef.current;
-    if (!textarea) {
-      setCorpo((atual) => `${atual}\n\n${texto}\n`);
-      return;
-    }
-    const inicio = textarea.selectionStart;
-    const fim = textarea.selectionEnd;
-    const novo = `${corpo.slice(0, inicio)}\n${texto}\n${corpo.slice(fim)}`;
-    setCorpo(novo);
-    requestAnimationFrame(() => textarea.focus());
-  }
-
-  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleUploadCapa(event: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
 
-    setEnviandoImagem(true);
+    setEnviandoCapa(true);
     try {
-      const formData = new FormData();
-      formData.set("arquivo", arquivo);
-      const resposta = await fetch("/api/admin/midia", { method: "POST", body: formData });
-      const json = await resposta.json();
-      if (!resposta.ok) throw new Error(json.erro ?? "Falha no upload");
-      inserirNoCorpo(json.markdown as string);
+      const midia = await enviarMidia(arquivo);
+      setCapa({ id: midia.id, url: midia.url, alt: midia.alt });
     } catch (erro) {
-      alert(erro instanceof Error ? erro.message : "Falha no upload da imagem.");
+      alert(erro instanceof Error ? erro.message : "Falha no upload da capa.");
     } finally {
-      setEnviandoImagem(false);
+      setEnviandoCapa(false);
       event.target.value = "";
     }
   }
 
   function handleInserirProduto() {
     const slug = produtoSelectRef.current?.value;
-    if (slug) inserirNoCorpo(`[produto:${slug}]`);
+    if (!slug) return;
+    const shortcode = `\n\n[produto:${slug}]\n\n`;
+    if (editorRef.current) {
+      editorRef.current.insertMarkdown(shortcode);
+      editorRef.current.focus();
+    } else {
+      setCorpo((atual) => `${atual}${shortcode}`);
+    }
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const markdown = editorRef.current?.getMarkdown();
+    if (markdown === undefined) return;
+    const campo = event.currentTarget.elements.namedItem("corpo");
+    if (campo instanceof HTMLInputElement) campo.value = markdown;
+    setCorpo(markdown);
   }
 
   return (
-    <form action={formAction} className="max-w-3xl space-y-5">
+    <form action={formAction} onSubmit={handleSubmit} className="max-w-4xl space-y-5">
+      <input type="hidden" name="capaId" value={capa?.id ?? ""} />
+      <input type="hidden" name="corpo" value={corpo} />
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="tipo">Tipo</Label>
@@ -110,45 +126,56 @@ export function PostForm({
       </div>
 
       <div className="space-y-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label htmlFor="corpo">Corpo (markdown)</Label>
-          <div className="flex items-center gap-2">
-            {produtos.length > 0 && (
-              <>
-                <select
-                  ref={produtoSelectRef}
-                  className="h-8 rounded-lg border border-input bg-transparent px-2 text-xs outline-none"
-                >
-                  {produtos.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.nome}
-                    </option>
-                  ))}
-                </select>
-                <Button type="button" size="sm" variant="outline" onClick={handleInserirProduto}>
-                  Inserir produto
-                </Button>
-              </>
-            )}
-            <Button type="button" size="sm" variant="outline" disabled={enviandoImagem} render={<label />}>
-              {enviandoImagem ? "Enviando..." : "Inserir imagem"}
-              <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-            </Button>
+        <Label>Imagem de capa</Label>
+        {capa ? (
+          <div className="overflow-hidden rounded-lg border border-border">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={capa.url} alt={capa.alt ?? ""} className="max-h-56 w-full object-cover" />
           </div>
+        ) : (
+          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
+            Nenhuma capa enviada
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" size="sm" variant="outline" disabled={enviandoCapa} render={<label />}>
+            {enviandoCapa ? "Enviando..." : capa ? "Trocar capa" : "Enviar capa"}
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleUploadCapa} />
+          </Button>
+          {capa && (
+            <Button type="button" size="sm" variant="ghost" onClick={() => setCapa(null)}>
+              Remover
+            </Button>
+          )}
         </div>
-        <Textarea
-          id="corpo"
-          name="corpo"
-          ref={corpoRef}
-          value={corpo}
-          onChange={(e) => setCorpo(e.target.value)}
-          rows={16}
-          required
-          className="font-mono text-sm"
-        />
+        <p className="text-xs text-muted-foreground">JPEG, PNG, WebP ou AVIF, até 8 MB. O arquivo é salvo no servidor.</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label>Corpo</Label>
+          {produtos.length > 0 && (
+            <div className="flex items-center gap-2">
+              <select
+                ref={produtoSelectRef}
+                className="h-8 rounded-lg border border-input bg-transparent px-2 text-xs outline-none"
+              >
+                {produtos.map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    {p.nome}
+                  </option>
+                ))}
+              </select>
+              <Button type="button" size="sm" variant="outline" onClick={handleInserirProduto}>
+                Inserir produto
+              </Button>
+            </div>
+          )}
+        </div>
+        <EditorDoCorpo markdown={post?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
         <p className="text-xs text-muted-foreground">
-          Use <code>![alt](url)</code> para imagens e <code>[produto:slug-do-produto]</code>, sozinho na linha, para
-          mostrar um card de produto.
+          Editor visual: títulos, listas, links e imagens (arraste ou use o ícone). O conteúdo continua sendo
+          markdown. Cards de produto entram pelo botão acima.
         </p>
       </div>
 
