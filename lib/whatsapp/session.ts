@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { WASocket } from "@whiskeysockets/baileys";
-import { logger } from "@/lib/logging";
+import { registrar } from "@/lib/log";
 
 const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".whatsapp-auth");
 
@@ -21,11 +21,11 @@ function connect(attempt = 0): Promise<WASocket> {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
-          logger.warn("PUBLISH", "WhatsApp: sessão não autenticada — rode `npx tsx scripts/whatsapp-login.mts` para conectar.");
+          void registrar("ERRO", "PUBLICACAO", "WhatsApp: sessão não autenticada — rode `npm run whatsapp:login` para conectar.");
         }
 
         if (connection === "open") {
-          logger.info("PUBLISH", "WhatsApp: conectado");
+          void registrar("INFO", "PUBLICACAO", "WhatsApp: conectado");
           resolve(sock);
         }
 
@@ -36,18 +36,18 @@ function connect(attempt = 0): Promise<WASocket> {
           // O WhatsApp fecha a conexão pedindo restart em algumas situações
           // (ex: logo após um novo pareamento) — não é falha, só reconectar.
           if (statusCode === DisconnectReason.restartRequired && attempt < 3) {
-            logger.info("PUBLISH", "WhatsApp: restart necessário, reconectando", { attempt });
+            void registrar("INFO", "PUBLICACAO", "WhatsApp: restart necessário, reconectando", { attempt });
             socketPromise = connect(attempt + 1);
             socketPromise.then(resolve, reject);
             return;
           }
 
-          logger.warn("PUBLISH", "WhatsApp: conexão fechada", { statusCode, loggedOut });
+          void registrar("ERRO", "PUBLICACAO", "WhatsApp: conexão fechada", { statusCode, loggedOut });
           socketPromise = null;
 
           reject(
             loggedOut
-              ? new Error("Sessão do WhatsApp desconectada (logout) — rode `npx tsx scripts/whatsapp-login.mts` novamente.")
+              ? new Error("Sessão do WhatsApp desconectada (logout) — rode `npm run whatsapp:login` novamente.")
               : new Error("Conexão do WhatsApp caiu — tente publicar novamente em instantes."),
           );
         }
@@ -60,9 +60,9 @@ function connect(attempt = 0): Promise<WASocket> {
  * Obtém (ou reconecta) o socket autenticado do WhatsApp via Baileys —
  * biblioteca NÃO-OFICIAL que simula um cliente WhatsApp Web real (não há API
  * pública do WhatsApp para postar em grupos). Requer sessão já criada via
- * `npx tsx scripts/whatsapp-login.mts` (escaneando o QR code uma vez); as
- * credenciais ficam salvas em `WHATSAPP_AUTH_DIR` e são reaproveitadas nas
- * próximas conexões, sem precisar escanear de novo.
+ * `npm run whatsapp:login` (escaneando o QR code uma vez); as credenciais
+ * ficam salvas em WHATSAPP_AUTH_DIR e são reaproveitadas nas próximas
+ * conexões, sem precisar escanear de novo.
  */
 export function getWhatsAppSocket(): Promise<WASocket> {
   if (!socketPromise) socketPromise = connect();

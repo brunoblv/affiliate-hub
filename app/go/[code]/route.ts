@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { registerClick } from "@/lib/tracking";
 
-/** Redirecionamento rastreado: /go/:code → link de afiliado (spec §11). */
+/** Redirecionamento rastreado: /go/:code → Produto.linkAfiliado (nunca a URL crua da loja). */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
 
   const destination = await registerClick({
-    shortCode: code,
+    codigoCurto: code,
+    origem: request.nextUrl.searchParams.get("o"),
     ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     userAgent: request.headers.get("user-agent"),
     referer: request.headers.get("referer"),

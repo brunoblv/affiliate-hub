@@ -1,1 +1,0 @@
-ALTER TYPE "ProjectType" ADD VALUE 'ACHADINHOS';

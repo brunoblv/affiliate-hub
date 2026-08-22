@@ -1,116 +1,107 @@
-import { IntegrationProvider } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/database";
 import { encryptJson, decryptJson } from "@/lib/integrations/crypto";
 
-export interface MetaPage {
+export interface PaginaMeta {
   id: string;
-  name: string;
+  nome: string;
   accessToken: string;
   instagramBusinessAccountId?: string;
 }
 
-export interface MetaTokenSet {
-  userAccessToken: string; // long-lived user token
-  userAccessTokenExpireAt: number; // epoch ms
-  pages: MetaPage[];
+interface CredenciaisMeta {
+  userAccessToken?: string;
+  paginas: PaginaMeta[];
 }
 
-const LABEL = "default";
+const PROVEDOR = "meta";
+const GRAPH_VERSION = process.env.META_GRAPH_VERSION ?? "v21.0";
+const GRAPH = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
-async function syncMetaFacebookPages(pages: MetaPage[]): Promise<void> {
-  const seen = new Set<string>();
+async function obterCredenciais(): Promise<CredenciaisMeta | null> {
+  const registro = await prisma.credencial.findUnique({ where: { provedor: PROVEDOR } });
+  if (!registro?.ativo) return null;
+  return decryptJson<CredenciaisMeta>(registro.payload);
+}
 
-  for (const page of pages) {
-    seen.add(page.id);
-    const encryptedAccessToken = encryptJson(page.accessToken);
+async function salvarCredenciais(dados: CredenciaisMeta): Promise<void> {
+  const payload = encryptJson(dados);
+  await prisma.credencial.upsert({
+    where: { provedor: PROVEDOR },
+    create: { provedor: PROVEDOR, payload },
+    update: { payload, ativo: true },
+  });
+}
 
-    await prisma.metaFacebookPage.upsert({
-      where: { pageId: page.id },
-      create: {
-        pageId: page.id,
-        name: page.name,
-        accessToken: encryptedAccessToken,
-        active: true,
-        instagramBusinessAccountId: page.instagramBusinessAccountId ?? null,
-      },
-      update: {
-        name: page.name,
-        accessToken: encryptedAccessToken,
-        active: true,
-        instagramBusinessAccountId: page.instagramBusinessAccountId ?? null,
-      },
-    });
+interface RespostaContas {
+  data?: Array<{
+    id: string;
+    name: string;
+    access_token: string;
+    instagram_business_account?: { id: string };
+  }>;
+  error?: { message: string };
+}
+
+/** Busca as Páginas do Facebook (+ Instagram vinculado) a partir do META_USER_TOKEN do .env. */
+export async function sincronizarPaginasMeta(): Promise<PaginaMeta[]> {
+  const userToken = process.env.META_USER_TOKEN;
+  if (!userToken) throw new Error("META_USER_TOKEN não configurado.");
+
+  const url = new URL(`${GRAPH}/me/accounts`);
+  url.searchParams.set("fields", "id,name,access_token,instagram_business_account");
+  url.searchParams.set("access_token", userToken);
+
+  const resposta = await fetch(url);
+  const json = (await resposta.json()) as RespostaContas;
+
+  if (!resposta.ok) {
+    throw new Error(`Meta: falha ao listar páginas — ${json.error?.message ?? resposta.statusText}`);
   }
 
-  // Páginas que sumiram do token atual ficam inativas (não apagamos histórico).
-  await prisma.metaFacebookPage.updateMany({
-    where: { pageId: { notIn: [...seen] }, active: true },
-    data: { active: false },
-  });
-}
-
-/** Lista páginas ativas da tabela meta_facebook_pages (tokens descriptografados). */
-export async function listActiveMetaPages(): Promise<MetaPage[]> {
-  const rows = await prisma.metaFacebookPage.findMany({
-    where: { active: true },
-    orderBy: { name: "asc" },
-  });
-
-  return rows.map((row) => ({
-    id: row.pageId,
-    name: row.name,
-    accessToken: decryptJson<string>(row.accessToken),
-    instagramBusinessAccountId: row.instagramBusinessAccountId ?? undefined,
+  const paginas: PaginaMeta[] = (json.data ?? []).map((p) => ({
+    id: p.id,
+    nome: p.name,
+    accessToken: p.access_token,
+    instagramBusinessAccountId: p.instagram_business_account?.id,
   }));
+
+  await salvarCredenciais({ userAccessToken: userToken, paginas });
+  return paginas;
 }
 
-export async function getMetaPageByPageId(pageId: string): Promise<MetaPage | null> {
-  const row = await prisma.metaFacebookPage.findFirst({
-    where: { pageId, active: true },
-  });
-  if (!row) return null;
+export async function obterTokenDePagina(pageId: string): Promise<string> {
+  const credenciais = await obterCredenciais();
+  let pagina = credenciais?.paginas.find((p) => p.id === pageId);
 
-  return {
-    id: row.pageId,
-    name: row.name,
-    accessToken: decryptJson<string>(row.accessToken),
-    instagramBusinessAccountId: row.instagramBusinessAccountId ?? undefined,
-  };
-}
-
-export async function saveMetaTokens(tokens: MetaTokenSet): Promise<void> {
-  const encryptedPayload = encryptJson(tokens);
-
-  await prisma.integrationCredential.upsert({
-    where: { provider_label: { provider: IntegrationProvider.META, label: LABEL } },
-    create: { provider: IntegrationProvider.META, label: LABEL, encryptedPayload },
-    update: { encryptedPayload, active: true },
-  });
-
-  await syncMetaFacebookPages(tokens.pages);
-}
-
-export async function getMetaTokens(): Promise<MetaTokenSet | null> {
-  const pages = await listActiveMetaPages();
-  const record = await prisma.integrationCredential.findUnique({
-    where: { provider_label: { provider: IntegrationProvider.META, label: LABEL } },
-  });
-
-  // Páginas sozinhas bastam para publicar (Page Access Token). O blob do
-  // user token só é necessário para refresh / listar contas novas.
-  if (!record?.active) {
-    if (pages.length === 0) return null;
-    return {
-      userAccessToken: "",
-      userAccessTokenExpireAt: 0,
-      pages,
-    };
+  if (!pagina && process.env.META_USER_TOKEN) {
+    const paginas = await sincronizarPaginasMeta();
+    pagina = paginas.find((p) => p.id === pageId);
   }
 
-  const tokens = decryptJson<MetaTokenSet>(record.encryptedPayload);
+  if (!pagina) {
+    throw new Error(`Página ${pageId} sem token — defina META_USER_TOKEN no .env (admin da página).`);
+  }
 
-  return {
-    ...tokens,
-    pages: pages.length > 0 ? pages : tokens.pages,
-  };
+  return pagina.accessToken;
+}
+
+export async function obterTokenPorContaInstagram(igUserId: string): Promise<string> {
+  const credenciais = await obterCredenciais();
+  let pagina = credenciais?.paginas.find((p) => p.instagramBusinessAccountId === igUserId);
+
+  if (!pagina && process.env.META_USER_TOKEN) {
+    const paginas = await sincronizarPaginasMeta();
+    pagina = paginas.find((p) => p.instagramBusinessAccountId === igUserId);
+  }
+
+  if (!pagina) {
+    throw new Error(`Conta Instagram ${igUserId} não encontrada entre as Páginas conectadas.`);
+  }
+
+  return pagina.accessToken;
+}
+
+export async function listarPaginasMeta(): Promise<PaginaMeta[]> {
+  const credenciais = await obterCredenciais();
+  return credenciais?.paginas ?? [];
 }

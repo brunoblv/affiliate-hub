@@ -47,3 +47,9 @@ next-env.d.ts
 
 # Sessão do WhatsApp (Baileys) — credenciais de login, nunca versionar
 /.whatsapp-auth
+
+# Snapshot da migração pro schema v2 — contém dados reais do banco
+/scripts/.migration-snapshot.json
+
+# Mídia local do CMS (upload de posts) quando MEDIA_ROOT não é setado
+/.midia

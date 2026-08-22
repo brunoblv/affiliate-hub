@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/database";
+import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
 
 export const metadata: Metadata = {
   title: "Ofertas",
@@ -9,12 +10,9 @@ export const metadata: Metadata = {
 
 const STORE_LABEL: Record<string, string> = {
   MERCADO_LIVRE: "Mercado Livre",
-  SHOPEE: "Shopee",
   AMAZON: "Amazon",
+  SHOPEE: "Shopee",
   TIKTOK_SHOP: "TikTok Shop",
-  ALIEXPRESS: "AliExpress",
-  MAGALU: "Magalu",
-  OUTRAS: "Outras lojas",
 };
 
 function formatCurrency(value: number) {
@@ -22,15 +20,17 @@ function formatCurrency(value: number) {
 }
 
 export default async function OfertasPage() {
-  const products = await prisma.product.findMany({
-    where: {
-      status: "ACTIVE",
-      discountPercent: { not: null, gt: 0 },
-      project: { type: "HOME", active: true },
-    },
-    orderBy: { discountPercent: "desc" },
-    take: 60,
+  const produtos = await prisma.produto.findMany({
+    where: { ativo: true },
+    orderBy: { criadoEm: "desc" },
+    take: 200,
   });
+
+  const ofertas = produtos
+    .map((produto) => ({ produto, desconto: descontoPercentual(produto) }))
+    .filter((item): item is { produto: (typeof produtos)[number]; desconto: number } => item.desconto !== null && item.desconto > 0)
+    .sort((a, b) => b.desconto - a.desconto)
+    .slice(0, 60);
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-10 sm:py-16">
@@ -40,7 +40,7 @@ export default async function OfertasPage() {
         Produtos com desconto que encontramos agora. Valores podem mudar a qualquer momento.
       </p>
 
-      {products.length === 0 ? (
+      {ofertas.length === 0 ? (
         <p className="mt-12 text-sm text-muted-foreground">
           Nenhuma oferta no momento. Veja todos os{" "}
           <Link href="/produtos" className="underline">
@@ -50,45 +50,42 @@ export default async function OfertasPage() {
         </p>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <Link
-              key={product.id}
-              href={`/produtos/${product.slug}`}
-              className="block overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-sage"
-            >
-              <div className="flex aspect-square items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)] p-3 sm:p-4">
-                {product.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                ) : (
-                  <span className="font-mono text-[11px] text-muted-foreground">produto</span>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    {STORE_LABEL[product.source] ?? product.source}
-                  </span>
-                  <span className="rounded-full bg-olive px-2 py-0.5 text-xs font-bold text-white">
-                    -{Number(product.discountPercent).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="mb-1.5 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</div>
-                <div className="flex items-baseline gap-2">
-                  {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
-                    <span className="text-xs text-muted-foreground line-through">
-                      {formatCurrency(Number(product.originalPrice))}
-                    </span>
+          {ofertas.map(({ produto, desconto }) => {
+            const imagem = primeiraImagem(produto);
+            return (
+              <Link
+                key={produto.id}
+                href={`/produtos/${produto.slug}`}
+                className="block overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-sage"
+              >
+                <div className="flex aspect-square items-center justify-center bg-[repeating-linear-gradient(45deg,var(--background),var(--background)_8px,var(--sand)_8px,var(--sand)_16px)] p-3 sm:p-4">
+                  {imagem ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imagem} alt={produto.nome} className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <span className="font-mono text-[11px] text-muted-foreground">produto</span>
                   )}
-                  <span className="text-lg font-bold text-foreground">{formatCurrency(Number(product.price))}</span>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {STORE_LABEL[produto.plataforma] ?? produto.plataforma}
+                    </span>
+                    <span className="rounded-full bg-olive px-2 py-0.5 text-xs font-bold text-white">-{desconto}%</span>
+                  </div>
+                  <div className="mb-1.5 line-clamp-2 text-sm font-semibold text-foreground">{produto.nome}</div>
+                  <div className="flex items-baseline gap-2">
+                    {produto.precoOriginal && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        {formatCurrency(Number(produto.precoOriginal))}
+                      </span>
+                    )}
+                    <span className="text-lg font-bold text-foreground">{formatCurrency(Number(produto.precoAtual))}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

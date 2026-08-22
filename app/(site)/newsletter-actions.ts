@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/database";
-import { NewsletterStatus } from "@/lib/generated/prisma/client";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -19,10 +18,10 @@ export async function subscribeToNewsletterAction(_prev: SubscribeState, formDat
     return { status: "error", message: "Digite um e-mail válido." };
   }
 
-  await prisma.newsletterSubscriber.upsert({
+  await prisma.assinante.upsert({
     where: { email },
     create: { email },
-    update: { status: NewsletterStatus.ACTIVE, unsubscribedAt: null },
+    update: { ativo: true, baixaEm: null },
   });
 
   return { status: "success", message: "Inscrito! Em breve você recebe nossas dicas por e-mail." };

@@ -1,4 +1,3 @@
-import { IntegrationProvider } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/database";
 import { encryptJson, decryptJson } from "@/lib/integrations/crypto";
 
@@ -10,24 +9,21 @@ export interface MercadoLivreTokenSet {
   scope: string;
 }
 
-const LABEL = "default";
+const PROVEDOR = "mercado_livre";
 
 export async function saveMercadoLivreTokens(tokens: MercadoLivreTokenSet): Promise<void> {
-  const encryptedPayload = encryptJson(tokens);
+  const payload = encryptJson(tokens);
 
-  await prisma.integrationCredential.upsert({
-    where: { provider_label: { provider: IntegrationProvider.MERCADO_LIVRE, label: LABEL } },
-    create: { provider: IntegrationProvider.MERCADO_LIVRE, label: LABEL, encryptedPayload },
-    update: { encryptedPayload, active: true },
+  await prisma.credencial.upsert({
+    where: { provedor: PROVEDOR },
+    create: { provedor: PROVEDOR, payload },
+    update: { payload, ativo: true },
   });
 }
 
 export async function getMercadoLivreTokens(): Promise<MercadoLivreTokenSet | null> {
-  const record = await prisma.integrationCredential.findUnique({
-    where: { provider_label: { provider: IntegrationProvider.MERCADO_LIVRE, label: LABEL } },
-  });
+  const registro = await prisma.credencial.findUnique({ where: { provedor: PROVEDOR } });
+  if (!registro?.ativo) return null;
 
-  if (!record?.active) return null;
-
-  return decryptJson<MercadoLivreTokenSet>(record.encryptedPayload);
+  return decryptJson<MercadoLivreTokenSet>(registro.payload);
 }

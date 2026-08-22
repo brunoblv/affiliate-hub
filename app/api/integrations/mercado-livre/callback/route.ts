@@ -18,7 +18,8 @@ export async function GET(request: Request) {
   const codeVerifier = cookieStore.get("ml_pkce_verifier")?.value;
   const expectedState = cookieStore.get("ml_oauth_state")?.value;
 
-  const redirectFail = NextResponse.redirect(new URL("/admin/integrations?ml=error", getSiteUrl()));
+  // TODO(fase 4): apontar para /admin/integracoes quando essa tela existir.
+  const redirectFail = NextResponse.redirect(new URL("/admin/produtos?ml=error", getSiteUrl()));
 
   if (error || !code || !codeVerifier || !state || state !== expectedState) {
     logger.warn("PRODUCT_SYNC", "Mercado Livre: callback OAuth inválido (state/code_verifier ausente ou divergente)");
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
   try {
     await exchangeMercadoLivreAuthCode({ code, redirectUri, codeVerifier });
-    const response = NextResponse.redirect(new URL("/admin/integrations?ml=connected", getSiteUrl()));
+    const response = NextResponse.redirect(new URL("/admin/produtos?ml=connected", getSiteUrl()));
     response.cookies.delete("ml_pkce_verifier");
     response.cookies.delete("ml_oauth_state");
     return response;

@@ -24,14 +24,15 @@ const pinoLogger = pino({
       : undefined,
 });
 
+/** O model Log v2 só distingue INFO/ERRO (spec §9) — debug/warn caem em INFO. */
 async function persist(level: LogLevel, scope: LogScope, message: string, meta?: unknown) {
   try {
     await prisma.log.create({
       data: {
-        level: level.toUpperCase() as "DEBUG" | "INFO" | "WARN" | "ERROR",
-        scope,
-        message,
-        meta: meta === undefined ? undefined : (meta as object),
+        nivel: level === "error" ? "ERRO" : "INFO",
+        area: scope,
+        mensagem: message,
+        contexto: meta === undefined ? undefined : (meta as object),
       },
     });
   } catch {

@@ -7,7 +7,7 @@ const API_BASE_URL = "https://api.mercadolibre.com";
 async function getValidAccessToken(): Promise<string> {
   const tokens = await getMercadoLivreTokens();
   if (!tokens) {
-    throw new Error("Mercado Livre não conectado. Autorize o app em /admin/integrations antes de chamar a API.");
+    throw new Error("Mercado Livre não conectado. Autorize o app em /admin/integracoes antes de chamar a API.");
   }
 
   const expiresInLessThan5Min = tokens.accessTokenExpireAt - Date.now() < 5 * 60 * 1000;

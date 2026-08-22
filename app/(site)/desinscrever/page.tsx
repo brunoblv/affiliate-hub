@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/database";
-import { NewsletterStatus } from "@/lib/generated/prisma/client";
 
 export const metadata = { title: "Cancelar inscrição — Meu Novo Lar" };
 
@@ -8,11 +7,11 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
 
   let unsubscribed = false;
   if (token) {
-    const subscriber = await prisma.newsletterSubscriber.findUnique({ where: { unsubscribeToken: token } });
-    if (subscriber) {
-      await prisma.newsletterSubscriber.update({
-        where: { id: subscriber.id },
-        data: { status: NewsletterStatus.UNSUBSCRIBED, unsubscribedAt: new Date() },
+    const assinante = await prisma.assinante.findUnique({ where: { tokenBaixa: token } });
+    if (assinante) {
+      await prisma.assinante.update({
+        where: { id: assinante.id },
+        data: { ativo: false, baixaEm: new Date() },
       });
       unsubscribed = true;
     }
