@@ -28,10 +28,15 @@ export async function CorpoDoPost({ corpo, origem = "blog" }: Props) {
 
   const porSlug = new Map(produtos.map((produto) => [produto.slug, produto]));
 
+  // Blocos de produto consecutivos (ex: vários [produto:slug] seguidos, sem
+  // texto entre eles) viram um grid, pra caber lado a lado em vez de um card
+  // largo empilhado por produto.
+  const grupos = agruparProdutosConsecutivos(blocos);
+
   return (
     <div className="flex flex-col gap-8">
-      {blocos.map((bloco, indice) => {
-        if (bloco.tipo === "markdown") {
+      {grupos.map((grupo, indice) => {
+        if (grupo.tipo === "markdown") {
           return (
             <div key={indice} className="prose prose-neutral max-w-none dark:prose-invert">
               <Markdown
@@ -48,50 +53,59 @@ export async function CorpoDoPost({ corpo, origem = "blog" }: Props) {
                   ),
                 }}
               >
-                {bloco.conteudo}
+                {grupo.conteudo}
               </Markdown>
             </div>
           );
         }
 
-        const produto = porSlug.get(bloco.slug);
+        const cards = grupo.slugs.map((slug) => porSlug.get(slug)).filter((p): p is NonNullable<typeof p> => !!p);
 
-        // Produto removido ou inativo: o post continua de pé, sem card quebrado.
-        if (!produto) return null;
-
-        const imagens = (produto.imagens as unknown as string[]) ?? [];
+        // Produtos removidos ou inativos: o post continua de pé, sem card quebrado.
+        if (cards.length === 0) return null;
 
         return (
-          <aside key={indice} className="flex gap-4 rounded-xl border border-border p-4">
-            {imagens[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imagens[0]}
-                alt={produto.nome}
-                className="size-32 shrink-0 rounded-lg object-contain"
-              />
-            )}
+          <div key={indice} className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {cards.map((produto) => {
+              const imagens = (produto.imagens as unknown as string[]) ?? [];
 
-            <div className="flex flex-col justify-between gap-2">
-              <div>
-                <h3 className="font-medium leading-snug">{produto.nome}</h3>
-                <p className="text-lg font-semibold">
-                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-                    Number(produto.precoAtual),
+              return (
+                <aside
+                  key={produto.slug}
+                  className="flex flex-col overflow-hidden rounded-xl border border-border"
+                >
+                  {imagens[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imagens[0]}
+                      alt={produto.nome}
+                      className="aspect-square w-full object-contain p-3"
+                    />
                   )}
-                </p>
-              </div>
 
-              <a
-                href={`/go/${produto.codigoCurto}?o=${origem}`}
-                rel="nofollow sponsored noopener"
-                target="_blank"
-                className="w-fit rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background"
-              >
-                Ver oferta
-              </a>
-            </div>
-          </aside>
+                  <div className="flex flex-1 flex-col justify-between gap-2 p-3 pt-0">
+                    <div>
+                      <h3 className="text-sm font-medium leading-snug">{produto.nome}</h3>
+                      <p className="text-base font-semibold">
+                        {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+                          Number(produto.precoAtual),
+                        )}
+                      </p>
+                    </div>
+
+                    <a
+                      href={`/go/${produto.codigoCurto}?o=${origem}`}
+                      rel="nofollow sponsored noopener"
+                      target="_blank"
+                      className="rounded-lg bg-foreground px-4 py-2 text-center text-sm font-medium text-background"
+                    >
+                      Ver oferta
+                    </a>
+                  </div>
+                </aside>
+              );
+            })}
+          </div>
         );
       })}
 
@@ -101,4 +115,26 @@ export async function CorpoDoPost({ corpo, origem = "blog" }: Props) {
       </p>
     </div>
   );
+}
+
+type GrupoDeBloco = { tipo: "markdown"; conteudo: string } | { tipo: "produto"; slugs: string[] };
+
+function agruparProdutosConsecutivos(blocos: ReturnType<typeof separarBlocos>): GrupoDeBloco[] {
+  const grupos: GrupoDeBloco[] = [];
+
+  for (const bloco of blocos) {
+    if (bloco.tipo === "markdown") {
+      grupos.push(bloco);
+      continue;
+    }
+
+    const ultimo = grupos.at(-1);
+    if (ultimo?.tipo === "produto") {
+      ultimo.slugs.push(bloco.slug);
+    } else {
+      grupos.push({ tipo: "produto", slugs: [bloco.slug] });
+    }
+  }
+
+  return grupos;
 }

@@ -137,3 +137,11 @@
     @apply font-sans;
   }
 }
+
+/* O popover de link do MDXEditor usa z-index baixo (herdado do pacote) e
+   fica atrás da sidebar admin (z-10). O popover é renderizado em portal no
+   body, então o override precisa ser global — não dá pra escopar via
+   .mdxeditor-cms, que não é ancestral dele no DOM. */
+[data-radix-popper-content-wrapper] {
+  z-index: 60 !important;
+}
