@@ -67,13 +67,19 @@ export function PostForm({
   function handleInserirProduto() {
     const slug = produtoSelectRef.current?.value;
     if (!slug) return;
-    const shortcode = `\n\n[produto:${slug}]\n\n`;
-    if (editorRef.current) {
-      editorRef.current.insertMarkdown(shortcode);
-      editorRef.current.focus();
-    } else {
-      setCorpo((atual) => `${atual}${shortcode}`);
-    }
+
+    // insertMarkdown insere no ponto do cursor, mas mescla o texto importado
+    // dentro do parágrafo atual em vez de criar um parágrafo novo (e ainda
+    // escapa o "[" já que sem quebra de linha ele parece início de link) —
+    // o shortcode acaba grudado no texto anterior e o [produto:slug] deixa
+    // de ficar sozinho na linha, quebrando a detecção em separarBlocos.
+    // Anexar sempre no fim via setMarkdown (reparse completo do documento)
+    // garante que o shortcode nasce como parágrafo próprio.
+    const atual = (editorRef.current?.getMarkdown() ?? corpo).trim();
+    const novoCorpo = atual ? `${atual}\n\n[produto:${slug}]` : `[produto:${slug}]`;
+
+    editorRef.current?.setMarkdown(novoCorpo);
+    setCorpo(novoCorpo);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -176,7 +182,7 @@ export function PostForm({
             </div>
           )}
         </div>
-        <EditorDoCorpo markdown={post?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
+        <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
         <p className="text-xs text-muted-foreground">
           Editor visual: títulos, listas, links e imagens (arraste ou use o ícone). O conteúdo continua sendo
           markdown. Cards de produto entram pelo botão acima.

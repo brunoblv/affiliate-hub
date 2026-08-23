@@ -26,7 +26,7 @@ export function ProdutoForm({
   produto,
   action,
 }: {
-  produto?: Produto;
+  produto?: Omit<Produto, "precoAtual" | "precoOriginal"> & { precoAtual: number; precoOriginal: number | null };
   action: (prev: ProdutoFormState, formData: FormData) => Promise<ProdutoFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<ProdutoFormState, FormData>(action, { status: "idle" });

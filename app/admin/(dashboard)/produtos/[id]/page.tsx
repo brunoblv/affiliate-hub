@@ -17,11 +17,16 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
   if (!produto) notFound();
 
   const action = updateProdutoAction.bind(null, id);
+  const produtoSerializado = {
+    ...produto,
+    precoAtual: Number(produto.precoAtual),
+    precoOriginal: produto.precoOriginal ? Number(produto.precoOriginal) : null,
+  };
 
   return (
     <div className="space-y-8">
       <PageHeader title={produto.nome} description={`/go/${produto.codigoCurto}`} />
-      <ProdutoForm produto={produto} action={action} />
+      <ProdutoForm produto={produtoSerializado} action={action} />
       <div className="max-w-2xl border-t border-border pt-6">
         <h2 className="text-sm font-medium">Distribuição</h2>
         <p className="mt-1 text-xs text-muted-foreground">
