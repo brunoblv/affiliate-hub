@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex-1" />
           <UserMenu name={session?.user?.name} email={session?.user?.email} />
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

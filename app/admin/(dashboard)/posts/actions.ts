@@ -14,7 +14,10 @@ export interface PostFormState {
 
 /** Mantém ItemDePost em dia com os shortcodes [produto:slug] presentes no corpo. */
 async function sincronizarItens(postId: string, corpo: string): Promise<void> {
-  const slugs = produtosReferenciados(corpo);
+  // Mesmo produto pode aparecer mais de uma vez no corpo (ex: card repetido
+  // de propósito, ou inserido duas vezes por engano) — dedupe preservando a
+  // primeira posição, já que ItemDePost tem unique (postId, produtoId).
+  const slugs = [...new Set(produtosReferenciados(corpo))];
 
   const produtos = slugs.length
     ? await prisma.produto.findMany({ where: { slug: { in: slugs } }, select: { id: true, slug: true } })

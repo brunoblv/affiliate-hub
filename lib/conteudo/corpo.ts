@@ -11,8 +11,15 @@
 
 export type BlocoDoCorpo = { tipo: "markdown"; conteudo: string } | { tipo: "produto"; slug: string };
 
-/** Shortcode sozinho na linha. Qualquer outra ocorrência fica como texto. */
-const SHORTCODE_PRODUTO = /^\[produto:([a-z0-9-]+)\]$/;
+/**
+ * Shortcode sozinho na linha. Qualquer outra ocorrência fica como texto.
+ *
+ * O "\[" opcional cobre o corpo salvo pelo MDXEditor: um parágrafo que
+ * começa com "[" é sempre serializado de volta como "\[..." (escape padrão
+ * do mdast-util-to-markdown pra não virar um link quebrado), então o
+ * shortcode chega aqui como "\[produto:slug]".
+ */
+const SHORTCODE_PRODUTO = /^\\?\[produto:([a-z0-9-]+)\]$/;
 
 /** Imagens embutidas — usado para manter MidiaEmPost em dia. */
 const IMAGEM_MARKDOWN = /!\[[^\]]*\]\(([^)\s]+)/g;
@@ -66,7 +73,7 @@ export function imagensReferenciadas(corpo: string): string[] {
 export function resumoAutomatico(corpo: string, limite = 155): string {
   const textoLimpo = corpo
     .replace(IMAGEM_MARKDOWN, "")
-    .replace(/\[produto:[a-z0-9-]+\]/g, "")
+    .replace(/\\?\[produto:[a-z0-9-]+\]/g, "")
     .replace(/[#*_>`]/g, "")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/\s+/g, " ")
