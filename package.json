@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",
     "@types/pg": "^8.21.0",
     "@types/qrcode-terminal": "^0.12.2",
