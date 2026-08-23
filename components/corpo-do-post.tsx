@@ -1,5 +1,6 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 import { prisma } from "@/lib/database";
 import { separarBlocos, produtosReferenciados } from "@/lib/conteudo/corpo";
@@ -40,7 +41,7 @@ export async function CorpoDoPost({ corpo, origem = "blog" }: Props) {
           return (
             <div key={indice} className="prose prose-neutral max-w-none dark:prose-invert">
               <Markdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                   // eslint-disable-next-line @next/next/no-img-element
                   img: ({ src, alt }) => (
