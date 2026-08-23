@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Plataforma } from "@/lib/database";
 import { gerarCodigoCurto, slugify } from "@/lib/produtos";
-import { buscarItemMercadoLivre } from "@/lib/mercado-livre/client";
+import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
+import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identificador";
 import { enfileirarProduto, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 
@@ -111,40 +112,82 @@ export async function updateProdutoAction(
 }
 
 /**
- * Fase 2 (spec §5.1): cola ID + link de afiliado → GET /items/{id} preenche o
- * resto, e um Post PRODUTO publicado é criado automaticamente no blog.
+ * Fase 2 (spec §5.1): cola ID/link + link de afiliado e o resto é preenchido
+ * automaticamente; um Post PRODUTO publicado é criado no blog.
  * O link de afiliado nunca vem da API — é sempre colado por quem cadastra.
+ *
+ * `/items/{id}` só dá acesso pleno a anúncios da própria conta OAuth — como
+ * produtos de afiliado são de terceiros, isso retorna 403. Por isso, quando o
+ * texto colado é (ou contém) um link de produto de catálogo (`/p/MLB...`),
+ * usamos a API de Catálogo (mesma que a sincronização de preço usa) em vez de
+ * `/items/{id}` direto.
  */
 export async function importarMercadoLivreAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
-  const idExterno = String(formData.get("idExterno") ?? "").trim();
+  const identificadorBruto = String(formData.get("idExterno") ?? "").trim();
   const linkAfiliado = String(formData.get("linkAfiliado") ?? "").trim();
 
-  if (!idExterno || !linkAfiliado) {
-    return { status: "error", message: "ID do anúncio e link de afiliado são obrigatórios." };
+  if (!identificadorBruto || !linkAfiliado) {
+    return { status: "error", message: "ID/link do anúncio e link de afiliado são obrigatórios." };
   }
 
-  let item;
+  const { catalogProductId, itemId } = parseIdentificadorMercadoLivre(identificadorBruto);
+
+  let idExterno: string;
+  let nome: string;
+  let imagens: string[];
+  let precoAtual: number;
+  let precoOriginal: number | null;
+  let dadosBrutos: object;
+
   try {
-    item = await buscarItemMercadoLivre(idExterno);
+    if (catalogProductId) {
+      const [precoFresco, info] = await Promise.all([
+        buscarPrecoViaCatalogo(catalogProductId, itemId ?? undefined),
+        buscarInfoCatalogo(catalogProductId),
+      ]);
+
+      if (!precoFresco) {
+        return { status: "error", message: "Anúncio não encontrado no catálogo do Mercado Livre (removido/pausado?)." };
+      }
+
+      idExterno = precoFresco.itemId;
+      nome = info.nome;
+      imagens = info.imagens.slice(0, 6);
+      precoAtual = precoFresco.preco;
+      precoOriginal = precoFresco.precoOriginal;
+      dadosBrutos = { catalog_product_id: catalogProductId, item_id: idExterno };
+    } else if (itemId) {
+      const item = await buscarItemMercadoLivre(itemId);
+      idExterno = itemId;
+      nome = item.title;
+      imagens = item.pictures.map((p) => p.url).slice(0, 6);
+      precoAtual = item.price;
+      precoOriginal = item.original_price;
+      dadosBrutos = JSON.parse(JSON.stringify(item));
+    } else {
+      return {
+        status: "error",
+        message: "Não deu pra identificar o ID do anúncio nesse texto/link. Cole o ID (MLBxxxxxxxxxx) ou a URL do anúncio/produto.",
+      };
+    }
   } catch (erro) {
     return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao consultar o Mercado Livre." };
   }
 
-  const slug = slugify(item.title);
-  const imagens = item.pictures.map((p) => p.url).slice(0, 6);
+  const slug = slugify(nome);
 
   const produto = await prisma.produto.create({
     data: {
       plataforma: Plataforma.MERCADO_LIVRE,
       idExterno,
       slug,
-      nome: item.title,
+      nome,
       imagens,
-      precoAtual: item.price,
-      precoOriginal: item.original_price,
+      precoAtual,
+      precoOriginal,
       linkAfiliado,
       codigoCurto: gerarCodigoCurto(),
-      dadosBrutos: JSON.parse(JSON.stringify(item)),
+      dadosBrutos,
       sincronizadoEm: new Date(),
     },
   });

@@ -18,8 +18,8 @@ export function ImportarMercadoLivreForm({
   return (
     <form action={formAction} className="max-w-lg space-y-5">
       <div className="space-y-1.5">
-        <Label htmlFor="idExterno">ID do anúncio</Label>
-        <Input id="idExterno" name="idExterno" placeholder="MLB1234567890" required />
+        <Label htmlFor="idExterno">ID ou link do anúncio/produto</Label>
+        <Input id="idExterno" name="idExterno" placeholder="MLB1234567890 ou https://www.mercadolivre.com.br/..." required />
       </div>
 
       <div className="space-y-1.5">

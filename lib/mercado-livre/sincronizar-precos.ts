@@ -69,7 +69,7 @@ export async function sincronizarPrecosMercadoLivre(): Promise<void> {
 
       const precoMudou = precoFresco.preco !== precoAtual || precoFresco.precoOriginal !== precoOriginalAtual;
       const nomeMudou = infoFresca.nome !== produto.nome;
-      const novaImagemUrl = infoFresca.imagemUrl;
+      const novaImagemUrl = infoFresca.imagens[0];
       const imagemMudou = Boolean(novaImagemUrl) && novaImagemUrl !== imagens[0];
 
       if (!precoMudou && !nomeMudou && !imagemMudou) {
