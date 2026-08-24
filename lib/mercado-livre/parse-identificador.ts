@@ -33,8 +33,14 @@ export function parseIdentificadorMercadoLivre(raw: string): IdentificadorMercad
   const catalogMatch = url.pathname.match(REGEX_CATALOG_PATH);
   const catalogProductId = catalogMatch ? catalogMatch[1].toUpperCase() : null;
 
-  const itemIdMatch =
-    `${url.search}${url.hash}`.match(REGEX_ITEM_ID_PARAM) ?? trimmed.match(REGEX_ANUNCIO_SLUG);
+  let searchAndHash = `${url.search}${url.hash}`;
+  try {
+    searchAndHash = decodeURIComponent(searchAndHash);
+  } catch {
+    // mantém a string original (ainda codificada) se a decodificação falhar
+  }
+
+  const itemIdMatch = searchAndHash.match(REGEX_ITEM_ID_PARAM) ?? trimmed.match(REGEX_ANUNCIO_SLUG);
   const itemId = itemIdMatch ? itemIdMatch[1].toUpperCase().replace("-", "") : null;
 
   return { catalogProductId, itemId };

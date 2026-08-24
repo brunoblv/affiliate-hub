@@ -30,7 +30,7 @@ export async function POST(requisicao: Request) {
   }
 
   if (arquivo.size > TAMANHO_MAXIMO_MIDIA) {
-    return NextResponse.json({ erro: "Arquivo acima de 8 MB." }, { status: 413 });
+    return NextResponse.json({ erro: "Arquivo acima de 25 MB." }, { status: 413 });
   }
 
   const midia = await salvarArquivoDeMidia({

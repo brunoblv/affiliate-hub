@@ -11,7 +11,7 @@ import { slugify } from "@/lib/produtos";
  * /midia/[...caminho], para o Next não precisar de rebuild a cada arquivo novo.
  */
 export const RAIZ_MIDIA = process.env.MEDIA_ROOT ?? path.join(process.cwd(), ".midia");
-export const TAMANHO_MAXIMO_MIDIA = 8 * 1024 * 1024; // 8 MB
+export const TAMANHO_MAXIMO_MIDIA = 25 * 1024 * 1024; // 25 MB (o arquivo é sempre redimensionado/recomprimido antes de salvar)
 export const LARGURA_MAXIMA_MIDIA = 1600;
 export const TIPOS_ACEITOS_MIDIA = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
