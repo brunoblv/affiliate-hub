@@ -45,7 +45,7 @@ export default function EditorDoCorpo({
       {...props}
       ref={editorRef}
       className="mdxeditor-cms w-full rounded-lg border border-border bg-card [&_.mdxeditor-toolbar]:sticky [&_.mdxeditor-toolbar]:top-0 [&_.mdxeditor-toolbar]:z-10 [&_.mdxeditor-toolbar]:rounded-t-lg [&_.mdxeditor-toolbar]:border-border [&_.mdxeditor-toolbar]:bg-card"
-      contentEditableClassName="min-h-[28rem] px-4 py-3 text-[15px] leading-relaxed text-foreground"
+      contentEditableClassName="min-h-[28rem] px-4 py-3 text-[15px] leading-relaxed text-foreground [&_p]:mb-3 [&_p:last-child]:mb-0"
       placeholder="Escreva o post. Arraste uma imagem para enviá-la ao servidor."
       plugins={[
         headingsPlugin({ allowedHeadingLevels: [2, 3, 4] }),

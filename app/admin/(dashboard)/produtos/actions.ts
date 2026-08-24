@@ -122,6 +122,43 @@ export async function updateProdutoAction(
  * usamos a API de Catálogo (mesma que a sincronização de preço usa) em vez de
  * `/items/{id}` direto.
  */
+interface DadosImportacaoMercadoLivre {
+  idExterno: string;
+  nome: string;
+  imagens: string[];
+  precoAtual: number;
+  precoOriginal: number | null;
+  dadosBrutos: object;
+}
+
+/** Busca preço + info de um produto de catálogo, combinando as duas chamadas em um resultado só. */
+async function resolverViaCatalogo(catalogProductId: string, itemId?: string): Promise<DadosImportacaoMercadoLivre | null> {
+  const [precoFresco, info] = await Promise.all([
+    buscarPrecoViaCatalogo(catalogProductId, itemId),
+    buscarInfoCatalogo(catalogProductId),
+  ]);
+
+  if (!precoFresco) return null;
+
+  return {
+    idExterno: precoFresco.itemId,
+    nome: info.nome,
+    imagens: info.imagens.slice(0, 6),
+    precoAtual: precoFresco.preco,
+    precoOriginal: precoFresco.precoOriginal,
+    dadosBrutos: { catalog_product_id: catalogProductId, item_id: precoFresco.itemId },
+  };
+}
+
+/** P2002 em `[plataforma, idExterno]` — produto já importado antes. */
+function ehViolacaoDeIdExternoDuplicado(erro: unknown): boolean {
+  if (!erro || typeof erro !== "object" || !("code" in erro)) return false;
+  const target = "meta" in erro && erro.meta && typeof erro.meta === "object" && "target" in erro.meta
+    ? String(erro.meta.target)
+    : "";
+  return erro.code === "P2002" && target.includes("idExterno");
+}
+
 export async function importarMercadoLivreAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
   const identificadorBruto = String(formData.get("idExterno") ?? "").trim();
   const linkAfiliado = String(formData.get("linkAfiliado") ?? "").trim();
@@ -141,29 +178,27 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
 
   try {
     if (catalogProductId) {
-      const [precoFresco, info] = await Promise.all([
-        buscarPrecoViaCatalogo(catalogProductId, itemId ?? undefined),
-        buscarInfoCatalogo(catalogProductId),
-      ]);
-
-      if (!precoFresco) {
+      const resolvido = await resolverViaCatalogo(catalogProductId, itemId ?? undefined);
+      if (!resolvido) {
         return { status: "error", message: "Anúncio não encontrado no catálogo do Mercado Livre (removido/pausado?)." };
       }
-
-      idExterno = precoFresco.itemId;
-      nome = info.nome;
-      imagens = info.imagens.slice(0, 6);
-      precoAtual = precoFresco.preco;
-      precoOriginal = precoFresco.precoOriginal;
-      dadosBrutos = { catalog_product_id: catalogProductId, item_id: idExterno };
+      ({ idExterno, nome, imagens, precoAtual, precoOriginal, dadosBrutos } = resolvido);
     } else if (itemId) {
-      const item = await buscarItemMercadoLivre(itemId);
-      idExterno = itemId;
-      nome = item.title;
-      imagens = item.pictures.map((p) => p.url).slice(0, 6);
-      precoAtual = item.price;
-      precoOriginal = item.original_price;
-      dadosBrutos = JSON.parse(JSON.stringify(item));
+      try {
+        const item = await buscarItemMercadoLivre(itemId);
+        idExterno = itemId;
+        nome = item.title;
+        imagens = item.pictures.map((p) => p.url).slice(0, 6);
+        precoAtual = item.price;
+        precoOriginal = item.original_price;
+        dadosBrutos = JSON.parse(JSON.stringify(item));
+      } catch (erroItem) {
+        // ID colado "cru" (sem link `/p/...`) pode ser na verdade um produto de
+        // catálogo, não um anúncio — tenta via API de Catálogo antes de desistir.
+        const resolvido = await resolverViaCatalogo(itemId);
+        if (!resolvido) throw erroItem;
+        ({ idExterno, nome, imagens, precoAtual, precoOriginal, dadosBrutos } = resolvido);
+      }
     } else {
       return {
         status: "error",
@@ -176,21 +211,29 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
 
   const slug = slugify(nome);
 
-  const produto = await prisma.produto.create({
-    data: {
-      plataforma: Plataforma.MERCADO_LIVRE,
-      idExterno,
-      slug,
-      nome,
-      imagens,
-      precoAtual,
-      precoOriginal,
-      linkAfiliado,
-      codigoCurto: gerarCodigoCurto(),
-      dadosBrutos,
-      sincronizadoEm: new Date(),
-    },
-  });
+  let produto;
+  try {
+    produto = await prisma.produto.create({
+      data: {
+        plataforma: Plataforma.MERCADO_LIVRE,
+        idExterno,
+        slug,
+        nome,
+        imagens,
+        precoAtual,
+        precoOriginal,
+        linkAfiliado,
+        codigoCurto: gerarCodigoCurto(),
+        dadosBrutos,
+        sincronizadoEm: new Date(),
+      },
+    });
+  } catch (erro) {
+    if (ehViolacaoDeIdExternoDuplicado(erro)) {
+      return { status: "error", message: `Esse anúncio (${idExterno}) já foi importado antes.` };
+    }
+    throw erro;
+  }
 
   const publicado = await garantirPostPublicadoDoProduto(produto);
 
