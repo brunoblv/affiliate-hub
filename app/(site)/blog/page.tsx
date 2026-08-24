@@ -29,7 +29,7 @@ export default async function BlogIndexPage({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [featured, ...rest] = posts;
-  const capaDestaque = featured ? resolverCapa(featured.capa, true) : null;
+  const capaDestaque = featured ? resolverCapa(featured.capa) : null;
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-10">

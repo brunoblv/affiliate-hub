@@ -16,6 +16,18 @@ export async function cancelarPublicacaoAction(id: string): Promise<void> {
   revalidatePath("/admin/fila");
 }
 
+export async function publicarAgoraAction(id: string): Promise<void> {
+  try {
+    await prisma.publicacao.update({
+      where: { id, status: "PENDENTE" },
+      data: { agendadaPara: new Date() },
+    });
+  } catch (erro) {
+    falhou(erro, "Não foi possível publicar agora.");
+  }
+  revalidatePath("/admin/fila");
+}
+
 export async function republicarAction(id: string): Promise<void> {
   try {
     await prisma.publicacao.update({

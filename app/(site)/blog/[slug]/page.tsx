@@ -7,21 +7,14 @@ import { resolverCapa } from "@/lib/conteudo/capa";
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const [post, primeiro] = await Promise.all([
-    prisma.post.findUnique({
-      where: { slug },
-      include: { capa: true },
-    }),
-    prisma.post.findFirst({
-      where: { status: "PUBLICADO" },
-      orderBy: { publicadoEm: "desc" },
-      select: { id: true },
-    }),
-  ]);
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    include: { capa: true },
+  });
 
   if (!post || post.status !== "PUBLICADO") notFound();
 
-  const capa = resolverCapa(post.capa, post.id === primeiro?.id);
+  const capa = resolverCapa(post.capa);
 
   return (
     <article className="mx-auto w-full max-w-2xl px-6 py-12">

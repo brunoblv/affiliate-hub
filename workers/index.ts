@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { prisma } from "@/lib/database";
-import { obterPublicador } from "@/lib/publicacao/publicadores";
+import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
 import { formatarLocal } from "@/lib/agenda/fuso";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
@@ -9,8 +9,6 @@ import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-p
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
 const LOTE = 5;
-const MAX_TENTATIVAS = 4;
-const ESPERA_ENTRE_TENTATIVAS_MIN = 10;
 /** Preço de afiliado não muda a cada minuto — loop independente do de publicação. */
 const INTERVALO_SYNC_PRECOS_MS = 6 * 60 * 60 * 1000;
 
@@ -49,68 +47,6 @@ async function reivindicarPendentes(): Promise<string[]> {
   });
 }
 
-async function publicar(publicacaoId: string): Promise<void> {
-  const publicacao = await prisma.publicacao.findUniqueOrThrow({
-    where: { id: publicacaoId },
-    include: { canal: true, produto: { select: { slug: true } } },
-  });
-
-  try {
-    const publicador = obterPublicador(publicacao.canal);
-
-    const resultado = await publicador.publicar({
-      texto: publicacao.texto,
-      imagemUrl: publicacao.imagemUrl ?? undefined,
-      link: publicacao.linkDestino,
-    });
-
-    await prisma.publicacao.update({
-      where: { id: publicacaoId },
-      data: {
-        status: "PUBLICADA",
-        publicadaEm: new Date(),
-        idPostExterno: resultado.idExterno,
-        erro: null,
-      },
-    });
-
-    await registrar("INFO", "PUBLICACAO", `Publicado em ${publicacao.canal.nome}`, {
-      produto: publicacao.produto.slug,
-      idExterno: resultado.idExterno,
-    });
-  } catch (erro) {
-    await tratarFalha(publicacaoId, publicacao.tentativas, erro);
-  }
-}
-
-/**
- * Falha não é terminal. Reagenda com espera até esgotar as tentativas — só aí
- * vira FALHOU e aparece no painel. Na v1 a primeira falha de rede matava o post
- * em silêncio.
- */
-async function tratarFalha(publicacaoId: string, tentativas: number, erro: unknown): Promise<void> {
-  const mensagem = erro instanceof Error ? erro.message : String(erro);
-  const esgotou = tentativas >= MAX_TENTATIVAS;
-
-  await prisma.publicacao.update({
-    where: { id: publicacaoId },
-    data: esgotou
-      ? { status: "FALHOU", erro: mensagem }
-      : {
-          status: "PENDENTE",
-          erro: mensagem,
-          agendadaPara: new Date(Date.now() + ESPERA_ENTRE_TENTATIVAS_MIN * 60_000),
-        },
-  });
-
-  await registrar(
-    "ERRO",
-    "PUBLICACAO",
-    esgotou ? "Publicação falhou em definitivo" : "Publicação falhou, vai tentar de novo",
-    { publicacaoId, tentativas, erro: mensagem },
-  );
-}
-
 /**
  * Um tick. Roda em série e é aguardado antes do próximo — nada de setInterval
  * solto disparando ticks sobrepostos.
@@ -124,7 +60,7 @@ async function tick(): Promise<void> {
 
     for (const id of ids) {
       if (encerrando) break;
-      await publicar(id);
+      await executarPublicacao(id);
     }
   } catch (erro) {
     await registrar("ERRO", "WORKER", "Tick falhou", {

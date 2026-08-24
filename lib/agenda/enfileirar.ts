@@ -2,6 +2,7 @@ import { prisma, Destino, Plataforma, Rede, type Canal, type Produto } from "@/l
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { montarTextoDoPost } from "@/lib/conteudo/texto-do-post";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
+import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -35,6 +36,8 @@ export interface ResultadoEnfileiramento {
   agendadaPara?: string;
   publicacaoId?: string;
   motivoPulado?: string;
+  /** Só preenchido por publicarProdutoAgora: resultado real do envio imediato. */
+  publicada?: boolean;
 }
 
 function mensagemErro(erro: unknown): string {
@@ -258,4 +261,83 @@ async function enfileirarNoCanal(
     }
     throw erro;
   }
+}
+
+/**
+ * Publica um produto em um canal específico agora — ignora horários, teto
+ * diário e intervalo mínimo do canal (só faz sentido para uma publicação
+ * pontual disparada manualmente). Cooldown e idempotência continuam valendo:
+ * ainda não se pode postar o mesmo produto duas vezes seguidas no mesmo canal.
+ */
+export async function publicarProdutoAgora(produtoId: string, canalId: string): Promise<ResultadoEnfileiramento> {
+  const produto = await prisma.produto.findUnique({ where: { id: produtoId } });
+  if (!produto) return pulado(produtoId, "Produto", "Produto não encontrado.");
+  if (!produto.ativo) return pulado(produto.id, produto.nome, `Produto "${produto.slug}" está inativo.`);
+
+  const canal = await prisma.canal.findUnique({ where: { id: canalId } });
+  if (!canal) return pulado(canalId, "Canal", "Canal não encontrado.");
+  if (!canal.ativo) return pulado(canal.id, canal.nome, "Canal está inativo.");
+  if (canal.destino !== produto.destino) {
+    return pulado(
+      canal.id,
+      canal.nome,
+      `Canal é do destino ${LABEL_DESTINO[canal.destino]}, produto é do destino ${LABEL_DESTINO[produto.destino]}.`,
+    );
+  }
+
+  let slugDoPost: string;
+  try {
+    slugDoPost = (await garantirPostPublicadoDoProduto(produto)).slug;
+  } catch (erro) {
+    return pulado(produto.id, produto.nome, mensagemErro(erro));
+  }
+
+  if (await produtoEmCooldown(canal, produto.id)) {
+    return pulado(canal.id, canal.nome, `Já publicado neste canal nos últimos ${canal.cooldownDias} dias`);
+  }
+
+  let link: string;
+  try {
+    link = linkDestino(canal, produto, slugDoPost);
+  } catch (erro) {
+    return pulado(canal.id, canal.nome, mensagemErro(erro));
+  }
+
+  const texto = montarTextoDoPost({ produto, rede: canal.rede, link });
+  const agora = new Date();
+  const chaveIdempotencia = `${produto.id}:${canal.id}:${agora.toISOString()}`;
+
+  let publicacaoId: string;
+  try {
+    const publicacao = await prisma.publicacao.create({
+      data: {
+        produtoId: produto.id,
+        canalId: canal.id,
+        agendadaPara: agora,
+        texto,
+        imagemUrl: primeiraImagem(produto),
+        linkDestino: link,
+        chaveIdempotencia,
+      },
+    });
+    publicacaoId = publicacao.id;
+  } catch (erro) {
+    if (isViolacaoIdempotencia(erro)) {
+      return pulado(canal.id, canal.nome, "Slot já reservado por outro agendamento");
+    }
+    throw erro;
+  }
+
+  await executarPublicacao(publicacaoId);
+
+  const resultado = await prisma.publicacao.findUniqueOrThrow({ where: { id: publicacaoId } });
+
+  return {
+    canalId: canal.id,
+    canal: canal.nome,
+    publicacaoId,
+    agendadaPara: agora.toISOString(),
+    publicada: resultado.status === "PUBLICADA",
+    motivoPulado: resultado.status === "PUBLICADA" ? undefined : (resultado.erro ?? "Falha ao publicar."),
+  };
 }

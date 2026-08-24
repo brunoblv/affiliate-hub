@@ -3,7 +3,12 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { cancelarPublicacaoAction, republicarAction, reagendarAction } from "@/app/admin/(dashboard)/fila/actions";
+import {
+  cancelarPublicacaoAction,
+  publicarAgoraAction,
+  republicarAction,
+  reagendarAction,
+} from "@/app/admin/(dashboard)/fila/actions";
 
 export function FilaRowActions({
   id,

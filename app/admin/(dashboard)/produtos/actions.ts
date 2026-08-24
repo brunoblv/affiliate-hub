@@ -6,7 +6,7 @@ import { prisma, Destino, Plataforma } from "@/lib/database";
 import { gerarCodigoCurto, slugify } from "@/lib/produtos";
 import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
 import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identificador";
-import { enfileirarProduto, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 
 export interface ProdutoFormState {
@@ -214,5 +214,24 @@ export async function distribuirProdutoAction(produtoId: string): Promise<Result
         motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o produto.",
       },
     ];
+  }
+}
+
+/** Publica o produto agora em um canal específico, ignorando horário/teto do canal. */
+export async function publicarAgoraProdutoAction(
+  produtoId: string,
+  canalId: string,
+): Promise<ResultadoEnfileiramento> {
+  try {
+    const resultado = await publicarProdutoAgora(produtoId, canalId);
+    revalidatePath("/admin/fila");
+    revalidatePath(`/admin/produtos/${produtoId}`);
+    return resultado;
+  } catch (erro) {
+    return {
+      canalId,
+      canal: "Publicar agora",
+      motivoPulado: erro instanceof Error ? erro.message : "Falha ao publicar o produto.",
+    };
   }
 }
