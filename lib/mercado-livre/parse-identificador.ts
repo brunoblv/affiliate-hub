@@ -6,9 +6,9 @@ export interface IdentificadorMercadoLivre {
   itemId: string | null;
 }
 
-const REGEX_MLB_ID = /^MLB\d+$/i;
-const REGEX_CATALOG_PATH = /\/p\/(MLB\d+)/i;
-const REGEX_ITEM_ID_PARAM = /item_id[:=](MLB\d+)/i;
+const REGEX_MLB_ID = /^MLBU?\d+$/i;
+const REGEX_CATALOG_PATH = /-p\/(?:up\/)?(MLBU?\d+)/i;
+const REGEX_ITEM_ID_PARAM = /(?:item_id|wid)[:=](MLB\d+)/i;
 const REGEX_ANUNCIO_SLUG = /\/(MLB-\d+)-/i;
 
 /**

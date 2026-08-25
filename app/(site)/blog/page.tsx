@@ -6,15 +6,26 @@ const PAGE_SIZE = 12;
 
 export const metadata = { title: "Blog — Meu Novo Lar" };
 
+type Aba = "editorial" | "produtos";
+
+const ABAS: { valor: Aba; label: string }[] = [
+  { valor: "editorial", label: "Editorial" },
+  { valor: "produtos", label: "Produtos" },
+];
+
 export default async function BlogIndexPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; aba?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, aba: abaParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
+  const aba: Aba = abaParam === "produtos" ? "produtos" : "editorial";
 
-  const where = { status: "PUBLICADO" as const };
+  const where = {
+    status: "PUBLICADO" as const,
+    tipo: aba === "editorial" ? ("JORNADA" as const) : { in: ["PRODUTO", "LISTA"] as ("PRODUTO" | "LISTA")[] },
+  };
 
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
@@ -38,8 +49,29 @@ export default async function BlogIndexPage({
         Conteúdos para deixar sua casa mais prática, bonita e funcional.
       </p>
 
+      <div className="mt-7 flex gap-2">
+        {ABAS.map((item) => {
+          const ativo = item.valor === aba;
+          return (
+            <Link
+              key={item.valor}
+              href={item.valor === "editorial" ? "/blog" : `/blog?aba=${item.valor}`}
+              className={
+                ativo
+                  ? "rounded-full bg-olive px-4 py-1.5 text-[13px] font-semibold text-white"
+                  : "rounded-full border border-border px-4 py-1.5 text-[13px] font-semibold text-muted-foreground hover:bg-muted"
+              }
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+
       {posts.length === 0 || !featured ? (
-        <p className="mt-16 text-center text-muted-foreground">Nenhum post publicado ainda.</p>
+        <p className="mt-16 text-center text-muted-foreground">
+          {aba === "editorial" ? "Nenhum post editorial publicado ainda." : "Nenhum post de produto publicado ainda."}
+        </p>
       ) : (
         <>
           <Link href={`/blog/${featured.slug}`} className="mt-9 grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
@@ -83,7 +115,7 @@ export default async function BlogIndexPage({
         <div className="mt-12 flex items-center justify-center gap-4 text-sm">
           {page > 1 && (
             <Link
-              href={`/blog?page=${page - 1}`}
+              href={`/blog?page=${page - 1}&aba=${aba}`}
               className="rounded-md border border-border px-3 py-1.5 hover:bg-muted"
             >
               ← Anterior
@@ -94,7 +126,7 @@ export default async function BlogIndexPage({
           </span>
           {page < totalPages && (
             <Link
-              href={`/blog?page=${page + 1}`}
+              href={`/blog?page=${page + 1}&aba=${aba}`}
               className="rounded-md border border-border px-3 py-1.5 hover:bg-muted"
             >
               Próxima →
