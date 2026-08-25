@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma, Destino, Plataforma } from "@/lib/database";
+import { prisma, Destino, Categoria, Plataforma } from "@/lib/database";
 import { gerarCodigoCurto, slugify } from "@/lib/produtos";
 import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
 import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identificador";
+import { buscarOfertasShopee, buscarOfertaPorItem, gerarLinkAfiliado, type OfertaShopee } from "@/lib/shopee/client";
+import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 
@@ -34,6 +36,7 @@ function readForm(formData: FormData) {
   const nome = String(formData.get("nome") ?? "").trim();
   const plataforma = String(formData.get("plataforma") ?? "") as Plataforma;
   const destino = String(formData.get("destino") ?? "") as Destino;
+  const categoria = String(formData.get("categoria") ?? "") as Categoria;
   const idExterno = String(formData.get("idExterno") ?? "").trim();
   const descricao = String(formData.get("descricao") ?? "").trim();
   const precoAtual = String(formData.get("precoAtual") ?? "").trim();
@@ -43,7 +46,19 @@ function readForm(formData: FormData) {
   const linkAfiliado = String(formData.get("linkAfiliado") ?? "").trim();
   const ativo = formData.get("ativo") === "on";
 
-  return { nome, plataforma, destino, idExterno, descricao, precoAtual, precoOriginal, imagens, linkAfiliado, ativo };
+  return {
+    nome,
+    plataforma,
+    destino,
+    categoria,
+    idExterno,
+    descricao,
+    precoAtual,
+    precoOriginal,
+    imagens,
+    linkAfiliado,
+    ativo,
+  };
 }
 
 export async function createProdutoAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
@@ -57,6 +72,7 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
     data: {
       plataforma: dados.plataforma,
       destino: dados.destino,
+      categoria: dados.categoria,
       idExterno: dados.idExterno,
       slug: slugify(dados.nome),
       nome: dados.nome,
@@ -93,6 +109,7 @@ export async function updateProdutoAction(
     data: {
       plataforma: dados.plataforma,
       destino: dados.destino,
+      categoria: dados.categoria,
       idExterno: dados.idExterno,
       nome: dados.nome,
       descricao: dados.descricao || null,
@@ -231,6 +248,123 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
   } catch (erro) {
     if (ehViolacaoDeIdExternoDuplicado(erro)) {
       return { status: "error", message: `Esse anúncio (${idExterno}) já foi importado antes.` };
+    }
+    throw erro;
+  }
+
+  const publicado = await garantirPostPublicadoDoProduto(produto);
+
+  revalidatePath("/admin/produtos");
+  revalidarSitePublico(produto.slug);
+  redirect(`/admin/posts/${publicado.id}`);
+}
+
+export interface BuscaShopeeState {
+  status: "idle" | "error" | "success";
+  message?: string;
+  ofertas?: OfertaShopee[];
+}
+
+/** Busca ofertas ativas na Shopee por palavra-chave — usada na tela de pesquisa do admin. */
+export async function buscarOfertasShopeeAction(_prev: BuscaShopeeState, formData: FormData): Promise<BuscaShopeeState> {
+  const keyword = String(formData.get("keyword") ?? "").trim();
+  if (!keyword) {
+    return { status: "error", message: "Digite uma palavra-chave pra buscar." };
+  }
+
+  try {
+    const ofertas = await buscarOfertasShopee({ keyword });
+    if (ofertas.length === 0) {
+      return { status: "success", message: "Nenhuma oferta encontrada pra essa busca.", ofertas: [] };
+    }
+    return { status: "success", ofertas };
+  } catch (erro) {
+    return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao buscar ofertas na Shopee." };
+  }
+}
+
+/**
+ * Importa um produto da Shopee — por `shopId`/`itemId` (vindos do botão
+ * "Importar" da busca) ou por um link colado direto. Diferente do Mercado
+ * Livre, o link de afiliado nunca é colado: vem do `offerLink` da própria
+ * oferta ou, se ausente, da mutation `generateShortLink` — sempre o link real
+ * da Shopee, nunca a URL crua do produto.
+ */
+export async function importarShopeeAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
+  const identificadorBruto = String(formData.get("identificador") ?? "").trim();
+  const shopIdRaw = String(formData.get("shopId") ?? "").trim();
+  const itemIdRaw = String(formData.get("itemId") ?? "").trim();
+  const destino = (String(formData.get("destino") ?? "").trim() || "MEU_NOVO_LAR") as Destino;
+  const categoria = (String(formData.get("categoria") ?? "").trim() || "OUTRA") as Categoria;
+
+  let shopId: number | null = shopIdRaw ? Number(shopIdRaw) : null;
+  let itemId: number | null = itemIdRaw ? Number(itemIdRaw) : null;
+
+  if ((!shopId || !itemId) && identificadorBruto) {
+    const identificado = await parseIdentificadorShopee(identificadorBruto);
+    shopId = identificado.shopId;
+    itemId = identificado.itemId;
+  }
+
+  if (!shopId || !itemId) {
+    return {
+      status: "error",
+      message: "Não deu pra identificar o produto nesse link. Cole a URL do produto na Shopee.",
+    };
+  }
+
+  let oferta: OfertaShopee | null;
+  try {
+    oferta = await buscarOfertaPorItem(shopId, itemId);
+  } catch (erro) {
+    return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao consultar a Shopee." };
+  }
+
+  if (!oferta) {
+    return { status: "error", message: "Esse produto não está disponível como oferta de afiliado na Shopee agora." };
+  }
+
+  let linkAfiliado = oferta.offerLink;
+  if (!linkAfiliado) {
+    try {
+      linkAfiliado = await gerarLinkAfiliado(`https://shopee.com.br/product/${shopId}/${itemId}`);
+    } catch (erro) {
+      return {
+        status: "error",
+        message: erro instanceof Error ? erro.message : "Falha ao gerar o link de afiliado na Shopee.",
+      };
+    }
+  }
+
+  if (!linkAfiliado) {
+    return { status: "error", message: "A Shopee não retornou link de afiliado pra esse produto." };
+  }
+
+  const slug = slugify(oferta.nome);
+  const idExterno = `${shopId}_${itemId}`;
+
+  let produto;
+  try {
+    produto = await prisma.produto.create({
+      data: {
+        plataforma: Plataforma.SHOPEE,
+        destino,
+        categoria,
+        idExterno,
+        slug,
+        nome: oferta.nome,
+        imagens: oferta.imagemUrl ? [oferta.imagemUrl] : [],
+        precoAtual: oferta.precoAtual,
+        precoOriginal: oferta.precoOriginal,
+        linkAfiliado,
+        codigoCurto: gerarCodigoCurto(),
+        dadosBrutos: { shop_id: shopId, item_id: itemId },
+        sincronizadoEm: new Date(),
+      },
+    });
+  } catch (erro) {
+    if (ehViolacaoDeIdExternoDuplicado(erro)) {
+      return { status: "error", message: `Esse produto (${idExterno}) já foi importado antes.` };
     }
     throw erro;
   }

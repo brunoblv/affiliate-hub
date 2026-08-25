@@ -22,6 +22,17 @@ const DESTINOS = [
   { value: "UMBANDA", label: "Umbanda" },
 ];
 
+const CATEGORIAS = [
+  { value: "COZINHA", label: "Cozinha" },
+  { value: "BELEZA", label: "Beleza" },
+  { value: "CASA_DECORACAO", label: "Casa e Decoração" },
+  { value: "ELETRONICOS", label: "Eletrônicos" },
+  { value: "MODA", label: "Moda" },
+  { value: "UMBANDA_RELIGIAO", label: "Umbanda e Religião" },
+  { value: "PET", label: "Pet" },
+  { value: "OUTRA", label: "Outra" },
+];
+
 export function ProdutoForm({
   produto,
   action,
@@ -74,6 +85,23 @@ export function ProdutoForm({
         <p className="text-xs text-muted-foreground">
           Site e grupos onde este produto é divulgado — nem sempre é o mesmo da Plataforma.
         </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="categoria">Categoria</Label>
+        <select
+          id="categoria"
+          name="categoria"
+          defaultValue={produto?.categoria ?? "OUTRA"}
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {CATEGORIAS.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">Nicho/tema do produto — independente do Destino.</p>
       </div>
 
       <div className="space-y-1.5">

@@ -202,6 +202,19 @@ enum Destino {
   UMBANDA
 }
 
+/// Nicho/tema do produto p/ categorização de catálogo — independente de
+/// Destino (que é canal/público de divulgação, não assunto do produto).
+enum Categoria {
+  COZINHA
+  BELEZA
+  CASA_DECORACAO
+  ELETRONICOS
+  MODA
+  UMBANDA_RELIGIAO
+  PET
+  OUTRA
+}
+
 model Produto {
   id         String     @id @default(cuid())
   plataforma Plataforma
@@ -210,6 +223,8 @@ model Produto {
   slug       String     @unique
   /// Site/grupos onde é divulgado — ver enum Destino.
   destino    Destino    @default(MEU_NOVO_LAR)
+  /// Nicho/tema do produto — ver enum Categoria.
+  categoria  Categoria  @default(OUTRA)
 
   nome      String
   descricao String? @db.Text
@@ -242,6 +257,7 @@ model Produto {
   @@unique([plataforma, idExterno])
   @@index([ativo])
   @@index([destino])
+  @@index([categoria])
   @@map("produtos")
 }
 

@@ -8,6 +8,7 @@ import { ReconectarMetaButton } from "@/components/admin/reconectar-meta-button"
 export default async function IntegracoesPage() {
   const [mercadoLivre, paginasMeta] = await Promise.all([getMercadoLivreTokens(), listarPaginasMeta()]);
   const telegramConfigurado = Boolean(process.env.TELEGRAM_BOT_TOKEN);
+  const shopeeConfigurado = Boolean(process.env.SHOPEE_APP_ID && process.env.SHOPEE_SECRET);
 
   return (
     <div className="space-y-6">
@@ -40,6 +41,18 @@ export default async function IntegracoesPage() {
             </Badge>
             <ReconectarMetaButton />
           </div>
+        </div>
+
+        <div className="flex items-center justify-between p-4">
+          <div>
+            <div className="font-medium">Shopee</div>
+            <div className="text-xs text-muted-foreground">
+              Usado para buscar ofertas e gerar link de afiliado. Configurado via SHOPEE_APP_ID/SHOPEE_SECRET no .env.
+            </div>
+          </div>
+          <Badge variant={shopeeConfigurado ? "default" : "secondary"}>
+            {shopeeConfigurado ? "Configurado" : "Não configurado"}
+          </Badge>
         </div>
 
         <div className="flex items-center justify-between p-4">

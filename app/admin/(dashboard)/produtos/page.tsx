@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Plus, Download } from "lucide-react";
+import { Package, Plus, Download, Search } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -11,6 +11,17 @@ const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
   TIKTOK_SHOP: "TikTok Shop",
   UMBANDA: "Umbanda",
+};
+
+const LABEL_CATEGORIA: Record<string, string> = {
+  COZINHA: "Cozinha",
+  BELEZA: "Beleza",
+  CASA_DECORACAO: "Casa e Decoração",
+  ELETRONICOS: "Eletrônicos",
+  MODA: "Moda",
+  UMBANDA_RELIGIAO: "Umbanda e Religião",
+  PET: "Pet",
+  OUTRA: "Outra",
 };
 
 function formatCurrency(value: number) {
@@ -29,6 +40,10 @@ export default async function ProdutosAdminPage() {
             <Download />
             Importar do Mercado Livre
           </Button>
+          <Button variant="outline" render={<Link href="/admin/produtos/buscar-shopee" />}>
+            <Search />
+            Buscar na Shopee
+          </Button>
           <Button render={<Link href="/admin/produtos/novo" />}>
             <Plus />
             Novo produto
@@ -45,6 +60,7 @@ export default async function ProdutosAdminPage() {
               <TableHead>Produto</TableHead>
               <TableHead>Plataforma</TableHead>
               <TableHead>Destino</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>Preço</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -61,6 +77,7 @@ export default async function ProdutosAdminPage() {
                   </TableCell>
                   <TableCell>{produto.plataforma}</TableCell>
                   <TableCell>{LABEL_DESTINO[produto.destino] ?? produto.destino}</TableCell>
+                  <TableCell>{LABEL_CATEGORIA[produto.categoria] ?? produto.categoria}</TableCell>
                   <TableCell>
                     {formatCurrency(Number(produto.precoAtual))}
                     {desconto !== null && <span className="ml-2 text-xs text-muted-foreground">-{desconto}%</span>}
