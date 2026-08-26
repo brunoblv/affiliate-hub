@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma, TipoPost, StatusPost } from "@/lib/database";
+import { prisma, TipoPost, StatusPost, Destino } from "@/lib/database";
 import { slugify } from "@/lib/produtos";
 import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
+import { enfileirarPost, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 
 export interface PostFormState {
   status: "idle" | "error" | "success";
@@ -48,6 +49,7 @@ function revalidarSitePublico(slug: string): void {
 
 function readForm(formData: FormData) {
   const tipo = String(formData.get("tipo") ?? "JORNADA") as TipoPost;
+  const destino = (String(formData.get("destino") ?? "").trim() || "MEU_NOVO_LAR") as Destino;
   const titulo = String(formData.get("titulo") ?? "").trim();
   const resumo = String(formData.get("resumo") ?? "").trim();
   const corpo = String(formData.get("corpo") ?? "");
@@ -56,7 +58,7 @@ function readForm(formData: FormData) {
   const publicar = formData.get("publicar") === "on";
   const capaId = String(formData.get("capaId") ?? "").trim() || null;
 
-  return { tipo, titulo, resumo, corpo, seoTitulo, metaDescricao, publicar, capaId };
+  return { tipo, destino, titulo, resumo, corpo, seoTitulo, metaDescricao, publicar, capaId };
 }
 
 async function validarCapa(capaId: string | null): Promise<PostFormState | null> {
@@ -80,6 +82,7 @@ export async function createPostAction(_prev: PostFormState, formData: FormData)
   const post = await prisma.post.create({
     data: {
       tipo: dados.tipo,
+      destino: dados.destino,
       titulo: dados.titulo,
       slug: slugify(dados.titulo),
       resumo: dados.resumo || resumoAutomatico(dados.corpo),
@@ -116,6 +119,7 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
     where: { id },
     data: {
       tipo: dados.tipo,
+      destino: dados.destino,
       titulo: dados.titulo,
       resumo: dados.resumo || resumoAutomatico(dados.corpo),
       corpo: dados.corpo,
@@ -150,5 +154,23 @@ export async function deletePostAction(id: string): Promise<{ ok: true } | { ok:
     return { ok: true };
   } catch (erro) {
     return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir o post." };
+  }
+}
+
+/** Agenda a distribuição de uma Lista (post tipo LISTA) nos canais ativos do seu Destino. */
+export async function distribuirPostAction(postId: string): Promise<ResultadoEnfileiramento[]> {
+  try {
+    const resultados = await enfileirarPost(postId);
+    revalidatePath("/admin/fila");
+    revalidatePath(`/admin/posts/${postId}`);
+    return resultados;
+  } catch (erro) {
+    return [
+      {
+        canalId: "erro",
+        canal: "Distribuição",
+        motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir a lista.",
+      },
+    ];
   }
 }

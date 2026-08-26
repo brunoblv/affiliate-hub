@@ -16,13 +16,21 @@ export default async function PainelPage() {
     prisma.publicacao.findMany({
       where: { agendadaPara: { gte: comecoDoDia, lt: fimDoDia } },
       orderBy: { agendadaPara: "asc" },
-      include: { produto: { select: { nome: true } }, canal: { select: { nome: true } } },
+      include: {
+        produto: { select: { nome: true } },
+        post: { select: { titulo: true } },
+        canal: { select: { nome: true } },
+      },
     }),
     prisma.publicacao.findMany({
       where: { status: "FALHOU" },
       orderBy: { atualizadoEm: "desc" },
       take: 10,
-      include: { produto: { select: { nome: true } }, canal: { select: { nome: true } } },
+      include: {
+        produto: { select: { nome: true } },
+        post: { select: { titulo: true } },
+        canal: { select: { nome: true } },
+      },
     }),
     prisma.clique.groupBy({
       by: ["origem"],
@@ -46,7 +54,7 @@ export default async function PainelPage() {
             {publicacoesHoje.map((p) => (
               <li key={p.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
                 <span>
-                  {p.produto.nome} — {p.canal.nome} — {formatarLocal(p.agendadaPara)}
+                  {p.produto?.nome ?? p.post?.titulo} — {p.canal.nome} — {formatarLocal(p.agendadaPara)}
                 </span>
                 <Badge variant={p.status === "PUBLICADA" ? "default" : p.status === "FALHOU" ? "destructive" : "secondary"}>
                   {p.status}
@@ -71,7 +79,7 @@ export default async function PainelPage() {
             {falhas.map((p) => (
               <li key={p.id} className="rounded-lg border border-destructive/30 px-3 py-2 text-sm">
                 <div className="font-medium">
-                  {p.produto.nome} — {p.canal.nome}
+                  {p.produto?.nome ?? p.post?.titulo} — {p.canal.nome}
                 </div>
                 {p.erro && <div className="mt-1 text-xs text-destructive">{p.erro}</div>}
               </li>

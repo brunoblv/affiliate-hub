@@ -1,6 +1,6 @@
-import { prisma, Destino, Plataforma, Rede, type Canal, type Produto } from "@/lib/database";
+import { prisma, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
-import { montarTextoDoPost } from "@/lib/conteudo/texto-do-post";
+import { montarTextoDoPost, montarTextoDaLista } from "@/lib/conteudo/texto-do-post";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
@@ -256,6 +256,123 @@ async function enfileirarNoCanal(
   } catch (erro) {
     // Violação da unique de chaveIdempotencia = outra requisição já agendou
     // exatamente este slot. Não é erro, é a proteção funcionando.
+    if (isViolacaoIdempotencia(erro)) {
+      return { ...base, motivoPulado: "Slot já reservado por outro agendamento" };
+    }
+    throw erro;
+  }
+}
+
+/**
+ * Agenda a distribuição de um Post tipo LISTA (roundup de vários produtos)
+ * nos canais ativos do seu Destino. Diferente de `enfileirarProduto`: não há
+ * um link de afiliado único pra vários produtos de uma vez, então todo canal
+ * — mesmo grupo do Telegram/WhatsApp, que normalmente pula o blog — aponta
+ * pro post no blog, onde cada produto tem seu próprio link rastreado.
+ *
+ * Sem cooldown recorrente: uma Lista é conteúdo de um dia só, não "volta à
+ * venda" como produto — por isso só pula um canal se já existe Publicacao
+ * pra esse (postId, canalId), em vez de checar uma janela de dias.
+ */
+export async function enfileirarPost(postId: string, canalIds?: string[]): Promise<ResultadoEnfileiramento[]> {
+  const post = await prisma.post.findUnique({ where: { id: postId }, include: { capa: true } });
+
+  if (!post) {
+    return [pulado(postId, "Post", "Post não encontrado.")];
+  }
+
+  if (post.tipo !== TipoPost.LISTA) {
+    return [pulado(post.id, post.titulo, "Só posts do tipo Lista podem ser distribuídos.")];
+  }
+
+  if (post.status !== StatusPost.PUBLICADO) {
+    return [pulado(post.id, post.titulo, `Post "${post.slug}" ainda não está publicado.`)];
+  }
+
+  const canais = await prisma.canal.findMany({
+    where: { ativo: true, destino: post.destino, ...(canalIds?.length ? { id: { in: canalIds } } : {}) },
+  });
+
+  if (canais.length === 0) {
+    const destino = LABEL_DESTINO[post.destino] ?? post.destino;
+    return [
+      pulado(
+        post.destino,
+        "Nenhum canal",
+        `Nenhum canal ativo para o destino ${destino}. Cadastre ou ative um canal com o mesmo destino.`,
+      ),
+    ];
+  }
+
+  const resultados: ResultadoEnfileiramento[] = [];
+  for (const canal of canais) {
+    try {
+      resultados.push(await enfileirarPostNoCanal(canal, post));
+    } catch (erro) {
+      resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
+    }
+  }
+
+  return resultados;
+}
+
+async function enfileirarPostNoCanal(
+  canal: Canal,
+  post: Post & { capa: { url: string } | null },
+): Promise<ResultadoEnfileiramento> {
+  const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
+
+  const jaAgendado = await prisma.publicacao.findFirst({
+    where: { canalId: canal.id, postId: post.id, status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] } },
+    select: { id: true },
+  });
+  if (jaAgendado) {
+    return { ...base, motivoPulado: "Essa lista já foi agendada/publicada neste canal." };
+  }
+
+  const siteUrl = getSiteUrl();
+  const link = `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+
+  let vaga;
+  try {
+    vaga = await proximoHorarioLivre(canal);
+  } catch (erro) {
+    return { ...base, motivoPulado: mensagemErro(erro) };
+  }
+
+  if (!vaga) {
+    const pendentes = await prisma.publicacao.count({
+      where: { canalId: canal.id, status: { in: ["PENDENTE", "PUBLICANDO"] } },
+    });
+    return {
+      ...base,
+      motivoPulado: `Sem horário livre (teto ${canal.tetoDiario}/dia, intervalo ${canal.intervaloMinimoMin} min, ${pendentes} na fila). Aumente o teto ou os horários do canal.`,
+    };
+  }
+
+  const texto = montarTextoDaLista({ post, rede: canal.rede, link });
+  const chaveIdempotencia = `${post.id}:${canal.id}:${vaga.agendadaPara.toISOString()}`;
+
+  try {
+    const publicacao = await prisma.publicacao.create({
+      data: {
+        postId: post.id,
+        canalId: canal.id,
+        agendadaPara: vaga.agendadaPara,
+        texto,
+        imagemUrl: post.capa?.url,
+        linkDestino: link,
+        chaveIdempotencia,
+      },
+    });
+
+    await registrar("INFO", "AGENDA", `Lista agendada em ${canal.nome}`, {
+      post: post.slug,
+      agendadaPara: vaga.agendadaPara.toISOString(),
+    });
+
+    return { ...base, agendadaPara: vaga.agendadaPara.toISOString(), publicacaoId: publicacao.id };
+  } catch (erro) {
     if (isViolacaoIdempotencia(erro)) {
       return { ...base, motivoPulado: "Slot já reservado por outro agendamento" };
     }

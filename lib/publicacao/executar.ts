@@ -13,7 +13,11 @@ const ESPERA_ENTRE_TENTATIVAS_MIN = 10;
 export async function executarPublicacao(publicacaoId: string): Promise<void> {
   const publicacao = await prisma.publicacao.findUniqueOrThrow({
     where: { id: publicacaoId },
-    include: { canal: true, produto: { select: { slug: true } } },
+    include: {
+      canal: true,
+      produto: { select: { slug: true } },
+      post: { select: { slug: true } },
+    },
   });
 
   try {
@@ -36,7 +40,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     });
 
     await registrar("INFO", "PUBLICACAO", `Publicado em ${publicacao.canal.nome}`, {
-      produto: publicacao.produto.slug,
+      produto: publicacao.produto?.slug ?? publicacao.post?.slug,
       idExterno: resultado.idExterno,
     });
   } catch (erro) {

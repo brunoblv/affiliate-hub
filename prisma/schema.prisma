@@ -109,11 +109,16 @@ model Post {
   status      StatusPost @default(RASCUNHO)
   publicadoEm DateTime?
 
+  /// Site/grupos pra onde este post é distribuído quando tipo = LISTA — ver
+  /// enum Destino. Ignorado em JORNADA/PRODUTO (esses não entram na fila).
+  destino Destino @default(MEU_NOVO_LAR)
+
   autorId String?
   autor   User?   @relation(fields: [autorId], references: [id], onDelete: SetNull)
 
-  produtos ItemDePost[]
-  midias   MidiaEmPost[]
+  produtos    ItemDePost[]
+  midias      MidiaEmPost[]
+  publicacoes Publicacao[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -326,9 +331,12 @@ enum StatusPublicacao {
   CANCELADA
 }
 
+/// Amarrada a um Produto OU a um Post (tipo LISTA) — nunca os dois, nunca
+/// nenhum (CHECK constraint na migration garante isso a nível de banco).
 model Publicacao {
-  id        String @id @default(cuid())
-  produtoId String
+  id        String  @id @default(cuid())
+  produtoId String?
+  postId    String?
   canalId   String
 
   agendadaPara DateTime
@@ -337,8 +345,9 @@ model Publicacao {
   /// Texto já renderizado no agendamento — auditável e editável antes de sair.
   texto       String  @db.Text
   imagemUrl   String?
-  /// URL do post no blog (Página do Facebook/Instagram, exceto Destino UMBANDA)
-  /// ou /go/:codigo (Telegram, WhatsApp, grupo do Facebook e Umbanda).
+  /// URL do post no blog (Página do Facebook/Instagram, exceto Destino UMBANDA,
+  /// e sempre para Publicacao de Post/Lista) ou /go/:codigo (Telegram,
+  /// WhatsApp, grupo do Facebook e Umbanda, só para Publicacao de Produto).
   linkDestino String
 
   tentativas    Int       @default(0)
@@ -346,11 +355,12 @@ model Publicacao {
   erro          String?   @db.Text
   publicadaEm   DateTime?
 
-  /// produtoId:canalId:instante — barra duplicata mesmo com dois workers.
+  /// produtoId|postId:canalId:instante — barra duplicata mesmo com dois workers.
   chaveIdempotencia String @unique
 
-  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
-  canal   Canal   @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  canal   Canal    @relation(fields: [canalId], references: [id], onDelete: Cascade)
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -358,6 +368,7 @@ model Publicacao {
   @@index([status, agendadaPara])
   @@index([canalId, agendadaPara])
   @@index([produtoId, canalId, publicadaEm])
+  @@index([postId, canalId, publicadaEm])
   @@map("publicacoes")
 }
 

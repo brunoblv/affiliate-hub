@@ -6,12 +6,15 @@ import { registrar } from "@/lib/log";
 import { formatarLocal } from "@/lib/agenda/fuso";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
+import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
 const LOTE = 5;
 /** Preço de afiliado não muda a cada minuto — loop independente do de publicação. */
 const INTERVALO_SYNC_PRECOS_MS = 6 * 60 * 60 * 1000;
+/** Ofertas do dia — uma leva só, uma vez por dia. */
+const INTERVALO_DESCOBERTA_SHOPEE_MS = 24 * 60 * 60 * 1000;
 
 let rodando = false;
 let encerrando = false;
@@ -117,6 +120,20 @@ async function loopSincronizacaoPrecosShopee(): Promise<void> {
   }
 }
 
+/** Loop independente: descobre e importa as ofertas do dia da Shopee, uma vez por dia. */
+async function loopDescobertaShopee(): Promise<void> {
+  while (!encerrando) {
+    try {
+      await descobrirOfertasShopee();
+    } catch (erro) {
+      await registrar("ERRO", "PRODUTO_DESCOBERTA", "Descoberta automática da Shopee falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_DESCOBERTA_SHOPEE_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -129,3 +146,4 @@ process.on("SIGTERM", () => encerrar("SIGTERM"));
 void loop();
 void loopSincronizacaoPrecos();
 void loopSincronizacaoPrecosShopee();
+void loopDescobertaShopee();

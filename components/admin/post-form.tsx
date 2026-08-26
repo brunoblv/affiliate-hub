@@ -18,6 +18,12 @@ const TIPOS = [
   { value: "LISTA", label: "Lista (roundup com vários produtos)" },
 ];
 
+const DESTINOS = [
+  { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
+  { value: "TIKTOK_SHOP", label: "TikTok Shop" },
+  { value: "UMBANDA", label: "Umbanda" },
+];
+
 type CapaPreview = { id: string; url: string; alt: string | null };
 
 async function enviarMidia(arquivo: File, alt?: string) {
@@ -123,6 +129,25 @@ export function PostForm({
             Publicado (aparece no blog)
           </Label>
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="destino">Destino</Label>
+        <select
+          id="destino"
+          name="destino"
+          defaultValue={post?.destino ?? "MEU_NOVO_LAR"}
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {DESTINOS.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Só usado quando o tipo é Lista: define pra quais canais o botão &quot;Distribuir&quot; envia.
+        </p>
       </div>
 
       <div className="space-y-1.5">

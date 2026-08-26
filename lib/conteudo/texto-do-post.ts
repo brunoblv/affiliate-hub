@@ -1,4 +1,4 @@
-import { Destino, Rede, type Produto } from "@/lib/database";
+import { Destino, Rede, type Produto, type Post } from "@/lib/database";
 
 /**
  * Texto do post social, montado por template determinístico.
@@ -65,6 +65,41 @@ export function montarTextoDoPost({ produto, rede, link, comentario }: EntradaTe
       linhas.push("Pegar agora:");
       break;
   }
+
+  if (rede !== Rede.INSTAGRAM) {
+    linhas.push(link);
+  }
+
+  linhas.push("");
+  linhas.push(AVISO_AFILIADO);
+
+  return linhas.join("\n").trim();
+}
+
+export interface EntradaTextoDaLista {
+  post: Post;
+  rede: Rede;
+  link: string;
+}
+
+/**
+ * Texto do post social pra uma Lista (roundup) — sempre aponta pro blog, já
+ * que não existe um link de afiliado único pra vários produtos de uma vez.
+ * Mesma regra de `montarTextoDoPost`: nada inventado, só título + resumo já
+ * salvos no Post.
+ */
+export function montarTextoDaLista({ post, rede, link }: EntradaTextoDaLista): string {
+  const linhas: string[] = [];
+
+  linhas.push(post.titulo);
+
+  if (post.resumo) {
+    linhas.push("");
+    linhas.push(post.resumo);
+  }
+
+  linhas.push("");
+  linhas.push(rede === Rede.INSTAGRAM ? "Link na bio." : "Confira a lista completa:");
 
   if (rede !== Rede.INSTAGRAM) {
     linhas.push(link);

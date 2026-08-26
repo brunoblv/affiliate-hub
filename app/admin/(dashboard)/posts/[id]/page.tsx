@@ -3,6 +3,7 @@ import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { PostForm } from "@/components/admin/post-form";
 import { ExcluirPostButton } from "@/components/admin/excluir-post-button";
+import { DistribuirPostButton } from "@/components/admin/distribuir-post-button";
 import { updatePostAction } from "../actions";
 
 export default async function EditarPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +22,7 @@ export default async function EditarPostPage({ params }: { params: Promise<{ id:
         <PageHeader title={post.titulo} description={`/blog/${post.slug}`} />
         <ExcluirPostButton id={post.id} titulo={post.titulo} />
       </div>
+      {post.tipo === "LISTA" && post.status === "PUBLICADO" && <DistribuirPostButton postId={post.id} />}
       <PostForm post={post} produtos={produtos} action={action} />
     </div>
   );

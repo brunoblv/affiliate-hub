@@ -19,7 +19,11 @@ export default async function FilaAdminPage() {
   const publicacoes = await prisma.publicacao.findMany({
     orderBy: { agendadaPara: "desc" },
     take: 100,
-    include: { produto: { select: { nome: true } }, canal: { select: { nome: true } } },
+    include: {
+      produto: { select: { nome: true } },
+      post: { select: { titulo: true } },
+      canal: { select: { nome: true } },
+    },
   });
 
   return (
@@ -42,7 +46,7 @@ export default async function FilaAdminPage() {
           <TableBody>
             {publicacoes.map((publicacao) => (
               <TableRow key={publicacao.id}>
-                <TableCell className="font-medium">{publicacao.produto.nome}</TableCell>
+                <TableCell className="font-medium">{publicacao.produto?.nome ?? publicacao.post?.titulo}</TableCell>
                 <TableCell>{publicacao.canal.nome}</TableCell>
                 <TableCell>{formatarLocal(publicacao.agendadaPara)}</TableCell>
                 <TableCell>

@@ -10,6 +10,7 @@ import { buscarOfertasShopee, buscarOfertaPorItem, gerarLinkAfiliado, type Ofert
 import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
+import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 
 export interface ProdutoFormState {
   status: "idle" | "error" | "success";
@@ -409,6 +410,21 @@ export async function publicarAgoraProdutoAction(
       canalId,
       canal: "Publicar agora",
       motivoPulado: erro instanceof Error ? erro.message : "Falha ao publicar o produto.",
+    };
+  }
+}
+
+/** Roda a descoberta automática de ofertas Shopee agora, fora do horário do worker. */
+export async function rodarDescobertaShopeeAction(): Promise<{ status: "success" | "error"; message?: string }> {
+  try {
+    await descobrirOfertasShopee();
+    revalidatePath("/admin/produtos/shopee");
+    revalidatePath("/admin/fila");
+    return { status: "success", message: "Descoberta concluída." };
+  } catch (erro) {
+    return {
+      status: "error",
+      message: erro instanceof Error ? erro.message : "Falha ao rodar a descoberta automática.",
     };
   }
 }

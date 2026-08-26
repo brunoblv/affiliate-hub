@@ -40,9 +40,9 @@ export default async function ProdutosAdminPage() {
             <Download />
             Importar do Mercado Livre
           </Button>
-          <Button variant="outline" render={<Link href="/admin/produtos/buscar-shopee" />}>
+          <Button variant="outline" render={<Link href="/admin/produtos/shopee" />}>
             <Search />
-            Buscar na Shopee
+            Produtos Shopee
           </Button>
           <Button render={<Link href="/admin/produtos/novo" />}>
             <Plus />

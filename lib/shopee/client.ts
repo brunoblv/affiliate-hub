@@ -54,11 +54,20 @@ function paraOferta(node: NodeProductOfferV2): OfertaShopee {
 }
 
 const QUERY_PRODUCT_OFFER_V2 = /* GraphQL */ `
-  query buscarOfertas($keyword: String, $shopId: Int64, $itemId: Int64, $page: Int, $limit: Int, $sortType: Int) {
+  query buscarOfertas(
+    $keyword: String
+    $shopId: Int64
+    $itemId: Int64
+    $listType: Int
+    $page: Int
+    $limit: Int
+    $sortType: Int
+  ) {
     productOfferV2(
       keyword: $keyword
       shopId: $shopId
       itemId: $itemId
+      listType: $listType
       page: $page
       limit: $limit
       sortType: $sortType
@@ -79,9 +88,15 @@ const QUERY_PRODUCT_OFFER_V2 = /* GraphQL */ `
   }
 `;
 
-/** Busca ofertas ativas por palavra-chave — usada na tela de pesquisa do admin. */
+/**
+ * Busca ofertas ativas. Com `keyword`, é a busca por palavra-chave da tela de
+ * pesquisa do admin; sem `keyword`, usa `listType` pra pegar as top ofertas
+ * gerais (0 = recomendados, 1 = maior comissão, 2 = top performance) — usado
+ * pela descoberta automática diária.
+ */
 export async function buscarOfertasShopee(params: {
-  keyword: string;
+  keyword?: string;
+  listType?: number;
   page?: number;
   limit?: number;
   sortType?: number;
@@ -89,6 +104,7 @@ export async function buscarOfertasShopee(params: {
   return withRetry(async () => {
     const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
       keyword: params.keyword,
+      listType: params.listType,
       page: params.page ?? 1,
       limit: params.limit ?? 20,
       sortType: params.sortType ?? 1,
