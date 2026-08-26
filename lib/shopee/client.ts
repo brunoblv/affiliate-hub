@@ -1,5 +1,7 @@
-import { withRetry } from "@/lib/integrations/retry";
+import { withRetry, type RetryOptions } from "@/lib/integrations/retry";
 import { shopeeRequest } from "./request";
+
+const RETRY_INSTABILIDADE_SHOPEE: RetryOptions = { maxAttempts: 5, baseDelayMs: 800 };
 
 /** Só os campos que o cadastro de Produto usa — o node inteiro vai pra dadosBrutos. */
 export interface OfertaShopee {
@@ -37,7 +39,8 @@ interface RespostaProductOfferV2 {
 
 function paraOferta(node: NodeProductOfferV2): OfertaShopee {
   const precoAtual = Number(node.priceMin);
-  const taxaDesconto = node.priceDiscountRate ? Number(node.priceDiscountRate) : 0;
+  // priceDiscountRate vem como inteiro 0-100 (ex.: 44 = 44% off), não fração 0-1.
+  const taxaDesconto = node.priceDiscountRate ? Number(node.priceDiscountRate) / 100 : 0;
   const precoOriginal = taxaDesconto > 0 && taxaDesconto < 1 ? precoAtual / (1 - taxaDesconto) : null;
 
   return {
@@ -101,25 +104,41 @@ export async function buscarOfertasShopee(params: {
   limit?: number;
   sortType?: number;
 }): Promise<OfertaShopee[]> {
-  return withRetry(async () => {
-    const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
-      keyword: params.keyword,
-      listType: params.listType,
-      page: params.page ?? 1,
-      limit: params.limit ?? 20,
-      sortType: params.sortType ?? 1,
-    });
-    return data.productOfferV2.nodes.map(paraOferta);
-  });
+  return withRetry(
+    async () => {
+      const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
+        keyword: params.keyword,
+        listType: params.listType,
+        page: params.page ?? 1,
+        limit: params.limit ?? 20,
+        sortType: params.sortType ?? 1,
+      });
+      return data.productOfferV2.nodes.map(paraOferta);
+    },
+    // A API da Shopee falha de forma intermitente com "graphql: got null for
+    // non-null" mesmo em queries válidas repetidas — não é bug de query, é
+    // instabilidade do lado deles. Mais tentativas/espera que o default
+    // absorvem essas rajadas em vez de propagar erro à toa.
+    RETRY_INSTABILIDADE_SHOPEE,
+  );
 }
 
-/** Busca a oferta de um item específico — usada no import por link/ID colado e na sincronização de preço. */
+/**
+ * Busca a oferta de um item específico — usada no import por link/ID colado e
+ * na sincronização de preço. `shopId`/`itemId` vão como string na variável:
+ * o scalar Int64 da API rejeita ("graphql: wrong type") quando o valor chega
+ * como número via variável JSON — só funciona como string ou inline na query.
+ */
 export async function buscarOfertaPorItem(shopId: number, itemId: number): Promise<OfertaShopee | null> {
   return withRetry(async () => {
-    const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, { shopId, itemId, limit: 1 });
+    const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
+      shopId: String(shopId),
+      itemId: String(itemId),
+      limit: 1,
+    });
     const node = data.productOfferV2.nodes[0];
     return node ? paraOferta(node) : null;
-  });
+  }, RETRY_INSTABILIDADE_SHOPEE);
 }
 
 interface RespostaGenerateShortLink {
@@ -127,7 +146,7 @@ interface RespostaGenerateShortLink {
 }
 
 const MUTATION_GENERATE_SHORT_LINK = /* GraphQL */ `
-  mutation gerarLink($originUrl: String!, $subIds: [String]) {
+  mutation gerarLink($originUrl: String!, $subIds: [String!]) {
     generateShortLink(input: { originUrl: $originUrl, subIds: $subIds }) {
       shortLink
     }
