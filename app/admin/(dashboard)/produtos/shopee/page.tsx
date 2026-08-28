@@ -3,9 +3,11 @@ import { prisma, Plataforma, type Produto } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { RodarDescobertaShopeeButton } from "@/components/admin/rodar-descoberta-shopee-button";
+import { ConfiguracaoShopeeForm } from "@/components/admin/configuracao-shopee-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { descontoPercentual } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
+import { obterConfiguracao } from "@/lib/configuracao";
 import { ShoppingBag } from "lucide-react";
 
 const LABEL_CATEGORIA: Record<string, string> = {
@@ -65,9 +67,10 @@ function TabelaProdutos({ produtos }: { produtos: Produto[] }) {
 }
 
 export default async function ProdutosShopeePage() {
-  const [produtosShopee, ultimaDescoberta] = await Promise.all([
+  const [produtosShopee, ultimaDescoberta, configuracao] = await Promise.all([
     prisma.produto.findMany({ where: { plataforma: Plataforma.SHOPEE }, orderBy: { criadoEm: "desc" } }),
     prisma.log.findFirst({ where: { area: "PRODUTO_DESCOBERTA" }, orderBy: { criadoEm: "desc" } }),
+    obterConfiguracao(),
   ]);
 
   const comecoDoDia = inicioDoDia(new Date());
@@ -85,6 +88,11 @@ export default async function ProdutosShopeePage() {
         />
         <RodarDescobertaShopeeButton />
       </div>
+
+      <ConfiguracaoShopeeForm
+        shopeeDescobertaLimiteDiario={configuracao.shopeeDescobertaLimiteDiario}
+        shopeeComissaoMinimaPct={configuracao.shopeeComissaoMinimaPct}
+      />
 
       <div className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
         {ultimaDescoberta ? (

@@ -424,6 +424,21 @@ enum NivelLog {
   ERRO
 }
 
+/// Linha única (id fixo) com parâmetros do app editáveis pelo admin — evita
+/// depender de variável de ambiente para valores que mudam com frequência.
+model Configuracao {
+  id String @id @default("app")
+
+  /// Máximo de produtos importados por rodada da descoberta automática da Shopee.
+  shopeeDescobertaLimiteDiario Int @default(15)
+  /// Comissão mínima (%) para uma oferta da Shopee entrar na descoberta automática.
+  shopeeComissaoMinimaPct      Int @default(10)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@map("configuracoes")
+}
+
 /// Log mínimo do que o worker fez — o suficiente para explicar um post que não saiu.
 model Log {
   id       String   @id @default(cuid())

@@ -3,10 +3,8 @@ import { registrar } from "@/lib/log";
 import { slugify, gerarCodigoCurto } from "@/lib/produtos";
 import { resumoAutomatico } from "@/lib/conteudo/corpo";
 import { enfileirarPost } from "@/lib/agenda/enfileirar";
+import { obterConfiguracao } from "@/lib/configuracao";
 import { buscarOfertasShopee, gerarLinkAfiliado, type OfertaShopee } from "./client";
-
-const LIMITE_DIARIO_PADRAO = 15;
-const COMISSAO_MINIMA_PADRAO_PCT = 10;
 
 function ehViolacaoDeIdExternoDuplicado(erro: unknown): boolean {
   if (!erro || typeof erro !== "object" || !("code" in erro)) return false;
@@ -126,8 +124,9 @@ export async function descobrirOfertasShopee(): Promise<void> {
     return;
   }
 
-  const limiteDiario = Number(process.env.SHOPEE_DESCOBERTA_LIMITE_DIARIO ?? LIMITE_DIARIO_PADRAO);
-  const comissaoMinima = Number(process.env.SHOPEE_COMISSAO_MINIMA_PCT ?? COMISSAO_MINIMA_PADRAO_PCT);
+  const configuracao = await obterConfiguracao();
+  const limiteDiario = configuracao.shopeeDescobertaLimiteDiario;
+  const comissaoMinima = configuracao.shopeeComissaoMinimaPct;
 
   let ofertas: OfertaShopee[];
   try {

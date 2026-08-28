@@ -11,6 +11,7 @@ import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
+import { atualizarConfiguracao } from "@/lib/configuracao";
 
 export interface ProdutoFormState {
   status: "idle" | "error" | "success";
@@ -457,6 +458,30 @@ export async function distribuirProdutosNuncaPostadosAction(): Promise<Resultado
   revalidatePath("/admin/fila");
   revalidatePath("/admin/produtos");
   return saida;
+}
+
+/** Salva limite diário e comissão mínima da descoberta automática da Shopee. */
+export async function atualizarConfiguracaoShopeeAction(
+  _prev: ProdutoFormState,
+  formData: FormData,
+): Promise<ProdutoFormState> {
+  const limiteDiario = Number(formData.get("shopeeDescobertaLimiteDiario"));
+  const comissaoMinima = Number(formData.get("shopeeComissaoMinimaPct"));
+
+  if (!Number.isInteger(limiteDiario) || limiteDiario < 1) {
+    return { status: "error", message: "Limite diário precisa ser um número inteiro maior que zero." };
+  }
+  if (!Number.isInteger(comissaoMinima) || comissaoMinima < 0 || comissaoMinima > 100) {
+    return { status: "error", message: "Comissão mínima precisa ser um número inteiro entre 0 e 100." };
+  }
+
+  await atualizarConfiguracao({
+    shopeeDescobertaLimiteDiario: limiteDiario,
+    shopeeComissaoMinimaPct: comissaoMinima,
+  });
+
+  revalidatePath("/admin/produtos/shopee");
+  return { status: "success", message: "Configuração salva." };
 }
 
 /** Roda a descoberta automática de ofertas Shopee agora, fora do horário do worker. */
