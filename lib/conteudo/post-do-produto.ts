@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma, StatusPost, TipoPost, type Produto } from "@/lib/database";
 import { resumoAutomatico } from "@/lib/conteudo/corpo";
-import { slugify } from "@/lib/produtos";
+import { slugDePostLivre } from "@/lib/conteudo/slug";
 
 export interface PostDoProduto {
   id: string;
@@ -15,20 +15,6 @@ function corpoDoPost(produto: Produto): string {
   }
   partes.push(`[produto:${produto.slug}]`, "");
   return partes.join("\n");
-}
-
-async function slugLivre(base: string): Promise<string> {
-  const limpo = slugify(base) || "produto";
-  const jaTem = await prisma.post.findUnique({ where: { slug: limpo }, select: { id: true } });
-  if (!jaTem) return limpo;
-
-  for (let n = 2; n < 50; n++) {
-    const candidato = `${limpo}-${n}`;
-    const ocupado = await prisma.post.findUnique({ where: { slug: candidato }, select: { id: true } });
-    if (!ocupado) return candidato;
-  }
-
-  return `${limpo}-${Date.now().toString(36)}`;
 }
 
 /**
@@ -66,7 +52,7 @@ export async function garantirPostPublicadoDoProduto(produto: Produto): Promise<
     data: {
       tipo: TipoPost.PRODUTO,
       titulo: produto.nome,
-      slug: await slugLivre(produto.slug),
+      slug: await slugDePostLivre(produto.slug),
       resumo: resumoAutomatico(corpo) || produto.nome,
       corpo,
       status: StatusPost.PUBLICADO,

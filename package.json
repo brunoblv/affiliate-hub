@@ -16,7 +16,8 @@
     "db:migrate-v2-export": "tsx scripts/migrate-v2-1-export.ts",
     "db:migrate-v2-import": "tsx scripts/migrate-v2-2-import.ts",
     "telegram:get-chat-id": "tsx scripts/telegram-get-chat-id.ts",
-    "whatsapp:login": "tsx scripts/whatsapp-login.ts"
+    "whatsapp:login": "tsx scripts/whatsapp-login.ts",
+    "conteudo:gerar-artigos": "tsx scripts/gerar-artigos-editoriais.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

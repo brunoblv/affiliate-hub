@@ -25,7 +25,7 @@ function readingTime(text: string) {
 export default async function HomePage() {
   const [posts, produtos] = await Promise.all([
     prisma.post.findMany({
-      where: { status: "PUBLICADO", tipo: { not: "PRODUTO" } },
+      where: { status: "PUBLICADO", tipo: "JORNADA" },
       include: { capa: true },
       orderBy: { publicadoEm: "desc" },
       take: 3,

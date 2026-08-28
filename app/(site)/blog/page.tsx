@@ -6,12 +6,19 @@ const PAGE_SIZE = 12;
 
 export const metadata = { title: "Blog — Meu Novo Lar" };
 
-type Aba = "editorial" | "produtos";
+type Aba = "editorial" | "listas" | "produtos";
 
 const ABAS: { valor: Aba; label: string }[] = [
   { valor: "editorial", label: "Editorial" },
-  { valor: "produtos", label: "Produtos" },
+  { valor: "listas", label: "Listas" },
+  { valor: "produtos", label: "Produtos individuais" },
 ];
+
+const TIPO_POR_ABA = {
+  editorial: "JORNADA",
+  listas: "LISTA",
+  produtos: "PRODUTO",
+} as const;
 
 export default async function BlogIndexPage({
   searchParams,
@@ -20,11 +27,11 @@ export default async function BlogIndexPage({
 }) {
   const { page: pageParam, aba: abaParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
-  const aba: Aba = abaParam === "produtos" ? "produtos" : "editorial";
+  const aba: Aba = abaParam === "listas" || abaParam === "produtos" ? abaParam : "editorial";
 
   const where = {
     status: "PUBLICADO" as const,
-    tipo: aba === "editorial" ? ("JORNADA" as const) : { in: ["PRODUTO", "LISTA"] as ("PRODUTO" | "LISTA")[] },
+    tipo: TIPO_POR_ABA[aba],
   };
 
   const [posts, total] = await Promise.all([
@@ -70,7 +77,9 @@ export default async function BlogIndexPage({
 
       {posts.length === 0 || !featured ? (
         <p className="mt-16 text-center text-muted-foreground">
-          {aba === "editorial" ? "Nenhum post editorial publicado ainda." : "Nenhum post de produto publicado ainda."}
+          {aba === "editorial" && "Nenhum post editorial publicado ainda."}
+          {aba === "listas" && "Nenhuma lista publicada ainda."}
+          {aba === "produtos" && "Nenhum post de produto individual publicado ainda."}
         </p>
       ) : (
         <>
