@@ -34,7 +34,15 @@ interface NodeProductOfferV2 {
 interface RespostaProductOfferV2 {
   productOfferV2: {
     nodes: NodeProductOfferV2[];
-  };
+  } | null;
+}
+
+/** `productOfferV2` pode vir `null` mesmo com `data` presente e sem `errors` — sem isso o `.nodes` explode com "Cannot read properties of null". */
+function nodesDe(resposta: RespostaProductOfferV2): NodeProductOfferV2[] {
+  if (!resposta.productOfferV2) {
+    throw new Error("Shopee API retornou productOfferV2=null. Verifique a query/variáveis enviadas.");
+  }
+  return resposta.productOfferV2.nodes;
 }
 
 function paraOferta(node: NodeProductOfferV2): OfertaShopee {
@@ -56,37 +64,45 @@ function paraOferta(node: NodeProductOfferV2): OfertaShopee {
   };
 }
 
-const QUERY_PRODUCT_OFFER_V2 = /* GraphQL */ `
-  query buscarOfertas(
-    $keyword: String
-    $shopId: Int64
-    $itemId: Int64
-    $listType: Int
-    $page: Int
-    $limit: Int
-    $sortType: Int
-  ) {
-    productOfferV2(
-      keyword: $keyword
-      shopId: $shopId
-      itemId: $itemId
-      listType: $listType
-      page: $page
-      limit: $limit
-      sortType: $sortType
-    ) {
-      nodes {
-        itemId
-        shopId
-        productName
-        imageUrl
-        priceMin
-        priceMax
-        priceDiscountRate
-        commissionRate
-        offerLink
-        ratingStar
-      }
+const CAMPOS_NODE = /* GraphQL */ `
+  itemId
+  shopId
+  productName
+  imageUrl
+  priceMin
+  priceMax
+  priceDiscountRate
+  commissionRate
+  offerLink
+  ratingStar
+`;
+
+/**
+ * Busca por keyword/listType — NÃO declara `$shopId`/`$itemId`. Bug real e
+ * 100% reproduzível da API da Shopee: se a query declara essas duas variáveis
+ * como `Int64` (opcionais) e a chamada não as preenche, o resolver deles
+ * quebra com "graphql: got null for non-null" (extensions.code 10010) —
+ * mesmo elas não sendo usadas pra nada nessa busca. Documentos de query
+ * separados por caso de uso é o que evita isso, não é só estética.
+ */
+const QUERY_BUSCAR_OFERTAS = /* GraphQL */ `
+  query buscarOfertas($keyword: String, $listType: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(keyword: $keyword, listType: $listType, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${CAMPOS_NODE} }
+    }
+  }
+`;
+
+/**
+ * Busca por item específico — `$shopId`/`$itemId` como `Int64!` (obrigatório)
+ * e sempre enviados como string na variável: o scalar Int64 da API rejeita
+ * ("graphql: wrong type") valor numérico, e rejeita variável opcional ausente
+ * ("got null for non-null") — só funciona obrigatório + string, ver nota acima.
+ */
+const QUERY_OFERTA_POR_ITEM = /* GraphQL */ `
+  query ofertaPorItem($shopId: Int64!, $itemId: Int64!, $limit: Int) {
+    productOfferV2(shopId: $shopId, itemId: $itemId, limit: $limit) {
+      nodes { ${CAMPOS_NODE} }
     }
   }
 `;
@@ -106,37 +122,33 @@ export async function buscarOfertasShopee(params: {
 }): Promise<OfertaShopee[]> {
   return withRetry(
     async () => {
-      const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
+      const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_BUSCAR_OFERTAS, {
         keyword: params.keyword,
-        listType: params.listType,
+        // `listType` ausente/null quebra o resolver deles ("got null for
+        // non-null") mesmo sendo uma variável opcional — só funciona com um
+        // valor real. 0 = Recomendados, é o "sem filtro" seguro pra keyword.
+        listType: params.listType ?? 0,
         page: params.page ?? 1,
         limit: params.limit ?? 20,
         sortType: params.sortType ?? 1,
       });
-      return data.productOfferV2.nodes.map(paraOferta);
+      return nodesDe(data).map(paraOferta);
     },
-    // A API da Shopee falha de forma intermitente com "graphql: got null for
-    // non-null" mesmo em queries válidas repetidas — não é bug de query, é
-    // instabilidade do lado deles. Mais tentativas/espera que o default
-    // absorvem essas rajadas em vez de propagar erro à toa.
+    // A API da Shopee tem instabilidade real (fora desse bug de variável) —
+    // mais tentativas/espera que o default absorvem rajadas curtas.
     RETRY_INSTABILIDADE_SHOPEE,
   );
 }
 
-/**
- * Busca a oferta de um item específico — usada no import por link/ID colado e
- * na sincronização de preço. `shopId`/`itemId` vão como string na variável:
- * o scalar Int64 da API rejeita ("graphql: wrong type") quando o valor chega
- * como número via variável JSON — só funciona como string ou inline na query.
- */
+/** Busca a oferta de um item específico — usada no import por link/ID colado e na sincronização de preço. */
 export async function buscarOfertaPorItem(shopId: number, itemId: number): Promise<OfertaShopee | null> {
   return withRetry(async () => {
-    const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_PRODUCT_OFFER_V2, {
+    const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_OFERTA_POR_ITEM, {
       shopId: String(shopId),
       itemId: String(itemId),
       limit: 1,
     });
-    const node = data.productOfferV2.nodes[0];
+    const node = nodesDe(data)[0];
     return node ? paraOferta(node) : null;
   }, RETRY_INSTABILIDADE_SHOPEE);
 }

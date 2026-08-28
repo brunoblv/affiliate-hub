@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Newsreader, Manrope, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -36,18 +37,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <meta name="p:domain_verify" content="5f28555bab48fbe0f0325e4cfbc18937" />
-        <script
-          async
+      </head>
+      <body className="min-h-full flex flex-col font-sans">
+        <Script
+          strategy="beforeInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         />
-        <script
+        <Script
+          id="ga-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             // Uma linha: o SSR do Next às vezes corta `window.dataLayer = ...` em multilinha
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
       </body>
     </html>

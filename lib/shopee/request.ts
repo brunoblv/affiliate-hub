@@ -56,7 +56,17 @@ export async function shopeeRequest<T>(query: string, variables?: Record<string,
       status: response.status,
       erros: json.errors,
     });
-    throw new Error(`Shopee API error: ${json.errors?.map((e) => e.message).join("; ") ?? response.statusText}`);
+
+    const mensagens = json.errors?.map((e) => e.message).join("; ") ?? response.statusText;
+
+    // "got null for non-null" acontece de forma intermitente do lado da
+    // Shopee (mesma query, mesmo item, funciona minutos depois) — não é erro
+    // de query nossa. Mensagem mais clara pro admin não achar que quebrou.
+    if (mensagens.includes("got null for non-null")) {
+      throw new Error("A API da Shopee está instável no momento (erro interno deles). Tente de novo em alguns minutos.");
+    }
+
+    throw new Error(`Shopee API error: ${mensagens}`);
   }
 
   if (!json.data) {
