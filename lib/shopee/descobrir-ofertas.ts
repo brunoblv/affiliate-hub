@@ -131,7 +131,9 @@ export async function descobrirOfertasShopee(): Promise<void> {
 
   let ofertas: OfertaShopee[];
   try {
-    ofertas = await buscarOfertasShopee({ listType: 1, sortType: 5, limit: 50 });
+    // listType: 0 = geral/recomendados (sem filtro de lista). A ordenação por
+    // maior comissão é feita via sortType, não listType.
+    ofertas = await buscarOfertasShopee({ listType: 0, sortType: 5, limit: 50 });
   } catch (erro) {
     await registrar("ERRO", "PRODUTO_DESCOBERTA", "Falha ao buscar ofertas da Shopee", {
       erro: erro instanceof Error ? erro.message : String(erro),
