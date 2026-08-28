@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { descontoPercentual } from "@/lib/produtos";
+import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nunca-postados-button";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -48,6 +49,16 @@ export default async function ProdutosAdminPage() {
             <Plus />
             Novo produto
           </Button>
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <h2 className="text-sm font-medium">Produtos nunca postados</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Agenda de uma vez todo produto ativo que ainda não tem nenhuma publicação em nenhum canal.
+        </p>
+        <div className="mt-3">
+          <DistribuirNuncaPostadosButton />
         </div>
       </div>
 

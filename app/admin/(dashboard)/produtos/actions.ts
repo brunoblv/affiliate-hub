@@ -414,6 +414,51 @@ export async function publicarAgoraProdutoAction(
   }
 }
 
+export interface ResultadoDistribuicaoEmLote {
+  produtoId: string;
+  produto: string;
+  resultados: ResultadoEnfileiramento[];
+}
+
+/**
+ * Distribui de uma vez todo produto ativo que nunca teve nenhuma Publicacao
+ * (em nenhum canal) — cobre o caso de produto importado e esquecido antes de
+ * entrar na fila. Reaproveita `enfileirarProduto`, então as mesmas regras de
+ * canal/cooldown/horário de sempre continuam valendo por produto.
+ */
+export async function distribuirProdutosNuncaPostadosAction(): Promise<ResultadoDistribuicaoEmLote[]> {
+  const produtos = await prisma.produto.findMany({
+    where: { ativo: true, publicacoes: { none: {} } },
+    select: { id: true, nome: true },
+    orderBy: { criadoEm: "asc" },
+  });
+
+  const saida: ResultadoDistribuicaoEmLote[] = [];
+
+  for (const produto of produtos) {
+    try {
+      const resultados = await enfileirarProduto(produto.id);
+      saida.push({ produtoId: produto.id, produto: produto.nome, resultados });
+    } catch (erro) {
+      saida.push({
+        produtoId: produto.id,
+        produto: produto.nome,
+        resultados: [
+          {
+            canalId: "erro",
+            canal: "Distribuição",
+            motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o produto.",
+          },
+        ],
+      });
+    }
+  }
+
+  revalidatePath("/admin/fila");
+  revalidatePath("/admin/produtos");
+  return saida;
+}
+
 /** Roda a descoberta automática de ofertas Shopee agora, fora do horário do worker. */
 export async function rodarDescobertaShopeeAction(): Promise<{ status: "success" | "error"; message?: string }> {
   try {
