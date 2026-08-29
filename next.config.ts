@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   // de processamento de imagem, não instalado — usamos sharp) e o bundler
   // tenta resolvê-lo estaticamente e quebra o build. Deixar o pacote de fora
   // do bundle do servidor resolve via require nativo em runtime.
-  serverExternalPackages: ["@whiskeysockets/baileys"],
+  serverExternalPackages: ["@whiskeysockets/baileys", "@prisma/adapter-pg", "pg"],
   transpilePackages: ["@mdxeditor/editor"],
   // Necessário em produção (self-hosted atrás de nginx): o Next.js compara o
   // header Origin com o Host visto internamente pelo servidor para bloquear

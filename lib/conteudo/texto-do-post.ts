@@ -1,11 +1,11 @@
 import { Destino, Rede, type Produto, type Post } from "@/lib/database";
 
 /**
- * Texto do post social, montado por template determinístico.
+ * Fallback determinístico da legenda social (quando o Gemini falha ou a
+ * chave não está configurada). A geração com IA está em gerar-legenda.ts.
  *
  * Regra inegociável: nada aqui pode ser inventado. Preço, preço original e
- * desconto só aparecem se vierem da API da plataforma. Sem IA — o valor
- * editorial está no blog, não na legenda.
+ * desconto só aparecem se vierem da API da plataforma.
  */
 
 const AVISO_AFILIADO = "Link de afiliado — não custa nada a mais para você, e ajuda o site.";

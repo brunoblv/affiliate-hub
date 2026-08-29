@@ -1,6 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/lib/generated/prisma/client";
 
+// Este módulo é só servidor: o adapter `pg` usa dns/net/fs/tls.
+
 declare global {
   var __prisma: PrismaClient | undefined;
 }

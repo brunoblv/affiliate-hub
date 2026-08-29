@@ -1,5 +1,4 @@
-import { randomBytes } from "node:crypto";
-import { Categoria } from "@/lib/database";
+import { Categoria } from "@/lib/database/enums";
 import type { Produto } from "@/lib/database";
 
 /**
@@ -70,7 +69,10 @@ export function slugify(value: string): string {
 
 /** Código curto do /go/:codigo — não precisa ser legível, só único. */
 export function gerarCodigoCurto(): string {
-  return randomBytes(5).toString("base64url");
+  const bytes = crypto.getRandomValues(new Uint8Array(5));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 /** % de desconto entre precoOriginal e precoAtual, ou null se não houver desconto real. */

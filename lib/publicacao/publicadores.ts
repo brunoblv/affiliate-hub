@@ -1,5 +1,11 @@
 import { Rede, type Canal } from "@/lib/database";
-import { obterTokenDePagina, obterTokenPorContaInstagram } from "@/lib/meta/credentials";
+import {
+  obterTokenDePagina,
+  obterTokenDeUsuario,
+  obterTokenPorContaInstagram,
+  mensagemErroMeta,
+  type ErroGraphMeta,
+} from "@/lib/meta/credentials";
 import { getWhatsAppSocket } from "@/lib/whatsapp/session";
 
 const VERSAO_GRAPH = process.env.META_GRAPH_VERSION ?? "v21.0";
@@ -7,8 +13,10 @@ const GRAPH = `https://graph.facebook.com/${VERSAO_GRAPH}`;
 const TELEGRAM = "https://api.telegram.org";
 
 export interface ConteudoParaPublicar {
+  /** Legenda completa (gancho, preço, CTA, link ou "link na bio", disclosure). */
   texto: string;
   imagemUrl?: string;
+  /** URL rastreada — vira preview no feed da Página do Facebook; já entra no `texto` dos outros canais. */
   link: string;
 }
 
@@ -47,7 +55,7 @@ async function chamarGraph<T>(caminho: string, corpo: Record<string, string>): P
   const json = await resposta.json();
 
   if (!resposta.ok) {
-    const detalhe = json?.error?.message ?? resposta.statusText;
+    const detalhe = mensagemErroMeta(json?.error as ErroGraphMeta | undefined, resposta.statusText);
     throw new Error(`Meta Graph ${caminho}: ${detalhe}`);
   }
 
@@ -55,8 +63,8 @@ async function chamarGraph<T>(caminho: string, corpo: Record<string, string>): P
 }
 
 /**
- * Página do Facebook. Publica foto com legenda quando há imagem; senão, post
- * de link. O token é o da Página (page access token), nunca o do usuário.
+ * Página do Facebook. Publica foto com a legenda já montada quando há imagem;
+ * senão, post de link (preview via `link`). Token da Página, nunca do usuário.
  */
 class PublicadorFacebook implements Publicador {
   constructor(private readonly pageId: string) {}
@@ -67,7 +75,7 @@ class PublicadorFacebook implements Publicador {
     if (conteudo.imagemUrl) {
       const resposta = await chamarGraph<{ id?: string; post_id?: string }>(`${this.pageId}/photos`, {
         url: conteudo.imagemUrl,
-        caption: `${conteudo.texto}\n\n${conteudo.link}`,
+        caption: conteudo.texto,
         access_token: token,
       });
 
@@ -94,11 +102,10 @@ class PublicadorFacebookGrupo implements Publicador {
   constructor(private readonly groupId: string) {}
 
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
-    const token = process.env.META_USER_TOKEN;
-    if (!token) throw new Error("META_USER_TOKEN não configurado — grupo do Facebook publica com token de usuário.");
+    const token = await obterTokenDeUsuario();
 
     const resposta = await chamarGraph<{ id: string }>(`${this.groupId}/feed`, {
-      message: `${conteudo.texto}\n\n${conteudo.link}`,
+      message: conteudo.texto,
       access_token: token,
     });
 
@@ -120,8 +127,7 @@ class PublicadorInstagram implements Publicador {
 
     const token = await obterTokenPorContaInstagram(this.igUserId);
 
-    // O link não é clicável na legenda do Instagram; entra como referência
-    // textual e o tráfego real vem da bio.
+    // O link não é clicável na legenda do Instagram; o texto já traz "link na bio".
     const container = await chamarGraph<{ id: string }>(`${this.igUserId}/media`, {
       image_url: conteudo.imagemUrl,
       caption: conteudo.texto,
@@ -148,7 +154,7 @@ class PublicadorTelegram implements Publicador {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) throw new Error("TELEGRAM_BOT_TOKEN não configurado.");
 
-    const legenda = `${conteudo.texto}\n\n${conteudo.link}`;
+    const legenda = conteudo.texto;
 
     // Legenda de foto no Telegram tem limite de 1024 caracteres.
     const usarFoto = Boolean(conteudo.imagemUrl) && legenda.length <= 1024;
@@ -185,7 +191,7 @@ class PublicadorWhatsApp implements Publicador {
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
     if (!this.groupJid) throw new Error("Canal do WhatsApp sem JID de grupo configurado (identificador externo).");
 
-    const legenda = `${conteudo.texto}\n\n${conteudo.link}`;
+    const legenda = conteudo.texto;
     const sock = await getWhatsAppSocket();
 
     const resultado = conteudo.imagemUrl

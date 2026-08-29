@@ -1,6 +1,6 @@
 import { prisma, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
-import { montarTextoDoPost, montarTextoDaLista } from "@/lib/conteudo/texto-do-post";
+import { gerarLegendaDaLista, gerarLegendaDoProduto } from "@/lib/conteudo/gerar-legenda";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
@@ -230,7 +230,7 @@ async function enfileirarNoCanal(
     };
   }
 
-  const texto = montarTextoDoPost({ produto, rede: canal.rede, link });
+  const texto = await gerarLegendaDoProduto({ produto, rede: canal.rede, link });
 
   const chaveIdempotencia = `${produto.id}:${canal.id}:${vaga.agendadaPara.toISOString()}`;
 
@@ -350,7 +350,7 @@ async function enfileirarPostNoCanal(
     };
   }
 
-  const texto = montarTextoDaLista({ post, rede: canal.rede, link });
+  const texto = await gerarLegendaDaLista({ post, rede: canal.rede, link });
   const chaveIdempotencia = `${post.id}:${canal.id}:${vaga.agendadaPara.toISOString()}`;
 
   try {
@@ -420,7 +420,7 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
     return pulado(canal.id, canal.nome, mensagemErro(erro));
   }
 
-  const texto = montarTextoDoPost({ produto, rede: canal.rede, link });
+  const texto = await gerarLegendaDoProduto({ produto, rede: canal.rede, link });
   const agora = new Date();
   const chaveIdempotencia = `${produto.id}:${canal.id}:${agora.toISOString()}`;
 
