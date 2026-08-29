@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Produto } from "@/lib/database";
 import type { ProdutoFormState } from "@/app/admin/(dashboard)/produtos/actions";
+import { OPCOES_CATEGORIA } from "@/lib/produtos";
 
 const PLATAFORMAS = [
   { value: "MERCADO_LIVRE", label: "Mercado Livre" },
@@ -22,16 +23,7 @@ const DESTINOS = [
   { value: "UMBANDA", label: "Umbanda" },
 ];
 
-const CATEGORIAS = [
-  { value: "COZINHA", label: "Cozinha" },
-  { value: "BELEZA", label: "Beleza" },
-  { value: "CASA_DECORACAO", label: "Casa e Decoração" },
-  { value: "ELETRONICOS", label: "Eletrônicos" },
-  { value: "MODA", label: "Moda" },
-  { value: "UMBANDA_RELIGIAO", label: "Umbanda e Religião" },
-  { value: "PET", label: "Pet" },
-  { value: "OUTRA", label: "Outra" },
-];
+const CATEGORIAS = OPCOES_CATEGORIA;
 
 export function ProdutoForm({
   produto,

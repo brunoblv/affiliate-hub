@@ -233,8 +233,24 @@ enum Destino {
 
 /// Nicho/tema do produto p/ categorização de catálogo — independente de
 /// Destino (que é canal/público de divulgação, não assunto do produto).
+/// Os valores abaixo de CASA até ELETRODOMESTICOS são o catálogo "de casa" do
+/// Meu Novo Lar — ver HOME_CATEGORIAS em lib/produtos.ts, usado para filtrar
+/// o catálogo público. As demais (BELEZA, ELETRONICOS, MODA,
+/// UMBANDA_RELIGIAO, PET) seguem existindo só por causa de produtos antigos
+/// já cadastrados com essas categorias; novos cadastros não devem usá-las.
 enum Categoria {
+  CASA
+  ORGANIZACAO
   COZINHA
+  BANHEIRO
+  LAVANDERIA
+  LIMPEZA
+  DECORACAO
+  ILUMINACAO
+  MOVEIS
+  FERRAMENTAS
+  JARDIM
+  ELETRODOMESTICOS
   BELEZA
   CASA_DECORACAO
   ELETRONICOS

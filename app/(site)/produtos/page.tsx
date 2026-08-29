@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/database";
-import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
+import { prisma, Destino } from "@/lib/database";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
 
 export const metadata: Metadata = {
   title: "Produtos",
@@ -21,7 +21,7 @@ function formatCurrency(value: number) {
 
 export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({
-    where: { ativo: true },
+    where: { ativo: true, destino: Destino.MEU_NOVO_LAR, categoria: { in: HOME_CATEGORIAS } },
     orderBy: { atualizadoEm: "desc" },
     take: 60,
   });

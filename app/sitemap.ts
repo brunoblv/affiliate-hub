@@ -7,16 +7,14 @@ const ROTAS_ESTATICAS = ["/", "/blog", "/produtos", "/ferramentas", "/sobre", "/
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
 
-  const [posts, produtos] = await Promise.all([
-    prisma.post.findMany({
-      where: { status: "PUBLICADO" },
-      select: { slug: true, atualizadoEm: true, publicadoEm: true },
-    }),
-    prisma.produto.findMany({
-      where: { ativo: true },
-      select: { slug: true, atualizadoEm: true },
-    }),
-  ]);
+  // Só JORNADA é indexado (ver robots noindex em blog/[slug] e
+  // produtos/[slug] — LISTA/PRODUTO/fichas de produto são conteúdo
+  // automático sem texto editorial): o sitemap não deve listar URLs que a
+  // própria página marca como noindex.
+  const posts = await prisma.post.findMany({
+    where: { status: "PUBLICADO", tipo: "JORNADA" },
+    select: { slug: true, atualizadoEm: true, publicadoEm: true },
+  });
 
   const estaticas: MetadataRoute.Sitemap = ROTAS_ESTATICAS.map((rota) => ({
     url: `${siteUrl}${rota}`,
@@ -28,10 +26,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: post.atualizadoEm ?? post.publicadoEm ?? new Date(),
   }));
 
-  const doProdutos: MetadataRoute.Sitemap = produtos.map((produto) => ({
-    url: `${siteUrl}/produtos/${produto.slug}`,
-    lastModified: produto.atualizadoEm ?? new Date(),
-  }));
-
-  return [...estaticas, ...doPosts, ...doProdutos];
+  return [...estaticas, ...doPosts];
 }

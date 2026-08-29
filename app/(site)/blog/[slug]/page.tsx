@@ -79,5 +79,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.seoTitulo ?? post.titulo,
     description: post.metaDescricao ?? post.resumo ?? undefined,
     alternates: { canonical: `${getSiteUrl()}/blog/${slug}` },
+    // LISTA/PRODUTO são conteúdo automático (roundup de ofertas / ficha de
+    // produto), sem texto editorial — não indexar pra não diluir a
+    // qualidade do site aos olhos do Google/AdSense. Só JORNADA é indexado.
+    robots: post.tipo === "JORNADA" ? undefined : { index: false, follow: true },
   };
 }

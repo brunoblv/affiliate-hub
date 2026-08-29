@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { descontoPercentual } from "@/lib/produtos";
+import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nunca-postados-button";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
@@ -13,17 +13,6 @@ const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
   TIKTOK_SHOP: "TikTok Shop",
   UMBANDA: "Umbanda",
-};
-
-const LABEL_CATEGORIA: Record<string, string> = {
-  COZINHA: "Cozinha",
-  BELEZA: "Beleza",
-  CASA_DECORACAO: "Casa e Decoração",
-  ELETRONICOS: "Eletrônicos",
-  MODA: "Moda",
-  UMBANDA_RELIGIAO: "Umbanda e Religião",
-  PET: "Pet",
-  OUTRA: "Outra",
 };
 
 function formatCurrency(value: number) {

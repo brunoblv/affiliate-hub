@@ -154,5 +154,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       images: imagem ? [{ url: imagem }] : undefined,
     },
+    // Ficha de produto (preço, imagem, botão de loja) sem conteúdo editorial
+    // próprio — não indexar, mesmo padrão aplicado aos posts LISTA/PRODUTO.
+    robots: { index: false, follow: true },
   };
 }

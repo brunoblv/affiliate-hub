@@ -5,22 +5,11 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { RodarDescobertaShopeeButton } from "@/components/admin/rodar-descoberta-shopee-button";
 import { ConfiguracaoShopeeForm } from "@/components/admin/configuracao-shopee-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { descontoPercentual } from "@/lib/produtos";
+import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
 import { obterConfiguracao } from "@/lib/configuracao";
 import { ShoppingBag } from "lucide-react";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
-
-const LABEL_CATEGORIA: Record<string, string> = {
-  COZINHA: "Cozinha",
-  BELEZA: "Beleza",
-  CASA_DECORACAO: "Casa e Decoração",
-  ELETRONICOS: "Eletrônicos",
-  MODA: "Moda",
-  UMBANDA_RELIGIAO: "Umbanda e Religião",
-  PET: "Pet",
-  OUTRA: "Outra",
-};
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
