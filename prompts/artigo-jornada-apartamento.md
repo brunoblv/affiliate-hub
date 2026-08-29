@@ -40,9 +40,18 @@ vez de inventar.
    imposto ou documentação sem essa informação ter vindo do contexto).
 4. Estruture com subtítulos `##` (2 a 5 seções), parágrafos curtos (3-5
    frases), e pelo menos uma lista com `-` onde fizer sentido prático.
-5. Termine com uma seção curta de conclusão/próximo passo (aprendizado ou
+5. **Bloco de opinião/vivência (obrigatório)**: mesmo já sendo relato em
+   primeira pessoa, o artigo não pode soar como guia genérico disfarçado.
+   Em pelo menos 1-2 pontos do corpo, marque claramente uma opinião ou
+   aprendizado pessoal — "o que eu faria diferente", "o que eu não sabia e
+   descobri na prática", "minha recomendação pra quem está nessa fase
+   agora". Priorize sempre o que vem do contexto real acima; só quando o
+   contexto não cobrir o ponto é que vale dar uma opinião mais genérica,
+   deixando claro que é uma visão pessoal ("na minha experiência...") e sem
+   inventar fato específico (data, valor, nome) que não esteja no contexto.
+6. Termine com uma seção curta de conclusão/próximo passo (aprendizado ou
    o que faria diferente) — não um resumo redundante do que já foi dito.
-6. Formato de saída do corpo: **markdown puro**. Não inclua o título como
+7. Formato de saída do corpo: **markdown puro**. Não inclua o título como
    `#` dentro do corpo (o título já é campo separado). Não use
    `[produto:slug]` nem cite produto nenhum — artigo editorial não depende
    de produto.

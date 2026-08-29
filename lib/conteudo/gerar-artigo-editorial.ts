@@ -32,6 +32,11 @@ const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
   [CategoriaEditorial.JORNADA_APARTAMENTO]: "artigo-jornada-apartamento.md",
 };
 
+/**
+ * Os prompts em `prompts/*.md` exigem um bloco de opinião/vivência própria em
+ * todo artigo (regra "Bloco de opinião/critério próprio") — é o que evita o
+ * texto sair genérico. Editar essa exigência ali, não aqui.
+ */
 const promptsCarregados = new Map<string, string>();
 
 async function carregarPromptBase(categoria: CategoriaEditorial): Promise<string> {
