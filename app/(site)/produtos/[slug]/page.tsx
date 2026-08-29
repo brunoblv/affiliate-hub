@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/database";
-import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
+import { prisma, Destino } from "@/lib/database";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
 import { Button } from "@/components/ui/button";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -27,7 +27,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     },
   });
 
-  if (!produto || !produto.ativo) notFound();
+  if (!produto || !produto.ativo || produto.destino !== Destino.MEU_NOVO_LAR || !HOME_CATEGORIAS.includes(produto.categoria)) {
+    notFound();
+  }
 
   const store = STORE_LABEL[produto.plataforma] ?? produto.plataforma;
   const preco = Number(produto.precoAtual);
@@ -89,6 +91,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
           </div>
 
+          {produto.notaEditorial && (
+            <div className="mt-6 rounded-lg border border-sage/40 bg-secondary p-4">
+              <div className="mb-1 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">
+                POR QUE SELECIONAMOS
+              </div>
+              <p className="text-sm leading-relaxed text-foreground">{produto.notaEditorial}</p>
+            </div>
+          )}
+
           {produto.descricao && (
             <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap">
               {produto.descricao}
@@ -137,9 +148,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const produto = await prisma.produto.findUnique({
     where: { slug },
-    select: { nome: true, descricao: true, imagens: true, ativo: true, precoAtual: true },
+    select: { nome: true, descricao: true, imagens: true, ativo: true, precoAtual: true, destino: true, categoria: true },
   });
-  if (!produto || !produto.ativo) return {};
+  if (!produto || !produto.ativo || produto.destino !== Destino.MEU_NOVO_LAR || !HOME_CATEGORIAS.includes(produto.categoria)) {
+    return {};
+  }
 
   const imagem = primeiraImagem(produto);
   const description =

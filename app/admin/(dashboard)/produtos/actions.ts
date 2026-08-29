@@ -41,6 +41,7 @@ function readForm(formData: FormData) {
   const categoria = String(formData.get("categoria") ?? "") as Categoria;
   const idExterno = String(formData.get("idExterno") ?? "").trim();
   const descricao = String(formData.get("descricao") ?? "").trim();
+  const notaEditorial = String(formData.get("notaEditorial") ?? "").trim();
   const precoAtual = String(formData.get("precoAtual") ?? "").trim();
   const precoOriginal = String(formData.get("precoOriginal") ?? "").trim();
   const imagens = parseImagens(String(formData.get("imagens") ?? ""));
@@ -55,6 +56,7 @@ function readForm(formData: FormData) {
     categoria,
     idExterno,
     descricao,
+    notaEditorial,
     precoAtual,
     precoOriginal,
     imagens,
@@ -79,6 +81,7 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
       slug: slugify(dados.nome),
       nome: dados.nome,
       descricao: dados.descricao || null,
+      notaEditorial: dados.notaEditorial || null,
       imagens: dados.imagens,
       precoAtual: dados.precoAtual,
       precoOriginal: dados.precoOriginal || null,
@@ -115,6 +118,7 @@ export async function updateProdutoAction(
       idExterno: dados.idExterno,
       nome: dados.nome,
       descricao: dados.descricao || null,
+      notaEditorial: dados.notaEditorial || null,
       imagens: dados.imagens,
       precoAtual: dados.precoAtual,
       precoOriginal: dados.precoOriginal || null,

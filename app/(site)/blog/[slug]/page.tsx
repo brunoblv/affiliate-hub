@@ -30,7 +30,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     headline: post.titulo,
     datePublished: post.publicadoEm?.toISOString(),
     dateModified: post.atualizadoEm.toISOString(),
-    author: { "@type": "Person", name: autorNome },
+    author: { "@type": "Person", name: autorNome, url: `${siteUrl}/equipe` },
     image: capa ? [`${siteUrl}${capa.src}`] : undefined,
   };
 
@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       <h1 className="mt-4 text-3xl font-bold tracking-tight">{post.titulo}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Por {autorNome}
+        Por <Link href="/equipe" className="font-medium text-foreground hover:underline">{autorNome}</Link>
         {post.publicadoEm && ` • Publicado em ${post.publicadoEm.toLocaleDateString("pt-BR")}`}
         {mostrarAtualizacao && ` • Atualizado em ${post.atualizadoEm.toLocaleDateString("pt-BR")}`}
       </p>

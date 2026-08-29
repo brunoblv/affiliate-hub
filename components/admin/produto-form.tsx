@@ -106,6 +106,20 @@ export function ProdutoForm({
         <Textarea id="descricao" name="descricao" defaultValue={produto?.descricao ?? ""} rows={4} />
       </div>
 
+      <div className="space-y-1.5">
+        <Label htmlFor="notaEditorial">Nota editorial (opcional)</Label>
+        <Textarea
+          id="notaEditorial"
+          name="notaEditorial"
+          defaultValue={produto?.notaEditorial ?? ""}
+          rows={2}
+          placeholder="Ex.: Boa opção para quem tem pouco espaço e quer manter os utensílios organizados."
+        />
+        <p className="text-xs text-muted-foreground">
+          Curto texto de "por que selecionamos este produto" — aparece no catálogo quando preenchido.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="precoAtual">Preço atual (R$)</Label>

@@ -275,6 +275,9 @@ model Produto {
   descricao String? @db.Text
   /// string[] — até 6 URLs de imagem vindas da API da plataforma.
   imagens   Json    @default("[]")
+  /// Texto curto opcional de curadoria ("por que selecionamos este produto"),
+  /// preenchido manualmente pelo editor — exibido no catálogo quando presente.
+  notaEditorial String? @db.Text
 
   precoAtual    Decimal  @db.Decimal(12, 2)
   precoOriginal Decimal? @db.Decimal(12, 2)

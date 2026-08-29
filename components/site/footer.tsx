@@ -28,6 +28,7 @@ export function SiteFooter() {
           <div className="text-[11px] font-bold tracking-[0.09em] text-secondary/70">INFORMAÇÕES</div>
           <div className="mt-3 flex flex-col gap-2 text-sm">
             <Link href="/sobre" className="hover:text-background">Sobre</Link>
+            <Link href="/equipe" className="hover:text-background">Equipe Editorial</Link>
             <Link href="/contato" className="hover:text-background">Contato</Link>
             <Link href="/terms" className="hover:text-background">Termos de Uso</Link>
             <Link href="/privacy-policy" className="hover:text-background">Política de Privacidade</Link>

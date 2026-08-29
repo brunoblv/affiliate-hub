@@ -17,14 +17,23 @@ export default function SobrePage() {
         comparadores — pra ajudar em decisões do dia a dia da casa.
       </p>
 
-      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como escolhemos nossas recomendações</h2>
+      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como escolhemos os produtos</h2>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+        <li>Só entram no catálogo produtos ligados à casa — cozinha, organização, banheiro, limpeza, decoração, iluminação, móveis, ferramentas, jardim e eletrodomésticos. Itens fora desse tema não são publicados no site, mesmo quando geram comissão.</li>
         <li>Analisamos avaliações de compradores nas próprias lojas.</li>
         <li>Comparamos especificações entre produtos parecidos.</li>
         <li>Verificamos preço e custo-benefício, não só o mais barato.</li>
         <li>Consideramos facilidade de manutenção e uso no dia a dia.</li>
-        <li>Priorizamos produtos adequados ao uso real, não só ao que tem melhor foto.</li>
+        <li>Quando fazemos uma recomendação específica, explicamos o motivo em uma nota curta junto do produto.</li>
         <li>Atualizamos recomendações quando preços ou modelos mudam.</li>
+      </ul>
+
+      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como produzimos nosso conteúdo</h2>
+      <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+        <li>Cada artigo é assinado por alguém da nossa <a href="/equipe" className="font-semibold text-primary hover:underline">equipe editorial</a> e passa por revisão antes de publicar.</li>
+        <li>Evitamos afirmar como fato algo que não testamos — preferimos linguagem como "pode ajudar" a garantias categóricas.</li>
+        <li>Artigos sobre limpeza e produtos químicos trazem um aviso de segurança fixo sempre que o tema exige cuidado (ex.: não misturar produtos).</li>
+        <li>A data de publicação e, quando houver revisão relevante, a data de atualização ficam sempre visíveis no topo do artigo.</li>
       </ul>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como ganhamos dinheiro</h2>

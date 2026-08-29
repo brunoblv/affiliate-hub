@@ -1,17 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { prisma } from "@/lib/database";
+import { prisma, Destino } from "@/lib/database";
 import { Button } from "@/components/ui/button";
-import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
 import { CAPA_EDITORIAL, resolverCapa } from "@/lib/conteudo/capa";
+import { FERRAMENTAS } from "@/lib/ferramentas";
 import { NewsletterForm } from "./newsletter-form";
-
-const TOOLS = [
-  { title: "Calculadora de tinta", description: "Descubra quantos litros você precisa comprar.", href: "/ferramentas/calculadora-de-tinta" },
-  { title: "Calculadora de piso", description: "Calcule a metragem certa para o seu ambiente.", href: "/ferramentas/calculadora-de-piso" },
-  { title: "Lista de compras", description: "Organize o que falta comprar para casa.", href: "/ferramentas/lista-de-compras" },
-  { title: "Comparador de produtos", description: "Compare preço, loja e avaliação lado a lado.", href: "/ferramentas/comparador-de-produtos" },
-];
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -31,7 +25,7 @@ export default async function HomePage() {
       take: 3,
     }),
     prisma.produto.findMany({
-      where: { ativo: true },
+      where: { ativo: true, destino: Destino.MEU_NOVO_LAR, categoria: { in: HOME_CATEGORIAS } },
       orderBy: { criadoEm: "desc" },
       take: 12,
     }),
@@ -156,7 +150,7 @@ export default async function HomePage() {
         <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted-foreground">FERRAMENTAS</div>
         <h2 className="mb-7 font-heading text-2xl font-semibold text-foreground sm:text-[26px]">Ferramentas para facilitar sua vida</h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {TOOLS.map((tool) => (
+          {FERRAMENTAS.map((tool) => (
             <Link key={tool.href} href={tool.href} className="block rounded-xl border border-border p-5">
               <div className="mb-3.5 flex size-10 items-center justify-center rounded-lg bg-secondary">
                 <span className="size-3.5 rounded-[3px] bg-sage" />
