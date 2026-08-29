@@ -18,6 +18,12 @@ const TIPOS = [
   { value: "LISTA", label: "Lista (roundup com vários produtos)" },
 ];
 
+const CATEGORIAS_EDITORIAIS = [
+  { value: "", label: "Nenhuma" },
+  { value: "DICAS_CASA", label: "Dicas de casa" },
+  { value: "JORNADA_APARTAMENTO", label: "Jornada de compra de apartamento" },
+];
+
 const DESTINOS = [
   { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
   { value: "TIKTOK_SHOP", label: "TikTok Shop" },
@@ -36,20 +42,33 @@ async function enviarMidia(arquivo: File, alt?: string) {
   return json as CapaPreview;
 }
 
+export interface PostFormDefaults {
+  titulo: string;
+  resumo?: string;
+  corpo: string;
+  seoTitulo?: string;
+  metaDescricao?: string;
+  categoriaEditorial?: "DICAS_CASA" | "JORNADA_APARTAMENTO";
+}
+
 export function PostForm({
   post,
   produtos,
   action,
+  defaults,
 }: {
   post?: Post & { capa?: CapaPreview | null };
   produtos: Array<{ slug: string; nome: string }>;
   action: (prev: PostFormState, formData: FormData) => Promise<PostFormState>;
+  /** Preenche o formulário de post novo com conteúdo pré-gerado (ver /admin/posts/gerar). Ignorado em modo edição. */
+  defaults?: PostFormDefaults;
 }) {
   const [state, formAction, isPending] = useActionState<PostFormState, FormData>(action, { status: "idle" });
   useFeedbackFormulario(state);
-  const [corpo, setCorpo] = useState(post?.corpo ?? "");
+  const [corpo, setCorpo] = useState(post?.corpo ?? defaults?.corpo ?? "");
   const [capa, setCapa] = useState<CapaPreview | null>(post?.capa ?? null);
   const [enviandoCapa, setEnviandoCapa] = useState(false);
+  const [tipo, setTipo] = useState(post?.tipo ?? "JORNADA");
   const editorRef = useRef<MDXEditorMethods>(null);
   const produtoSelectRef = useRef<HTMLSelectElement>(null);
 
@@ -107,7 +126,8 @@ export function PostForm({
           <select
             id="tipo"
             name="tipo"
-            defaultValue={post?.tipo ?? "JORNADA"}
+            value={tipo}
+            onChange={(event) => setTipo(event.target.value as typeof tipo)}
             className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {TIPOS.map((t) => (
@@ -131,6 +151,24 @@ export function PostForm({
         </div>
       </div>
 
+      {tipo === "JORNADA" && (
+        <div className="space-y-1.5">
+          <Label htmlFor="categoriaEditorial">Categoria editorial</Label>
+          <select
+            id="categoriaEditorial"
+            name="categoriaEditorial"
+            defaultValue={post?.categoriaEditorial ?? defaults?.categoriaEditorial ?? ""}
+            className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {CATEGORIAS_EDITORIAIS.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <Label htmlFor="destino">Destino</Label>
         <select
@@ -152,12 +190,12 @@ export function PostForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="titulo">Título</Label>
-        <Input id="titulo" name="titulo" defaultValue={post?.titulo} required />
+        <Input id="titulo" name="titulo" defaultValue={post?.titulo ?? defaults?.titulo ?? ""} required />
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="resumo">Resumo (opcional — gerado automaticamente se vazio)</Label>
-        <Textarea id="resumo" name="resumo" defaultValue={post?.resumo ?? ""} rows={2} />
+        <Textarea id="resumo" name="resumo" defaultValue={post?.resumo ?? defaults?.resumo ?? ""} rows={2} />
       </div>
 
       <div className="space-y-1.5">
@@ -207,7 +245,7 @@ export function PostForm({
             </div>
           )}
         </div>
-        <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
+        <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? defaults?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
         <p className="text-xs text-muted-foreground">
           Editor visual: títulos, listas, links e imagens (arraste ou use o ícone). O conteúdo continua sendo
           markdown. Cards de produto entram pelo botão acima.
@@ -219,11 +257,16 @@ export function PostForm({
         <div className="mt-4 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="seoTitulo">Título SEO</Label>
-            <Input id="seoTitulo" name="seoTitulo" defaultValue={post?.seoTitulo ?? ""} />
+            <Input id="seoTitulo" name="seoTitulo" defaultValue={post?.seoTitulo ?? defaults?.seoTitulo ?? ""} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="metaDescricao">Meta description</Label>
-            <Textarea id="metaDescricao" name="metaDescricao" defaultValue={post?.metaDescricao ?? ""} rows={2} />
+            <Textarea
+              id="metaDescricao"
+              name="metaDescricao"
+              defaultValue={post?.metaDescricao ?? defaults?.metaDescricao ?? ""}
+              rows={2}
+            />
           </div>
         </div>
       </details>

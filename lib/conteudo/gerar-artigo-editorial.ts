@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { CategoriaEditorial } from "@/lib/database";
 import { gerarJson } from "@/lib/conteudo/gemini";
+import { contextoJornada } from "@/lib/conteudo/jornada";
 import type { TemaEditorial } from "@/lib/conteudo/pauta-editorial";
 
 export interface ArtigoEditorial {
@@ -25,37 +27,54 @@ const SCHEMA_ARTIGO = {
 
 const MINIMO_PALAVRAS = 800;
 
-let promptBase: string | null = null;
+const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
+  [CategoriaEditorial.DICAS_CASA]: "artigo-editorial.md",
+  [CategoriaEditorial.JORNADA_APARTAMENTO]: "artigo-jornada-apartamento.md",
+};
 
-async function carregarPromptBase(): Promise<string> {
-  if (!promptBase) {
-    promptBase = await readFile(join(process.cwd(), "prompts", "artigo-editorial.md"), "utf-8");
-  }
-  return promptBase;
+const promptsCarregados = new Map<string, string>();
+
+async function carregarPromptBase(categoria: CategoriaEditorial): Promise<string> {
+  const arquivo = ARQUIVO_POR_CATEGORIA[categoria];
+  const cache = promptsCarregados.get(arquivo);
+  if (cache) return cache;
+
+  const conteudo = await readFile(join(process.cwd(), "prompts", arquivo), "utf-8");
+  promptsCarregados.set(arquivo, conteudo);
+  return conteudo;
 }
 
 function contarPalavras(texto: string): number {
   return texto.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function montarPrompt(base: string, tema: TemaEditorial, reforcoTamanho: boolean): string {
-  const preenchido = base
+async function montarPrompt(
+  base: string,
+  tema: TemaEditorial,
+  categoria: CategoriaEditorial,
+  reforcoTamanho: boolean,
+): Promise<string> {
+  let preenchido = base
     .replace("{{titulo}}", tema.titulo)
     .replace("{{resumoPauta}}", tema.resumoPauta)
     .replace("{{palavraChave}}", tema.palavraChave);
+
+  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO) {
+    preenchido = preenchido.replace("{{contextoJornada}}", await contextoJornada());
+  }
 
   if (!reforcoTamanho) return preenchido;
 
   return `${preenchido}\n\n## Atenção\n\nA tentativa anterior ficou curta demais. O corpo tem que ter pelo menos ${MINIMO_PALAVRAS} palavras — desenvolva mais as seções existentes com informação prática real, não repita frases pra encher.`;
 }
 
-/** Gera o artigo completo para um tema, com uma tentativa extra se sair curto. */
-export async function gerarArtigoEditorial(tema: TemaEditorial): Promise<ArtigoEditorial> {
-  const base = await carregarPromptBase();
+/** Gera o artigo completo para um tema/categoria, com uma tentativa extra se sair curto. */
+export async function gerarArtigoEditorial(tema: TemaEditorial, categoria: CategoriaEditorial): Promise<ArtigoEditorial> {
+  const base = await carregarPromptBase(categoria);
 
   for (const reforcoTamanho of [false, true]) {
     const artigo = await gerarJson<ArtigoEditorial>({
-      prompt: montarPrompt(base, tema, reforcoTamanho),
+      prompt: await montarPrompt(base, tema, categoria, reforcoTamanho),
       schema: SCHEMA_ARTIGO,
       temperature: 0.9,
     });

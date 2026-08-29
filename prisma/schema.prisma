@@ -84,17 +84,25 @@ enum TipoPost {
   LISTA // roundup com vários produtos
 }
 
+/// Sub-classificação de posts tipo JORNADA, usada pela geração via IA
+/// (tema + prompt distintos por categoria). Nula em posts antigos/manuais.
+enum CategoriaEditorial {
+  DICAS_CASA // organização, manutenção e decoração da casa
+  JORNADA_APARTAMENTO // jornada pessoal de compra/mudança de apartamento
+}
+
 enum StatusPost {
   RASCUNHO
   PUBLICADO
 }
 
 model Post {
-  id     String   @id @default(cuid())
-  tipo   TipoPost
-  titulo String
-  slug   String   @unique
-  resumo String?
+  id                 String              @id @default(cuid())
+  tipo               TipoPost
+  categoriaEditorial CategoriaEditorial?
+  titulo             String
+  slug               String              @unique
+  resumo             String?
 
   /// Markdown. Imagens no meio do texto via ![alt](url) e cards de produto
   /// via shortcode em linha própria: [produto:slug-do-produto]
@@ -125,7 +133,19 @@ model Post {
 
   @@index([status, publicadoEm])
   @@index([tipo])
+  @@index([tipo, categoriaEditorial])
   @@map("posts")
+}
+
+/// Bloco de texto livre sobre a jornada pessoal (compra/mudança de
+/// apartamento) do usuário — vira contexto real pro Gemini usar ao gerar
+/// artigos da categoria JORNADA_APARTAMENTO, em vez de inventar detalhe.
+model NotaJornada {
+  id       String   @id @default(cuid())
+  texto    String   @db.Text
+  criadoEm DateTime @default(now())
+
+  @@map("notas_jornada")
 }
 
 /// Produto exibido dentro de um post (PRODUTO ou LISTA), na ordem do texto.

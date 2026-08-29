@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Package, ShoppingBag, Newspaper, Send, Radio, Plug, Users } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Newspaper, Send, Radio, Plug, Users, Sparkles, NotebookPen } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -27,6 +27,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Produtos", href: "/admin/produtos", icon: Package },
       { title: "Produtos Shopee", href: "/admin/produtos/shopee", icon: ShoppingBag },
       { title: "Posts", href: "/admin/posts", icon: Newspaper },
+      { title: "Gerar artigo (IA)", href: "/admin/posts/gerar", icon: Sparkles },
+      { title: "Minha jornada", href: "/admin/jornada", icon: NotebookPen },
     ],
   },
   {
