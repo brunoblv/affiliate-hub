@@ -6,9 +6,25 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
-export default async function PostsAdminPage() {
-  const posts = await prisma.post.findMany({ orderBy: { criadoEm: "desc" } });
+export default async function PostsAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      orderBy: { criadoEm: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.post.count(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -50,6 +66,8 @@ export default async function PostsAdminPage() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} basePath="/admin/posts" />
     </div>
   );
 }

@@ -48,6 +48,7 @@ export function horariosDoCanal(canal: Canal): string[] {
 export async function proximoHorarioLivre(
   canal: Canal,
   apartirDe: Date = new Date(),
+  excluirPublicacaoId?: string,
 ): Promise<ResultadoAgenda | null> {
   const horariosOrdenados = horariosDoCanal(canal)
     .map((texto) => lerHorario(texto))
@@ -57,7 +58,11 @@ export async function proximoHorarioLivre(
   const intervaloMs = Math.max(0, canal.intervaloMinimoMin) * 60 * 1000;
 
   const ultima = await prisma.publicacao.findFirst({
-    where: { canalId: canal.id, status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] } },
+    where: {
+      canalId: canal.id,
+      status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+      ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
+    },
     orderBy: { agendadaPara: "desc" },
     select: { agendadaPara: true },
   });
@@ -70,6 +75,7 @@ export async function proximoHorarioLivre(
       canalId: canal.id,
       status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
       agendadaPara: { gte: new Date(apartirDe.getTime() - MS_POR_DIA), lte: limite },
+      ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
     },
     select: { agendadaPara: true },
     orderBy: { agendadaPara: "asc" },

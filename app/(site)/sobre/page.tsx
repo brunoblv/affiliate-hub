@@ -17,6 +17,16 @@ export default function SobrePage() {
         comparadores — pra ajudar em decisões do dia a dia da casa.
       </p>
 
+      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como escolhemos nossas recomendações</h2>
+      <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+        <li>Analisamos avaliações de compradores nas próprias lojas.</li>
+        <li>Comparamos especificações entre produtos parecidos.</li>
+        <li>Verificamos preço e custo-benefício, não só o mais barato.</li>
+        <li>Consideramos facilidade de manutenção e uso no dia a dia.</li>
+        <li>Priorizamos produtos adequados ao uso real, não só ao que tem melhor foto.</li>
+        <li>Atualizamos recomendações quando preços ou modelos mudam.</li>
+      </ul>
+
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Como ganhamos dinheiro</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
         Sendo direto: muitos dos links de produtos que você vê aqui são links de afiliado. Se você

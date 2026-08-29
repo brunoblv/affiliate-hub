@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { descontoPercentual } from "@/lib/produtos";
 import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nunca-postados-button";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -29,8 +30,23 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default async function ProdutosAdminPage() {
-  const produtos = await prisma.produto.findMany({ orderBy: { criadoEm: "desc" } });
+export default async function ProdutosAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [produtos, total] = await Promise.all([
+    prisma.produto.findMany({
+      orderBy: { criadoEm: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.produto.count(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -100,6 +116,8 @@ export default async function ProdutosAdminPage() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} basePath="/admin/produtos" />
     </div>
   );
 }

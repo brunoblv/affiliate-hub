@@ -9,6 +9,7 @@ import { descontoPercentual } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
 import { obterConfiguracao } from "@/lib/configuracao";
 import { ShoppingBag } from "lucide-react";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
 const LABEL_CATEGORIA: Record<string, string> = {
   COZINHA: "Cozinha",
@@ -66,7 +67,14 @@ function TabelaProdutos({ produtos }: { produtos: Produto[] }) {
   );
 }
 
-export default async function ProdutosShopeePage() {
+export default async function ProdutosShopeePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
   const [produtosShopee, ultimaDescoberta, configuracao] = await Promise.all([
     prisma.produto.findMany({ where: { plataforma: Plataforma.SHOPEE }, orderBy: { criadoEm: "desc" } }),
     prisma.log.findFirst({ where: { area: "PRODUTO_DESCOBERTA" }, orderBy: { criadoEm: "desc" } }),
@@ -77,7 +85,9 @@ export default async function ProdutosShopeePage() {
   const ofertasDeHoje = produtosShopee.filter(
     (p) => ehDescobertaAutomatica(p) && p.criadoEm.getTime() >= comecoDoDia.getTime(),
   );
-  const outrosProdutos = produtosShopee.filter((p) => !ofertasDeHoje.includes(p));
+  const todosOutrosProdutos = produtosShopee.filter((p) => !ofertasDeHoje.includes(p));
+  const totalPages = Math.max(1, Math.ceil(todosOutrosProdutos.length / PAGE_SIZE));
+  const outrosProdutos = todosOutrosProdutos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-8">
@@ -130,7 +140,10 @@ export default async function ProdutosShopeePage() {
             description="Produtos importados manualmente ou de dias anteriores aparecem aqui."
           />
         ) : (
-          <TabelaProdutos produtos={outrosProdutos} />
+          <>
+            <TabelaProdutos produtos={outrosProdutos} />
+            <Pagination page={page} totalPages={totalPages} basePath="/admin/produtos/shopee" />
+          </>
         )}
       </section>
     </div>

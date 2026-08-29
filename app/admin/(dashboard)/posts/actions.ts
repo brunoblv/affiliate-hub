@@ -58,9 +58,22 @@ function readForm(formData: FormData) {
   const seoTitulo = String(formData.get("seoTitulo") ?? "").trim();
   const metaDescricao = String(formData.get("metaDescricao") ?? "").trim();
   const publicar = formData.get("publicar") === "on";
+  const avisoSeguranca = formData.get("avisoSeguranca") === "on";
   const capaId = String(formData.get("capaId") ?? "").trim() || null;
 
-  return { tipo, destino, categoriaEditorial, titulo, resumo, corpo, seoTitulo, metaDescricao, publicar, capaId };
+  return {
+    tipo,
+    destino,
+    categoriaEditorial,
+    titulo,
+    resumo,
+    corpo,
+    seoTitulo,
+    metaDescricao,
+    publicar,
+    avisoSeguranca,
+    capaId,
+  };
 }
 
 async function validarCapa(capaId: string | null): Promise<PostFormState | null> {
@@ -95,6 +108,7 @@ export async function createPostAction(_prev: PostFormState, formData: FormData)
       metaDescricao: dados.metaDescricao || null,
       status: dados.publicar ? StatusPost.PUBLICADO : StatusPost.RASCUNHO,
       publicadoEm: dados.publicar ? new Date() : null,
+      avisoSeguranca: dados.avisoSeguranca,
       autorId: sessao?.user?.id ?? null,
     },
   });
@@ -132,6 +146,7 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
       metaDescricao: dados.metaDescricao || null,
       status: dados.publicar ? StatusPost.PUBLICADO : StatusPost.RASCUNHO,
       publicadoEm: dados.publicar && !jaEstavaPublicado ? new Date() : undefined,
+      avisoSeguranca: dados.avisoSeguranca,
     },
   });
 

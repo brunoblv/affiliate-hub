@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FilaRowActions } from "@/components/admin/fila-row-actions";
 import { formatarLocal } from "@/lib/agenda/fuso";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
 const VARIANTE_STATUS: Record<string, "default" | "secondary" | "destructive"> = {
   PENDENTE: "secondary",
@@ -15,16 +16,28 @@ const VARIANTE_STATUS: Record<string, "default" | "secondary" | "destructive"> =
   CANCELADA: "secondary",
 };
 
-export default async function FilaAdminPage() {
-  const publicacoes = await prisma.publicacao.findMany({
-    orderBy: { agendadaPara: "desc" },
-    take: 100,
-    include: {
-      produto: { select: { nome: true } },
-      post: { select: { titulo: true } },
-      canal: { select: { nome: true } },
-    },
-  });
+export default async function FilaAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [publicacoes, total] = await Promise.all([
+    prisma.publicacao.findMany({
+      orderBy: { agendadaPara: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        produto: { select: { nome: true } },
+        post: { select: { titulo: true } },
+        canal: { select: { nome: true } },
+      },
+    }),
+    prisma.publicacao.count(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -61,6 +74,8 @@ export default async function FilaAdminPage() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} basePath="/admin/fila" />
     </div>
   );
 }

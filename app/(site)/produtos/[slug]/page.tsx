@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/database";
 import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
 import { Button } from "@/components/ui/button";
+import { getSiteUrl } from "@/lib/site-url";
 
 const STORE_LABEL: Record<string, string> = {
   MERCADO_LIVRE: "Mercado Livre",
@@ -33,6 +34,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const original = produto.precoOriginal ? Number(produto.precoOriginal) : null;
   const desconto = descontoPercentual(produto);
   const imagem = primeiraImagem(produto);
+
+  const jsonLd = produto.descricao
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: produto.nome,
+        description: produto.descricao,
+        image: imagem ? [imagem] : undefined,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "BRL",
+          price: preco,
+          availability: "https://schema.org/InStock",
+          url: `${getSiteUrl()}/produtos/${produto.slug}`,
+        },
+      }
+    : null;
 
   return (
     <article className="mx-auto w-full max-w-[1000px] px-5 py-10 sm:px-10 sm:py-14">
@@ -109,6 +127,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </ul>
         </section>
       )}
+
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
     </article>
   );
 }
@@ -128,6 +148,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: produto.nome,
     description,
+    alternates: { canonical: `${getSiteUrl()}/produtos/${slug}` },
     openGraph: {
       title: produto.nome,
       description,

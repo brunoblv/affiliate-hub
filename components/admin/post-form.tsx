@@ -151,6 +151,19 @@ export function PostForm({
         </div>
       </div>
 
+      <div className="flex items-center gap-2">
+        <input
+          id="avisoSeguranca"
+          name="avisoSeguranca"
+          type="checkbox"
+          defaultChecked={post?.avisoSeguranca ?? false}
+          className="size-4 rounded border-input"
+        />
+        <Label htmlFor="avisoSeguranca" className="font-normal">
+          Exibir aviso de segurança (posts sobre limpeza/produtos químicos)
+        </Label>
+      </div>
+
       {tipo === "JORNADA" && (
         <div className="space-y-1.5">
           <Label htmlFor="categoriaEditorial">Categoria editorial</Label>

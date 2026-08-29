@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -13,8 +14,23 @@ const LABEL_DESTINO: Record<string, string> = {
   UMBANDA: "Umbanda",
 };
 
-export default async function CanaisAdminPage() {
-  const canais = await prisma.canal.findMany({ orderBy: { criadoEm: "desc" } });
+export default async function CanaisAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [canais, total] = await Promise.all([
+    prisma.canal.findMany({
+      orderBy: { criadoEm: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.canal.count(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -58,6 +74,8 @@ export default async function CanaisAdminPage() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} basePath="/admin/canais" />
     </div>
   );
 }

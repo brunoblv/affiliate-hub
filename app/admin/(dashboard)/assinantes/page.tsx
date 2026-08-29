@@ -5,9 +5,25 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
-export default async function AssinantesAdminPage() {
-  const assinantes = await prisma.assinante.findMany({ orderBy: { criadoEm: "desc" } });
+export default async function AssinantesAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [assinantes, total] = await Promise.all([
+    prisma.assinante.findMany({
+      orderBy: { criadoEm: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.assinante.count(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -43,6 +59,8 @@ export default async function AssinantesAdminPage() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} basePath="/admin/assinantes" />
     </div>
   );
 }

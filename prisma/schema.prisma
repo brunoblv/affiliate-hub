@@ -117,6 +117,10 @@ model Post {
   status      StatusPost @default(RASCUNHO)
   publicadoEm DateTime?
 
+  /// Exibe caixa de aviso fixa no topo do corpo (ex.: não misturar produtos de
+  /// limpeza) — marcado manualmente pelo editor em posts sobre químicos/limpeza.
+  avisoSeguranca Boolean @default(false)
+
   /// Site/grupos pra onde este post é distribuído quando tipo = LISTA — ver
   /// enum Destino. Ignorado em JORNADA/PRODUTO (esses não entram na fila).
   destino Destino @default(MEU_NOVO_LAR)
