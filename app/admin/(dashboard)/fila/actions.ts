@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/database";
+import { auth } from "@/lib/auth";
+import { prisma, StatusPublicacao } from "@/lib/database";
 
 function falhou(erro: unknown, fallback: string): never {
   throw new Error(erro instanceof Error ? erro.message : fallback);
@@ -53,4 +54,24 @@ export async function reagendarAction(id: string, novaData: string): Promise<voi
     falhou(erro, "Não foi possível reagendar.");
   }
   revalidatePath("/admin/fila");
+}
+
+export async function limparFilaAction(): Promise<
+  { ok: true; count: number; emPublicacao: number } | { ok: false; message: string }
+> {
+  const sessao = await auth();
+  if (!sessao) return { ok: false, message: "Não autorizado." };
+
+  try {
+    const emPublicacao = await prisma.publicacao.count({
+      where: { status: StatusPublicacao.PUBLICANDO },
+    });
+    const { count } = await prisma.publicacao.deleteMany({
+      where: { status: { not: StatusPublicacao.PUBLICANDO } },
+    });
+    revalidatePath("/admin/fila");
+    return { ok: true, count, emPublicacao };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível limpar a fila." };
+  }
 }

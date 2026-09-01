@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FilaRowActions } from "@/components/admin/fila-row-actions";
 import { formatarLocal } from "@/lib/agenda/fuso";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
+import { LimparFilaButton } from "@/components/admin/limpar-fila-button";
 
 const VARIANTE_STATUS: Record<string, "default" | "secondary" | "destructive"> = {
   PENDENTE: "secondary",
@@ -42,7 +43,10 @@ export default async function FilaAdminPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Fila" description="Publicações agendadas, publicadas e com falha." />
+      <div className="flex items-center justify-between gap-4">
+        <PageHeader title="Fila" description="Publicações agendadas, publicadas e com falha." />
+        <LimparFilaButton total={total} />
+      </div>
 
       {publicacoes.length === 0 ? (
         <EmptyState icon={Send} title="Nenhuma publicação agendada" description="Distribua um produto na tela de Produtos para começar." />
