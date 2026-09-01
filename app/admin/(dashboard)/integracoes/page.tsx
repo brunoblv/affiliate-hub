@@ -1,6 +1,6 @@
 import { getMercadoLivreTokens } from "@/lib/mercado-livre/credentials";
 import { listarPaginasMeta } from "@/lib/meta/credentials";
-import { metaOAuthConfigurado } from "@/lib/meta/auth";
+import { getMetaOAuthInfo, metaOAuthConfigurado } from "@/lib/meta/auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ export default async function IntegracoesPage({
   const telegramConfigurado = Boolean(process.env.TELEGRAM_BOT_TOKEN);
   const shopeeConfigurado = Boolean(process.env.SHOPEE_APP_ID && process.env.SHOPEE_SECRET);
   const metaOAuth = metaOAuthConfigurado();
+  const metaOAuthInfo = metaOAuth ? getMetaOAuthInfo() : null;
 
   return (
     <div className="space-y-6">
@@ -58,6 +59,23 @@ export default async function IntegracoesPage({
                 ? `${paginasMeta.length} página(s): ${paginasMeta.map((p) => p.nome).join(", ")}`
                 : "Nenhuma página sincronizada ainda."}
             </div>
+            {metaOAuthInfo ? (
+              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <p>
+                  Domínios do app: <span className="font-mono text-foreground">{metaOAuthInfo.dominio}</span>
+                </p>
+                <p className="break-all">
+                  Valid OAuth Redirect URIs:{" "}
+                  <span className="font-mono text-foreground">{metaOAuthInfo.redirectUri}</span>
+                </p>
+                {metaOAuthInfo.local ? (
+                  <p className="text-destructive">
+                    O callback está em localhost. No app da Meta, use modo Desenvolvimento e cadastre essa URI; em
+                    produção, defina NEXT_PUBLIC_SITE_URL (ou META_REDIRECT_URI) com o domínio HTTPS real.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <Badge variant={paginasMeta.length > 0 ? "default" : "secondary"}>

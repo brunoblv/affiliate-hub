@@ -79,6 +79,11 @@ export function ehIndisponivel(erro: unknown): boolean {
   return /503|UNAVAILABLE|high demand/i.test(msg);
 }
 
+export function ehArgumentoInvalido(erro: unknown): boolean {
+  const msg = erro instanceof Error ? erro.message : String(erro);
+  return /400/.test(msg) && /INVALID_ARGUMENT|invalid argument/i.test(msg);
+}
+
 export function ehTrocarModelo(erro: unknown): boolean {
-  return ehQuotaEsgotada(erro) || ehModeloIndisponivel(erro) || ehIndisponivel(erro);
+  return ehQuotaEsgotada(erro) || ehModeloIndisponivel(erro) || ehIndisponivel(erro) || ehArgumentoInvalido(erro);
 }

@@ -288,7 +288,7 @@ model Produto {
   precoOriginal Decimal? @db.Decimal(12, 2)
   moeda         String   @default("BRL")
 
-  /// Link de afiliado colado por você. Nunca exibido direto: sempre via /go.
+  /// Link de afiliado. Nos posts sociais de produto sai direto; no site, via /go.
   linkAfiliado String
   /// Código do redirecionador rastreado: /go/:codigoCurto
   codigoCurto  String @unique
@@ -399,9 +399,7 @@ model Publicacao {
   /// Texto já renderizado no agendamento — auditável e editável antes de sair.
   texto       String  @db.Text
   imagemUrl   String?
-  /// URL do post no blog (Página do Facebook/Instagram, exceto Destino UMBANDA,
-  /// e sempre para Publicacao de Post/Lista) ou /go/:codigo (Telegram,
-  /// WhatsApp, grupo do Facebook e Umbanda, só para Publicacao de Produto).
+  /// Produto: linkAfiliado da loja. Lista/artigo: URL do blog. Landing: /vitrine/:slug.
   linkDestino String
 
   tentativas    Int       @default(0)

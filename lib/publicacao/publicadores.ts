@@ -16,7 +16,7 @@ export interface ConteudoParaPublicar {
   /** Legenda completa (gancho, preço, CTA, link ou "link na bio", disclosure). */
   texto: string;
   imagemUrl?: string;
-  /** URL rastreada — vira preview no feed da Página do Facebook; já entra no `texto` dos outros canais. */
+  /** Destino do post — afiliado da loja (produto) ou URL do site (lista/vitrine). Preview no feed da Página. */
   link: string;
 }
 

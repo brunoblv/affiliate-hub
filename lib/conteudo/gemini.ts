@@ -35,15 +35,34 @@ interface RespostaGemini {
 
 const MAX_OUTPUT_PADRAO = 16384;
 
+type Pensamento =
+  | { thinkingBudget: number }
+  | { thinkingLevel: "minimal" | "low" | "medium" | "high" };
+
 /**
- * Gemini 2.5+ gasta thinking tokens contra maxOutputTokens. Em JSON estruturado
- * isso corta o corpo do artigo. Flash aceita desligar; Pro exige um mínimo.
+ * Gemini 2.5 gasta thinking tokens contra maxOutputTokens — em JSON isso corta
+ * o artigo. Flash aceita `thinkingBudget: 0`; Pro exige um mínimo.
+ *
+ * Gemini 3.x rejeita `thinkingBudget` (e temperature custom) com 400 genérico.
+ * Usa `thinkingLevel`: lite → minimal; 3.7 Flash não aceita minimal → low.
  */
-function thinkingConfig(modelo: string): { thinkingBudget: number } | undefined {
+function thinkingConfig(modelo: string): Pensamento | undefined {
   const nome = modelo.toLowerCase();
-  if (!nome.includes("gemini-2.5") && !nome.includes("gemini-3")) return undefined;
-  if (nome.includes("pro")) return { thinkingBudget: 1024 };
-  return { thinkingBudget: 0 };
+  if (nome.includes("gemini-3")) {
+    if (nome.includes("pro")) return { thinkingLevel: "low" };
+    if (nome.includes("3.7")) return { thinkingLevel: "low" };
+    if (nome.includes("lite")) return { thinkingLevel: "minimal" };
+    return { thinkingLevel: "low" };
+  }
+  if (nome.includes("gemini-2.5")) {
+    if (nome.includes("pro")) return { thinkingBudget: 1024 };
+    return { thinkingBudget: 0 };
+  }
+  return undefined;
+}
+
+function aceitaTemperatureCustom(modelo: string): boolean {
+  return !modelo.toLowerCase().includes("gemini-3");
 }
 
 async function gerarJsonNoModelo<T>({
@@ -53,8 +72,10 @@ async function gerarJsonNoModelo<T>({
   maxOutputTokens,
   modelo,
   comPensamento,
-}: GerarJsonOptions & { modelo: string; comPensamento: boolean }): Promise<T> {
+  comTemperature,
+}: GerarJsonOptions & { modelo: string; comPensamento: boolean; comTemperature: boolean }): Promise<T> {
   const pensamento = comPensamento ? thinkingConfig(modelo) : undefined;
+  const usarTemperature = comTemperature && aceitaTemperatureCustom(modelo);
 
   const res = await fetch(`${ENDPOINT_BASE}/${modelo}:generateContent?key=${apiKeyGemini()}`, {
     method: "POST",
@@ -62,7 +83,7 @@ async function gerarJsonNoModelo<T>({
     body: JSON.stringify({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature,
+        ...(usarTemperature ? { temperature } : {}),
         maxOutputTokens,
         responseMimeType: "application/json",
         responseSchema: schema,
@@ -121,10 +142,11 @@ export async function gerarJson<T>({
               maxOutputTokens,
               modelo,
               comPensamento: true,
+              comTemperature: true,
             });
           } catch (erro) {
             const msg = erro instanceof Error ? erro.message : String(erro);
-            if (/400/.test(msg) && /thinking/i.test(msg)) {
+            if (/400/.test(msg) && /thinking|INVALID_ARGUMENT|invalid argument/i.test(msg)) {
               return gerarJsonNoModelo<T>({
                 prompt,
                 schema,
@@ -132,6 +154,7 @@ export async function gerarJson<T>({
                 maxOutputTokens,
                 modelo,
                 comPensamento: false,
+                comTemperature: false,
               });
             }
             throw erro;

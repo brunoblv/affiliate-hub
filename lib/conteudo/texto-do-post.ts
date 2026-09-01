@@ -52,8 +52,7 @@ export function montarTextoDoPost({ produto, rede, link, comentario }: EntradaTe
 
   switch (rede) {
     case Rede.FACEBOOK_PAGE:
-      // Destino UMBANDA não tem post no blog — o link vai direto pra oferta.
-      linhas.push(produto.destino === Destino.UMBANDA ? "Pegar agora:" : "Detalhes e comparação no site:");
+      linhas.push("Pegar agora:");
       break;
     case Rede.INSTAGRAM:
       // No Instagram o link da legenda não é clicável.

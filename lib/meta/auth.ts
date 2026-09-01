@@ -51,6 +51,13 @@ export function getMetaRedirectUri(): string {
   return url.toString();
 }
 
+export function getMetaOAuthInfo(): { redirectUri: string; dominio: string; local: boolean } {
+  const redirectUri = getMetaRedirectUri();
+  const dominio = new URL(redirectUri).hostname;
+  const local = dominio === "localhost" || dominio === "127.0.0.1";
+  return { redirectUri, dominio, local };
+}
+
 export function buildMetaAuthorizationUrl(params: { redirectUri: string; state: string }): string {
   const { appId } = requireApp();
   const url = new URL(DIALOG);

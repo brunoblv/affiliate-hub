@@ -18,8 +18,9 @@ function corpoDoPost(produto: Produto): string {
 }
 
 /**
- * Garante um Post tipo PRODUTO publicado no blog, para a Página do Facebook
- * e o Instagram terem para onde apontar. Reaproveita rascunho existente.
+ * Garante um Post tipo PRODUTO publicado no blog (ficha no Meu Novo Lar).
+ * A distribuição nas redes usa o link de afiliado direto, não este slug.
+ * Reaproveita rascunho existente.
  */
 export async function garantirPostPublicadoDoProduto(produto: Produto): Promise<PostDoProduto> {
   const vinculos = await prisma.itemDePost.findMany({

@@ -1,19 +1,9 @@
 import { prisma, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { gerarLegendaDaLista, gerarLegendaDoProduto } from "@/lib/conteudo/gerar-legenda";
-import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
 import { getSiteUrl } from "@/lib/site-url";
-
-/**
- * Redes que levam para o blog (§2 da spec): o visitante vê o conteúdo e os
- * anúncios antes de sair. Grupos (Telegram, WhatsApp, grupo do Facebook)
- * recebem o link rastreado direto, porque ali o público é de oferta e um
- * intermediário derruba a conversão. Destino UMBANDA não tem post no blog —
- * vai sempre direto, mesmo na Página do Facebook.
- */
-const REDES_QUE_APONTAM_PARA_O_BLOG = new Set<Rede>([Rede.FACEBOOK_PAGE, Rede.INSTAGRAM]);
 
 const ORIGEM_POR_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "facebook",
@@ -54,20 +44,15 @@ function isViolacaoIdempotencia(erro: unknown): boolean {
   return code === "P2002" || message.includes("chaveIdempotencia") || target.includes("chaveIdempotencia");
 }
 
-function linkDestino(canal: Canal, produto: Produto, slugDoPost: string | null): string {
-  const siteUrl = getSiteUrl();
-  const apontaParaBlog = produto.destino !== Destino.UMBANDA && REDES_QUE_APONTAM_PARA_O_BLOG.has(canal.rede);
-
-  if (apontaParaBlog) {
-    if (!slugDoPost) {
-      throw new Error(
-        `Produto "${produto.slug}" não tem post publicado no blog — ${canal.rede} só publica com link do site.`,
-      );
-    }
-    return `${siteUrl}/blog/${slugDoPost}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+/** Link da loja com tag de afiliado — posts de produto não passam pelo site. */
+function linkAfiliadoDoProduto(produto: Produto): string {
+  const link = produto.linkAfiliado.trim();
+  if (!link) {
+    throw new Error(
+      `Produto "${produto.slug}" não tem link de afiliado — não publica sem comissão.`,
+    );
   }
-
-  return `${siteUrl}/go/${produto.codigoCurto}?o=${ORIGEM_POR_REDE[canal.rede]}`;
+  return link;
 }
 
 /** Primeira imagem do produto, ou undefined se a API não trouxe nenhuma. */
@@ -103,13 +88,6 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
 
   if (!produto.ativo) {
     return [pulado(produto.id, produto.nome, `Produto "${produto.slug}" está inativo.`)];
-  }
-
-  let slugDoPost: string;
-  try {
-    slugDoPost = (await garantirPostPublicadoDoProduto(produto)).slug;
-  } catch (erro) {
-    return [pulado(produto.id, produto.nome, mensagemErro(erro))];
   }
 
   const canais = await prisma.canal.findMany({
@@ -182,7 +160,7 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     }
 
     try {
-      const resultado = await enfileirarNoCanal(canal, produto, slugDoPost);
+      const resultado = await enfileirarNoCanal(canal, produto);
       resultados.push(resultado);
       if (ehProdutoTikTok(produto) && resultado.agendadaPara) {
         agendadoTikTokEm = canal.nome;
@@ -198,7 +176,6 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
 async function enfileirarNoCanal(
   canal: Canal,
   produto: Produto,
-  slugDoPost: string,
 ): Promise<ResultadoEnfileiramento> {
   const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
 
@@ -208,7 +185,7 @@ async function enfileirarNoCanal(
 
   let link: string;
   try {
-    link = linkDestino(canal, produto, slugDoPost);
+    link = linkAfiliadoDoProduto(produto);
   } catch (erro) {
     return { ...base, motivoPulado: mensagemErro(erro) };
   }
@@ -267,8 +244,7 @@ async function enfileirarNoCanal(
  * Agenda a distribuição de um Post tipo LISTA (roundup de vários produtos)
  * nos canais ativos do seu Destino. Diferente de `enfileirarProduto`: não há
  * um link de afiliado único pra vários produtos de uma vez, então todo canal
- * — mesmo grupo do Telegram/WhatsApp, que normalmente pula o blog — aponta
- * pro post no blog, onde cada produto tem seu próprio link rastreado.
+ * aponta pro post no blog, onde cada produto tem seu próprio link rastreado.
  *
  * Sem cooldown recorrente: uma Lista é conteúdo de um dia só, não "volta à
  * venda" como produto — por isso só pula um canal se já existe Publicacao
@@ -402,20 +378,13 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
     );
   }
 
-  let slugDoPost: string;
-  try {
-    slugDoPost = (await garantirPostPublicadoDoProduto(produto)).slug;
-  } catch (erro) {
-    return pulado(produto.id, produto.nome, mensagemErro(erro));
-  }
-
   if (await produtoEmCooldown(canal, produto.id)) {
     return pulado(canal.id, canal.nome, `Já publicado neste canal nos últimos ${canal.cooldownDias} dias`);
   }
 
   let link: string;
   try {
-    link = linkDestino(canal, produto, slugDoPost);
+    link = linkAfiliadoDoProduto(produto);
   } catch (erro) {
     return pulado(canal.id, canal.nome, mensagemErro(erro));
   }
