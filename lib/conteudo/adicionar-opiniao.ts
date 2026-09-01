@@ -54,6 +54,7 @@ export async function adicionarOpiniao(post: PostParaEditar): Promise<string> {
     prompt,
     schema: SCHEMA_REVISAO,
     temperature: 0.8,
+    tarefa: "artigo",
   });
 
   return resultado.corpoRevisado;

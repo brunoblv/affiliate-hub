@@ -18,6 +18,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
       canal: true,
       produto: { select: { slug: true } },
       post: { select: { slug: true } },
+      landingDiaria: { select: { slug: true } },
     },
   });
 
@@ -41,7 +42,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     });
 
     await registrar("INFO", "PUBLICACAO", `Publicado em ${publicacao.canal.nome}`, {
-      produto: publicacao.produto?.slug ?? publicacao.post?.slug,
+      produto: publicacao.produto?.slug ?? publicacao.post?.slug ?? publicacao.landingDiaria?.slug,
       idExterno: resultado.idExterno,
     });
   } catch (erro) {

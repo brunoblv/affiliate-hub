@@ -111,6 +111,10 @@ model Post {
   capaId String?
   capa   Midia?  @relation("CapaDoPost", fields: [capaId], references: [id], onDelete: SetNull)
 
+  /// Narração TTS do artigo (WAV gerado sob demanda no admin).
+  audioId String?
+  audio   Midia?  @relation("AudioDoPost", fields: [audioId], references: [id], onDelete: SetNull)
+
   seoTitulo     String?
   metaDescricao String?
 
@@ -190,6 +194,7 @@ model Midia {
   alt          String?
 
   capaDe      Post[]        @relation("CapaDoPost")
+  audioDe     Post[]        @relation("AudioDoPost")
   usosEmPosts MidiaEmPost[]
 
   criadoEm DateTime @default(now())
@@ -294,10 +299,15 @@ model Produto {
   ativo          Boolean   @default(true)
   sincronizadoEm DateTime?
 
+  /// Entra na curadoria da landing mesmo sem atingir o desconto mínimo.
+  destaqueVitrine Boolean @default(false)
+
   itens       ItemDePost[]
   publicacoes Publicacao[]
   cliques     Clique[]
   precos      HistoricoPreco[]
+  itensLanding LandingProduto[]
+  landingsHero LandingDiaria[] @relation("HeroDaLanding")
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -374,13 +384,14 @@ enum StatusPublicacao {
   CANCELADA
 }
 
-/// Amarrada a um Produto OU a um Post (tipo LISTA) — nunca os dois, nunca
-/// nenhum (CHECK constraint na migration garante isso a nível de banco).
+/// Amarrada a um Produto, a um Post (tipo LISTA) OU a uma LandingDiaria —
+/// exatamente um dos três (CHECK constraint na migration garante isso).
 model Publicacao {
-  id        String  @id @default(cuid())
-  produtoId String?
-  postId    String?
-  canalId   String
+  id              String  @id @default(cuid())
+  produtoId       String?
+  postId          String?
+  landingDiariaId String?
+  canalId         String
 
   agendadaPara DateTime
   status       StatusPublicacao @default(PENDENTE)
@@ -401,9 +412,10 @@ model Publicacao {
   /// produtoId|postId:canalId:instante — barra duplicata mesmo com dois workers.
   chaveIdempotencia String @unique
 
-  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: Cascade)
-  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  canal   Canal    @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  produto       Produto?       @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  post          Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  landingDiaria LandingDiaria? @relation(fields: [landingDiariaId], references: [id], onDelete: Cascade)
+  canal         Canal          @relation(fields: [canalId], references: [id], onDelete: Cascade)
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -412,6 +424,7 @@ model Publicacao {
   @@index([canalId, agendadaPara])
   @@index([produtoId, canalId, publicadaEm])
   @@index([postId, canalId, publicadaEm])
+  @@index([landingDiariaId, canalId, publicadaEm])
   @@map("publicacoes")
 }
 
@@ -480,6 +493,97 @@ model Configuracao {
   atualizadoEm DateTime @updatedAt
 
   @@map("configuracoes")
+}
+
+enum ModoProjeto {
+  NORMAL
+  VITRINE
+}
+
+enum FaixaPreco {
+  ACESSIVEL
+  INTERMEDIARIO
+  PREMIUM
+}
+
+enum SeloLanding {
+  MAIOR_DESCONTO
+  MAIS_VENDIDO
+  ACHADINHO_DO_DIA
+  ULTIMAS_UNIDADES
+}
+
+enum StatusLanding {
+  RASCUNHO
+  PUBLICADA
+  FALHOU
+}
+
+/// Configuração do modo vitrine por Destino (o "projeto" do sistema).
+/// Toggle por destino — ChartFM/Umbanda podem ficar em NORMAL, Achadinhos em VITRINE.
+model ConfiguracaoVitrine {
+  destino Destino     @id
+  modo    ModoProjeto @default(NORMAL)
+
+  /// Produto entra na curadoria com desconto ≥ este % OU marcado como destaque.
+  descontoMinimoPct Int @default(20)
+  /// Faixa ACESSIVEL: preço atual até este valor (R$).
+  tetoAcessivel     Decimal @default(50) @db.Decimal(12, 2)
+  /// Faixa INTERMEDIARIO: acima de tetoAcessivel até este valor; acima é PREMIUM.
+  tetoIntermediario Decimal @default(150) @db.Decimal(12, 2)
+  /// Mínimo de itens da landing na faixa ACESSIVEL (ex.: 40).
+  cotaAcessivelPct  Int @default(40)
+  quantidadeItens  Int @default(16)
+  maxPorCategoria   Int @default(3)
+
+  /// Convites para os grupos — não são links de afiliado.
+  linkGrupoWhatsapp String?
+  linkGrupoTelegram String?
+
+  atualizadoEm DateTime @updatedAt
+
+  @@map("configuracoes_vitrine")
+}
+
+model LandingDiaria {
+  id            String        @id @default(cuid())
+  destino       Destino
+  /// Dia civil no fuso TZ_APP, gravado como DATE (uma landing por destino/dia).
+  data          DateTime     @db.Date
+  slug          String        @unique
+  heroProdutoId String?
+  heroProduto   Produto?     @relation("HeroDaLanding", fields: [heroProdutoId], references: [id], onDelete: SetNull)
+  headline      String?
+  metaTitulo    String
+  metaDescricao String
+  status        StatusLanding @default(RASCUNHO)
+  /// false quando o Gemini falhou e os textos vieram do template.
+  textosViaGemini Boolean     @default(false)
+  geradaEm      DateTime      @default(now())
+
+  itens       LandingProduto[]
+  publicacoes Publicacao[]
+
+  @@unique([destino, data])
+  @@index([destino, status])
+  @@map("landings_diarias")
+}
+
+model LandingProduto {
+  id              String        @id @default(cuid())
+  landingDiariaId String
+  landingDiaria   LandingDiaria @relation(fields: [landingDiariaId], references: [id], onDelete: Cascade)
+  produtoId       String
+  produto         Produto      @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  posicao         Int
+  faixaPreco      FaixaPreco
+  selo            SeloLanding?
+  tituloCurto     String?
+  descricao       String?      @db.Text
+
+  @@unique([landingDiariaId, produtoId])
+  @@index([landingDiariaId, posicao])
+  @@map("landing_produtos")
 }
 
 /// Log mínimo do que o worker fez — o suficiente para explicar um post que não saiu.

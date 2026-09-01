@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { prisma, Destino } from "@/lib/database";
+import { prisma, Destino, StatusLanding } from "@/lib/database";
 import { Button } from "@/components/ui/button";
 import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
 import { CAPA_EDITORIAL, resolverCapa } from "@/lib/conteudo/capa";
 import { FERRAMENTAS } from "@/lib/ferramentas";
 import { NewsletterForm } from "./newsletter-form";
+import { dataCivil } from "@/lib/vitrine/data";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -17,7 +18,7 @@ function readingTime(text: string) {
 }
 
 export default async function HomePage() {
-  const [posts, produtos] = await Promise.all([
+  const [posts, produtos, vitrineHoje] = await Promise.all([
     prisma.post.findMany({
       where: { status: "PUBLICADO", tipo: "JORNADA" },
       include: { capa: true },
@@ -28,6 +29,10 @@ export default async function HomePage() {
       where: { ativo: true, destino: Destino.MEU_NOVO_LAR, categoria: { in: HOME_CATEGORIAS } },
       orderBy: { criadoEm: "desc" },
       take: 12,
+    }),
+    prisma.landingDiaria.findFirst({
+      where: { destino: Destino.MEU_NOVO_LAR, data: dataCivil(), status: StatusLanding.PUBLICADA },
+      select: { slug: true, headline: true },
     }),
   ]);
 
@@ -67,6 +72,23 @@ export default async function HomePage() {
           />
         </div>
       </div>
+
+      {vitrineHoje && (
+        <div className="mx-auto max-w-[1200px] px-5 pb-6 sm:px-10">
+          <Link
+            href={`/vitrine/${vitrineHoje.slug}`}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sage/40 bg-secondary px-5 py-4"
+          >
+            <div>
+              <div className="text-[11px] font-bold tracking-[0.12em] text-muted-foreground">OFERTAS DO DIA</div>
+              <div className="mt-1 font-heading text-lg font-semibold text-foreground">
+                {vitrineHoje.headline ?? "A vitrine de hoje está no ar"}
+              </div>
+            </div>
+            <span className="text-sm font-semibold text-primary">Ver seleção →</span>
+          </Link>
+        </div>
+      )}
 
       {/* Conteúdos recentes */}
       {posts.length > 0 && (

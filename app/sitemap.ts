@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/database";
 import { getSiteUrl } from "@/lib/site-url";
 
-const ROTAS_ESTATICAS = ["/", "/blog", "/produtos", "/ferramentas", "/sobre", "/contato", "/ofertas"];
+const ROTAS_ESTATICAS = ["/", "/blog", "/produtos", "/ferramentas", "/sobre", "/contato", "/ofertas", "/vitrine"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
@@ -26,5 +26,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: post.atualizadoEm ?? post.publicadoEm ?? new Date(),
   }));
 
-  return [...estaticas, ...doPosts];
+  const landings = await prisma.landingDiaria.findMany({
+    where: { status: "PUBLICADA" },
+    select: { slug: true, geradaEm: true, data: true },
+  });
+
+  const doVitrine: MetadataRoute.Sitemap = landings.map((landing) => ({
+    url: `${siteUrl}/vitrine/${landing.slug}`,
+    lastModified: landing.geradaEm ?? landing.data,
+  }));
+
+  return [...estaticas, ...doPosts, ...doVitrine];
 }

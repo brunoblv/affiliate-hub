@@ -7,6 +7,8 @@ import { formatarLocal } from "@/lib/agenda/fuso";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
+import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
+import { partesNoFuso } from "@/lib/agenda/fuso";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
@@ -15,6 +17,9 @@ const LOTE = 5;
 const INTERVALO_SYNC_PRECOS_MS = 6 * 60 * 60 * 1000;
 /** Ofertas do dia — uma leva só, uma vez por dia. */
 const INTERVALO_DESCOBERTA_SHOPEE_MS = 24 * 60 * 60 * 1000;
+/** Landing da vitrine: confere a cada 15 min; gera a partir das 6h (TZ_APP). */
+const INTERVALO_VITRINE_MS = 15 * 60 * 1000;
+const HORA_VITRINE = 6;
 
 let rodando = false;
 let encerrando = false;
@@ -134,6 +139,23 @@ async function loopDescobertaShopee(): Promise<void> {
   }
 }
 
+/** Job da vitrine: a partir das 6h no fuso da operação; idempotente no mesmo dia. */
+async function loopLandingDiaria(): Promise<void> {
+  while (!encerrando) {
+    try {
+      const hora = partesNoFuso(new Date()).hora;
+      if (hora >= HORA_VITRINE) {
+        await gerarLandingsDoDia();
+      }
+    } catch (erro) {
+      await registrar("ERRO", "VITRINE", "Job diário da vitrine falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_VITRINE_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -147,3 +169,4 @@ void loop();
 void loopSincronizacaoPrecos();
 void loopSincronizacaoPrecosShopee();
 void loopDescobertaShopee();
+void loopLandingDiaria();

@@ -110,3 +110,32 @@ export function montarTextoDaLista({ post, rede, link }: EntradaTextoDaLista): s
 
   return linhas.join("\n").trim();
 }
+
+export interface EntradaTextoDaLanding {
+  headline: string;
+  resumo: string;
+  destino: Destino;
+  rede: Rede;
+  link: string;
+}
+
+/** Legenda da divulgação da landing do dia — aponta pra página, não pra um produto. */
+export function montarTextoDaLanding({ headline, resumo, rede, link }: EntradaTextoDaLanding): string {
+  const linhas: string[] = [headline];
+
+  if (resumo) {
+    linhas.push("", resumo);
+  }
+
+  linhas.push("");
+  linhas.push(rede === Rede.INSTAGRAM ? "Link na bio." : "Confira as ofertas do dia:");
+
+  if (rede !== Rede.INSTAGRAM) {
+    linhas.push(link);
+  }
+
+  linhas.push("");
+  linhas.push(AVISO_AFILIADO);
+
+  return linhas.join("\n").trim();
+}

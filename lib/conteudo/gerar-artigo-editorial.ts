@@ -25,7 +25,9 @@ const SCHEMA_ARTIGO = {
   required: ["titulo", "resumo", "corpo", "seoTitulo", "metaDescricao"],
 };
 
-const MINIMO_PALAVRAS = 800;
+const MINIMO_PALAVRAS = 600;
+const ALVO_PALAVRAS = 850;
+const MAX_TENTATIVAS = 3;
 
 const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
   [CategoriaEditorial.DICAS_CASA]: "artigo-editorial.md",
@@ -57,7 +59,7 @@ async function montarPrompt(
   base: string,
   tema: TemaEditorial,
   categoria: CategoriaEditorial,
-  reforcoTamanho: boolean,
+  rascunhoCurto?: ArtigoEditorial,
 ): Promise<string> {
   let preenchido = base
     .replace("{{titulo}}", tema.titulo)
@@ -68,24 +70,42 @@ async function montarPrompt(
     preenchido = preenchido.replace("{{contextoJornada}}", await contextoJornada());
   }
 
-  if (!reforcoTamanho) return preenchido;
+  if (!rascunhoCurto) return preenchido;
 
-  return `${preenchido}\n\n## Atenção\n\nA tentativa anterior ficou curta demais. O corpo tem que ter pelo menos ${MINIMO_PALAVRAS} palavras — desenvolva mais as seções existentes com informação prática real, não repita frases pra encher.`;
+  const palavras = contarPalavras(rascunhoCurto.corpo);
+  return `${preenchido}
+
+## Atenção — expandir o rascunho abaixo
+
+A tentativa anterior ficou com ${palavras} palavras. O piso é ${MINIMO_PALAVRAS}; o alvo é ${ALVO_PALAVRAS}. Não recomece do zero: mantenha o ângulo, os fatos e a voz, e desenvolva cada seção com mais detalhe concreto (rotina, critérios, o que observar, trade-offs, o que faria diferente). Se o tema comportar, acrescente 1 seção nova. Não invente fato pessoal fora do contexto e não repita frases pra encher.
+
+### Rascunho anterior (corpo)
+
+${rascunhoCurto.corpo}`;
 }
 
-/** Gera o artigo completo para um tema/categoria, com uma tentativa extra se sair curto. */
+/** Gera o artigo completo para um tema/categoria, expandindo o rascunho se sair curto. */
 export async function gerarArtigoEditorial(tema: TemaEditorial, categoria: CategoriaEditorial): Promise<ArtigoEditorial> {
   const base = await carregarPromptBase(categoria);
+  const contagens: number[] = [];
+  let rascunhoCurto: ArtigoEditorial | undefined;
 
-  for (const reforcoTamanho of [false, true]) {
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
     const artigo = await gerarJson<ArtigoEditorial>({
-      prompt: await montarPrompt(base, tema, categoria, reforcoTamanho),
+      prompt: await montarPrompt(base, tema, categoria, rascunhoCurto),
       schema: SCHEMA_ARTIGO,
       temperature: 0.9,
+      maxOutputTokens: 16384,
+      tarefa: "artigo",
     });
 
-    if (contarPalavras(artigo.corpo) >= MINIMO_PALAVRAS) return artigo;
+    const palavras = contarPalavras(artigo.corpo);
+    contagens.push(palavras);
+    if (palavras >= MINIMO_PALAVRAS) return artigo;
+    rascunhoCurto = artigo;
   }
 
-  throw new Error(`Gemini não conseguiu gerar ${MINIMO_PALAVRAS}+ palavras para o tema "${tema.titulo}" em 2 tentativas.`);
+  throw new Error(
+    `Gemini não conseguiu gerar ${MINIMO_PALAVRAS}+ palavras para o tema "${tema.titulo}" em ${MAX_TENTATIVAS} tentativas (ficou com ${contagens.join(", ")}).`,
+  );
 }

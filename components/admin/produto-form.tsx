@@ -168,6 +168,19 @@ export function ProdutoForm({
 
       <div className="flex items-center gap-2">
         <input
+          id="destaqueVitrine"
+          name="destaqueVitrine"
+          type="checkbox"
+          defaultChecked={produto?.destaqueVitrine ?? false}
+          className="size-4 rounded border-input"
+        />
+        <Label htmlFor="destaqueVitrine" className="font-normal">
+          Destaque na vitrine (entra na curadoria mesmo sem o desconto mínimo)
+        </Label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
           id="ativo"
           name="ativo"
           type="checkbox"

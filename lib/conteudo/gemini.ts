@@ -1,4 +1,11 @@
 import { withRetry } from "@/lib/integrations/retry";
+import {
+  apiKeyGemini,
+  cadeiaDeModelos,
+  ehTrocarModelo,
+  modeloPadrao,
+  type TarefaGemini,
+} from "@/lib/conteudo/gemini-modelos";
 
 /**
  * Cliente mínimo da Gemini API (Google AI Studio) via REST — sem SDK, pra não
@@ -12,6 +19,10 @@ export interface GerarJsonOptions {
   prompt: string;
   schema: Record<string, unknown>;
   temperature?: number;
+  /** Teto de tokens de saída. Sem isso, o thinking do 2.5 Flash come o orçamento e o JSON sai curto. */
+  maxOutputTokens?: number;
+  /** "artigo" tenta Flash de qualidade primeiro; "curto" prioriza Lite (500 RPD). */
+  tarefa?: Exclude<TarefaGemini, "tts">;
 }
 
 interface RespostaGemini {
@@ -22,56 +33,124 @@ interface RespostaGemini {
   promptFeedback?: { blockReason?: string };
 }
 
-function apiKey(): string {
-  const chave = process.env.GEMINI_API_KEY;
-  if (!chave) throw new Error("GEMINI_API_KEY não configurado no .env.");
-  return chave;
+const MAX_OUTPUT_PADRAO = 16384;
+
+/**
+ * Gemini 2.5+ gasta thinking tokens contra maxOutputTokens. Em JSON estruturado
+ * isso corta o corpo do artigo. Flash aceita desligar; Pro exige um mínimo.
+ */
+function thinkingConfig(modelo: string): { thinkingBudget: number } | undefined {
+  const nome = modelo.toLowerCase();
+  if (!nome.includes("gemini-2.5") && !nome.includes("gemini-3")) return undefined;
+  if (nome.includes("pro")) return { thinkingBudget: 1024 };
+  return { thinkingBudget: 0 };
 }
 
-function modelo(): string {
-  return process.env.GEMINI_MODEL || "gemini-2.5-flash";
+async function gerarJsonNoModelo<T>({
+  prompt,
+  schema,
+  temperature,
+  maxOutputTokens,
+  modelo,
+  comPensamento,
+}: GerarJsonOptions & { modelo: string; comPensamento: boolean }): Promise<T> {
+  const pensamento = comPensamento ? thinkingConfig(modelo) : undefined;
+
+  const res = await fetch(`${ENDPOINT_BASE}/${modelo}:generateContent?key=${apiKeyGemini()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature,
+        maxOutputTokens,
+        responseMimeType: "application/json",
+        responseSchema: schema,
+        ...(pensamento ? { thinkingConfig: pensamento } : {}),
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const corpo = await res.text().catch(() => "");
+    throw new Error(`Gemini API (${modelo}) respondeu ${res.status}: ${corpo.slice(0, 500)}`);
+  }
+
+  const json = (await res.json()) as RespostaGemini;
+
+  if (json.promptFeedback?.blockReason) {
+    throw new Error(`Gemini bloqueou o prompt: ${json.promptFeedback.blockReason}`);
+  }
+
+  const candidato = json.candidates?.[0];
+  const texto = candidato?.content?.parts?.[0]?.text;
+  const motivo = candidato?.finishReason ?? "sem candidatos na resposta";
+  if (!texto) {
+    throw new Error(`Gemini não retornou conteúdo (${motivo}).`);
+  }
+
+  try {
+    return JSON.parse(texto) as T;
+  } catch {
+    throw new Error(`Gemini retornou JSON inválido (${motivo}): ${texto.slice(0, 300)}`);
+  }
 }
 
 /** Chama a Gemini API e devolve o JSON já validado contra `schema`. */
-export async function gerarJson<T>({ prompt, schema, temperature = 0.9 }: GerarJsonOptions): Promise<T> {
-  return withRetry(
-    async () => {
-      const res = await fetch(`${ENDPOINT_BASE}/${modelo()}:generateContent?key=${apiKey()}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature,
-            responseMimeType: "application/json",
-            responseSchema: schema,
-          },
-        }),
-      });
+export async function gerarJson<T>({
+  prompt,
+  schema,
+  temperature = 0.9,
+  maxOutputTokens = MAX_OUTPUT_PADRAO,
+  tarefa = "curto",
+}: GerarJsonOptions): Promise<T> {
+  const cadeia = cadeiaDeModelos(tarefa);
+  if (cadeia.length === 0) cadeia.push(modeloPadrao());
 
-      if (!res.ok) {
-        const corpo = await res.text().catch(() => "");
-        throw new Error(`Gemini API respondeu ${res.status}: ${corpo.slice(0, 500)}`);
-      }
+  let ultimoErro: unknown;
 
-      const json = (await res.json()) as RespostaGemini;
+  for (const modelo of cadeia) {
+    try {
+      return await withRetry(
+        async () => {
+          try {
+            return await gerarJsonNoModelo<T>({
+              prompt,
+              schema,
+              temperature,
+              maxOutputTokens,
+              modelo,
+              comPensamento: true,
+            });
+          } catch (erro) {
+            const msg = erro instanceof Error ? erro.message : String(erro);
+            if (/400/.test(msg) && /thinking/i.test(msg)) {
+              return gerarJsonNoModelo<T>({
+                prompt,
+                schema,
+                temperature,
+                maxOutputTokens,
+                modelo,
+                comPensamento: false,
+              });
+            }
+            throw erro;
+          }
+        },
+        {
+          maxAttempts: 3,
+          baseDelayMs: 1500,
+          retryIf: (erro) => !ehTrocarModelo(erro),
+        },
+      );
+    } catch (erro) {
+      ultimoErro = erro;
+      if (ehTrocarModelo(erro)) continue;
+      throw erro;
+    }
+  }
 
-      if (json.promptFeedback?.blockReason) {
-        throw new Error(`Gemini bloqueou o prompt: ${json.promptFeedback.blockReason}`);
-      }
-
-      const texto = json.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!texto) {
-        const motivo = json.candidates?.[0]?.finishReason ?? "sem candidatos na resposta";
-        throw new Error(`Gemini não retornou conteúdo (${motivo}).`);
-      }
-
-      try {
-        return JSON.parse(texto) as T;
-      } catch {
-        throw new Error(`Gemini retornou JSON inválido: ${texto.slice(0, 300)}`);
-      }
-    },
-    { maxAttempts: 3, baseDelayMs: 1500 },
-  );
+  throw ultimoErro instanceof Error
+    ? ultimoErro
+    : new Error("Nenhum modelo Gemini da cadeia free respondeu.");
 }

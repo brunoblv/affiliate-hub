@@ -3,9 +3,11 @@ import { join } from "node:path";
 import { Destino, Rede, type Produto } from "@/lib/database";
 import { gerarJson } from "@/lib/conteudo/gemini";
 import {
+  montarTextoDaLanding,
   montarTextoDaLista,
   montarTextoDoPost,
   type EntradaTexto,
+  type EntradaTextoDaLanding,
   type EntradaTextoDaLista,
 } from "@/lib/conteudo/texto-do-post";
 import { LABEL_CATEGORIA } from "@/lib/produtos";
@@ -281,4 +283,43 @@ function montarLegendaLista({ post, rede, link }: EntradaTextoDaLista, partes: P
 
   linhas.push("", partes.cta, linhaDeLink(rede, link, "🔗 Confira a lista no link da bio."), "", DISCLOSURE);
   return linhas.join("\n").trim();
+}
+
+/** Legenda de divulgação da landing diária — reusa o schema da lista, com fallback estático. */
+export async function gerarLegendaDaLanding(entrada: EntradaTextoDaLanding): Promise<string> {
+  if (!geminiDisponivel()) return montarTextoDaLanding(entrada);
+
+  try {
+    const prompt = preencher(await carregarPrompt("legenda-lista.md"), {
+      rede: LABEL_REDE[entrada.rede],
+      destino: LABEL_DESTINO[entrada.destino],
+      tomDestino: TOM_DESTINO[entrada.destino],
+      titulo: entrada.headline,
+      resumo: entrada.resumo.trim() || "(sem resumo — não invente detalhes da seleção)",
+    });
+
+    const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, temperature: 0.8 });
+    const partes: PartesLista = {
+      abertura: limparCampo(bruto.abertura, 80) || "🛍️ OFERTAS DO DIA",
+      chamada: limparCampo(bruto.chamada, 500),
+      cta: limparCampo(bruto.cta, 80) || "👉 VER OFERTAS DO DIA",
+    };
+
+    const linhas: string[] = [partes.abertura, "", entrada.headline];
+    if (partes.chamada) linhas.push("", partes.chamada);
+    linhas.push(
+      "",
+      partes.cta,
+      linhaDeLink(entrada.rede, entrada.link, "🔗 Confira as ofertas do dia no link da bio."),
+      "",
+      DISCLOSURE,
+    );
+    return linhas.join("\n").trim();
+  } catch (erro) {
+    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da vitrine, usando template. ${mensagemErro(erro)}`, {
+      destino: entrada.destino,
+      rede: entrada.rede,
+    });
+    return montarTextoDaLanding(entrada);
+  }
 }

@@ -7,6 +7,9 @@ import { prisma, TipoPost, StatusPost, Destino, CategoriaEditorial } from "@/lib
 import { slugify } from "@/lib/produtos";
 import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
 import { enfileirarPost, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import { gerarAudioTts } from "@/lib/conteudo/gemini-tts";
+import { textoParaNarracao } from "@/lib/conteudo/texto-para-narracao";
+import { excluirArquivoDeMidia, salvarArquivoDeAudio } from "@/lib/midia/salvar";
 
 export interface PostFormState {
   status: "idle" | "error" | "success";
@@ -191,5 +194,52 @@ export async function distribuirPostAction(postId: string): Promise<ResultadoEnf
         motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir a lista.",
       },
     ];
+  }
+}
+
+export type GerarNarracaoResultado = { ok: true; url: string } | { ok: false; erro: string };
+
+/** Gera (ou regenera) a narração TTS do post. Cota free: 10 pedidos/dia por modelo TTS. */
+export async function gerarNarracaoAction(postId: string): Promise<GerarNarracaoResultado> {
+  const sessao = await auth();
+  if (!sessao) return { ok: false, erro: "Não autorizado." };
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { audio: true },
+    });
+    if (!post) return { ok: false, erro: "Post não encontrado." };
+
+    const script = textoParaNarracao(post.titulo, post.corpo);
+    const { wav } = await gerarAudioTts(script);
+    const midia = await salvarArquivoDeAudio({
+      buffer: wav,
+      nomeOriginal: `${post.slug}-narracao.wav`,
+      alt: `Narração em áudio: ${post.titulo}`,
+    });
+
+    const audioAntigo = post.audio;
+
+    await prisma.post.update({
+      where: { id: postId },
+      data: { audioId: midia.id },
+    });
+
+    if (audioAntigo && audioAntigo.id !== midia.id) {
+      const aindaUsada = await prisma.post.count({
+        where: { OR: [{ capaId: audioAntigo.id }, { audioId: audioAntigo.id }] },
+      });
+      if (aindaUsada === 0) {
+        await excluirArquivoDeMidia(audioAntigo.caminho);
+        await prisma.midia.delete({ where: { id: audioAntigo.id } }).catch(() => undefined);
+      }
+    }
+
+    revalidatePath(`/admin/posts/${postId}`);
+    revalidarSitePublico(post.slug);
+    return { ok: true, url: midia.url };
+  } catch (erro) {
+    return { ok: false, erro: erro instanceof Error ? erro.message : "Falha ao gerar a narração." };
   }
 }

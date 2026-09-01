@@ -32,6 +32,7 @@ export default async function FilaAdminPage({
       include: {
         produto: { select: { nome: true } },
         post: { select: { titulo: true } },
+        landingDiaria: { select: { headline: true, slug: true } },
         canal: { select: { nome: true } },
       },
     }),
@@ -59,7 +60,9 @@ export default async function FilaAdminPage({
           <TableBody>
             {publicacoes.map((publicacao) => (
               <TableRow key={publicacao.id}>
-                <TableCell className="font-medium">{publicacao.produto?.nome ?? publicacao.post?.titulo}</TableCell>
+                <TableCell className="font-medium">
+                  {publicacao.produto?.nome ?? publicacao.post?.titulo ?? publicacao.landingDiaria?.headline ?? "Landing"}
+                </TableCell>
                 <TableCell>{publicacao.canal.nome}</TableCell>
                 <TableCell>{formatarLocal(publicacao.agendadaPara)}</TableCell>
                 <TableCell>

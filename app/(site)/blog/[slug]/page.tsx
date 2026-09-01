@@ -13,7 +13,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const post = await prisma.post.findUnique({
     where: { slug },
-    include: { capa: true, autor: true },
+    include: { capa: true, autor: true, audio: true },
   });
 
   if (!post || post.status !== "PUBLICADO") notFound();
@@ -32,6 +32,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     dateModified: post.atualizadoEm.toISOString(),
     author: { "@type": "Person", name: autorNome, url: `${siteUrl}/equipe` },
     image: capa ? [`${siteUrl}${capa.src}`] : undefined,
+    associatedMedia: post.audio
+      ? {
+          "@type": "AudioObject",
+          contentUrl: `${siteUrl}${post.audio.url}`,
+          encodingFormat: "audio/wav",
+          name: `Narração: ${post.titulo}`,
+        }
+      : undefined,
   };
 
   return (
@@ -46,6 +54,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {post.publicadoEm && ` • Publicado em ${post.publicadoEm.toLocaleDateString("pt-BR")}`}
         {mostrarAtualizacao && ` • Atualizado em ${post.atualizadoEm.toLocaleDateString("pt-BR")}`}
       </p>
+
+      {post.audio && (
+        <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
+          <p className="mb-2 text-sm font-medium">Ouça este artigo</p>
+          <audio controls preload="metadata" className="w-full" src={post.audio.url}>
+            <a href={post.audio.url}>Baixar a narração em áudio</a>
+          </audio>
+        </div>
+      )}
 
       {post.avisoSeguranca && (
         <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">

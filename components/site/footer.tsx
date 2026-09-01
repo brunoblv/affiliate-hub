@@ -16,6 +16,7 @@ export function SiteFooter() {
             <Link href="/blog" className="hover:text-background">Blog</Link>
             <Link href="/produtos" className="hover:text-background">Produtos</Link>
             <Link href="/ofertas" className="hover:text-background">Ofertas</Link>
+            <Link href="/vitrine" className="hover:text-background">Ofertas do dia</Link>
           </div>
         </div>
         <div>

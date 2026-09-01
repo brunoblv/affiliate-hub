@@ -48,6 +48,7 @@ function readForm(formData: FormData) {
   // Regra AGENTS.md: nunca divulgar a URL crua da loja — só o link de afiliado real.
   const linkAfiliado = String(formData.get("linkAfiliado") ?? "").trim();
   const ativo = formData.get("ativo") === "on";
+  const destaqueVitrine = formData.get("destaqueVitrine") === "on";
 
   return {
     nome,
@@ -62,6 +63,7 @@ function readForm(formData: FormData) {
     imagens,
     linkAfiliado,
     ativo,
+    destaqueVitrine,
   };
 }
 
@@ -88,6 +90,7 @@ export async function createProdutoAction(_prev: ProdutoFormState, formData: For
       linkAfiliado: dados.linkAfiliado,
       codigoCurto: gerarCodigoCurto(),
       ativo: dados.ativo,
+      destaqueVitrine: dados.destaqueVitrine,
     },
   });
 
@@ -124,6 +127,7 @@ export async function updateProdutoAction(
       precoOriginal: dados.precoOriginal || null,
       linkAfiliado: dados.linkAfiliado,
       ativo: dados.ativo,
+      destaqueVitrine: dados.destaqueVitrine,
     },
   });
 

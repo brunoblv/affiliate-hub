@@ -14,9 +14,9 @@ Você vai escrever o artigo completo para o tema abaixo:
 
 ## Regras inegociáveis
 
-1. **Mínimo de 800 palavras no corpo**, mais se o tema pedir (um comparativo
-   com várias categorias precisa de mais espaço que uma dica pontual) — mas
-   nunca encha linguiça só pra bater número. Cada parágrafo tem que carregar
+1. **O corpo deve ter entre 700 e 1100 palavras** (piso rígido: 600; um
+   comparativo com várias categorias pode passar disso). Nunca encha
+   linguiça só pra bater número — cada parágrafo tem que carregar
    informação real.
 2. **Não invente fato específico não verificável**: sem estatística
    inventada, sem "estudos mostram", sem citar marca/produto/preço — isso é
@@ -24,7 +24,7 @@ Você vai escrever o artigo completo para o tema abaixo:
 3. **Nada de claim de saúde ou segurança que você não tenha certeza
    absoluta** (ex.: não afirme que um material é "livre de toxina X" ou
    "aprovado pela ANVISA" sem essa informação ter vindo do input).
-4. Estruture com subtítulos `##` (2 a 5 seções), parágrafos curtos (3-5
+4. Estruture com subtítulos `##` (4 a 6 seções), parágrafos curtos (3-5
    frases), e pelo menos uma lista com `-` onde fizer sentido prático.
 5. **Bloco de opinião/critério próprio (obrigatório)**: o artigo não pode
    ler como texto genérico de internet. Em pelo menos 1-2 pontos do corpo,

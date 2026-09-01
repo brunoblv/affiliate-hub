@@ -29,16 +29,18 @@ vez de inventar.
 
 ## Regras inegociáveis
 
-1. **Mínimo de 800 palavras no corpo**, mais se o tema pedir — mas nunca
-   encha linguiça só pra bater número. Cada parágrafo tem que carregar
-   informação real (do contexto acima ou prática genérica sólida).
+1. **O corpo deve ter entre 700 e 1100 palavras** (piso rígido: 600). Se o
+   contexto pessoal for magro pra esse tema, complete com critério prático
+   genérico — o que observar, trade-offs, rotina típica, o que pesaria na
+   decisão — sem inventar fato pessoal. Nunca encha linguiça: cada
+   parágrafo carrega informação real (do contexto acima ou prática sólida).
 2. **Não invente fato específico não verificável** fora do contexto: sem
    estatística inventada, sem "estudos mostram", sem citar marca/produto/
    preço de mercado genérico — isso é decidido depois por um humano.
 3. **Nada de claim de saúde, segurança ou jurídico/financeiro que você não
    tenha certeza absoluta** (ex.: não afirme regra de financiamento,
    imposto ou documentação sem essa informação ter vindo do contexto).
-4. Estruture com subtítulos `##` (2 a 5 seções), parágrafos curtos (3-5
+4. Estruture com subtítulos `##` (4 a 6 seções), parágrafos curtos (3-5
    frases), e pelo menos uma lista com `-` onde fizer sentido prático.
 5. **Bloco de opinião/vivência (obrigatório)**: mesmo já sendo relato em
    primeira pessoa, o artigo não pode soar como guia genérico disfarçado.

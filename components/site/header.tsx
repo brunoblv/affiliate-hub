@@ -5,6 +5,7 @@ const NAV_LINKS = [
   { href: "/blog", label: "Blog" },
   { href: "/produtos", label: "Produtos" },
   { href: "/ofertas", label: "Ofertas" },
+  { href: "/vitrine", label: "Ofertas do dia" },
   { href: "/ferramentas", label: "Ferramentas" },
 ];
 

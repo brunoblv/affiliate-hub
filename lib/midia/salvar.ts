@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
@@ -7,13 +7,17 @@ import { prisma } from "@/lib/database";
 import { slugify } from "@/lib/produtos";
 
 /**
- * Upload de imagem do CMS. Fica FORA de public/ (MEDIA_ROOT) e é servido por
+ * Upload de mídia do CMS. Fica FORA de public/ (MEDIA_ROOT) e é servido por
  * /midia/[...caminho], para o Next não precisar de rebuild a cada arquivo novo.
  */
 export const RAIZ_MIDIA = process.env.MEDIA_ROOT ?? path.join(process.cwd(), ".midia");
 export const TAMANHO_MAXIMO_MIDIA = 25 * 1024 * 1024; // 25 MB (o arquivo é sempre redimensionado/recomprimido antes de salvar)
 export const LARGURA_MAXIMA_MIDIA = 1600;
 export const TIPOS_ACEITOS_MIDIA = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+function pastaDoMes(agora = new Date()): string {
+  return path.join(String(agora.getFullYear()), String(agora.getMonth() + 1).padStart(2, "0"));
+}
 
 export async function salvarArquivoDeMidia(entrada: {
   buffer: Buffer;
@@ -27,8 +31,7 @@ export async function salvarArquivoDeMidia(entrada: {
   const metadados = await processada.metadata();
   const conteudo = await processada.clone().webp({ quality: 82 }).toBuffer();
 
-  const agora = new Date();
-  const pasta = path.join(String(agora.getFullYear()), String(agora.getMonth() + 1).padStart(2, "0"));
+  const pasta = pastaDoMes();
   const base = slugify(path.parse(entrada.nomeOriginal).name).slice(0, 60);
   const nomeArquivo = `${base || "imagem"}-${randomBytes(4).toString("hex")}.webp`;
   const caminhoRelativo = path.join(pasta, nomeArquivo);
@@ -49,4 +52,35 @@ export async function salvarArquivoDeMidia(entrada: {
       alt: entrada.alt?.trim() || null,
     },
   });
+}
+
+export async function salvarArquivoDeAudio(entrada: {
+  buffer: Buffer;
+  nomeOriginal: string;
+  alt?: string | null;
+}) {
+  const pasta = pastaDoMes();
+  const base = slugify(path.parse(entrada.nomeOriginal).name).slice(0, 60);
+  const nomeArquivo = `${base || "audio"}-${randomBytes(4).toString("hex")}.wav`;
+  const caminhoRelativo = path.join(pasta, nomeArquivo);
+  const caminhoAbsoluto = path.join(RAIZ_MIDIA, caminhoRelativo);
+
+  await mkdir(path.dirname(caminhoAbsoluto), { recursive: true });
+  await writeFile(caminhoAbsoluto, entrada.buffer);
+
+  return prisma.midia.create({
+    data: {
+      url: `/midia/${caminhoRelativo.split(path.sep).join("/")}`,
+      caminho: caminhoRelativo,
+      nomeOriginal: entrada.nomeOriginal,
+      mimeType: "audio/wav",
+      tamanhoBytes: entrada.buffer.byteLength,
+      alt: entrada.alt?.trim() || null,
+    },
+  });
+}
+
+export async function excluirArquivoDeMidia(caminhoRelativo: string): Promise<void> {
+  const absoluto = path.join(RAIZ_MIDIA, caminhoRelativo);
+  await unlink(absoluto).catch(() => undefined);
 }

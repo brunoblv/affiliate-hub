@@ -15,6 +15,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".png": "image/png",
   ".avif": "image/avif",
+  ".wav": "audio/wav",
 };
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ caminho: string[] }> }) {
