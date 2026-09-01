@@ -1,4 +1,5 @@
 import { TAMANHO_MAXIMO_MIDIA } from "@/lib/midia/constantes";
+import { comprimirImagemParaUpload } from "@/lib/midia/comprimir-cliente";
 
 export type MidiaEnviada = {
   id: string;
@@ -12,8 +13,10 @@ export async function enviarArquivoDeMidia(arquivo: File, alt?: string): Promise
     throw new Error("Arquivo acima de 25 MB.");
   }
 
+  const compactado = await comprimirImagemParaUpload(arquivo);
+
   const formData = new FormData();
-  formData.set("arquivo", arquivo);
+  formData.set("arquivo", compactado);
   if (alt) formData.set("alt", alt);
 
   const resposta = await fetch("/api/admin/midia", { method: "POST", body: formData });
@@ -23,8 +26,13 @@ export async function enviarArquivoDeMidia(arquivo: File, alt?: string): Promise
   try {
     json = JSON.parse(texto) as MidiaEnviada & { erro?: string };
   } catch {
+    if (resposta.status === 413) {
+      throw new Error(
+        "O servidor recusou o arquivo (HTTP 413). No Nginx o padrão é 1 MB — no servidor, em http { } ou no server do site, use client_max_body_size 30m;",
+      );
+    }
     throw new Error(
-      `Falha no upload (${resposta.status}). Tente JPEG/PNG/WebP até 25 MB; se persistir, recarregue a página.`,
+      `Falha no upload (${resposta.status}). Tente JPEG/PNG/WebP; se persistir, recarregue a página.`,
     );
   }
 

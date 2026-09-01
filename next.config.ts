@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   // header Origin com o Host visto internamente pelo servidor para bloquear
   // CSRF em Server Actions; sem isso, cliques em botões que chamam Server
   // Actions (ex: "Rodar descoberta agora") falham em silêncio.
+  //
+  // O Nginx à frente do Node também precisa de `client_max_body_size 30m;`
+  // (o padrão é 1m e devolve HTML 413 em JPEG de ~2 MB, antes de chegar aqui).
   experimental: {
     serverActions: {
       allowedOrigins: ["meunovolar.com", "www.meunovolar.com"],
