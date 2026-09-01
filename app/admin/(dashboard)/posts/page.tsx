@@ -46,10 +46,15 @@ export default async function PostsAdminPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Posts" description={descricaoFiltro} />
-        <Button render={<Link href="/admin/posts/novo" />}>
-          <Plus />
-          Novo post
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" render={<Link href="/admin/posts/gerar-lista" />}>
+            Gerar lista
+          </Button>
+          <Button render={<Link href="/admin/posts/novo" />}>
+            <Plus />
+            Novo post
+          </Button>
+        </div>
       </div>
 
       <FiltroTipoPosts atual={tipo} total={totalGeral} porTipo={porTipo} />

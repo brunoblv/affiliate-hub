@@ -1,12 +1,12 @@
 /**
  * Conversão entre horário local da operação e UTC.
  *
- * O sistema antigo guardava "19:30" e comparava com `new Date().getHours()` —
- * ou seja, com o fuso do servidor. Container em UTC publicava 3h fora do
- * horário. Aqui o fuso é explícito e vem do .env.
+ * Sempre America/Sao_Paulo (Brasília). `TZ_APP=""` (string vazia) não pode
+ * cair no `??` e deixar o Intl no fuso do servidor — em container UTC isso
+ * agenda 21h como 00h do dia seguinte.
  */
 
-export const FUSO_APP = process.env.TZ_APP ?? "America/Sao_Paulo";
+export const FUSO_APP = process.env.TZ_APP?.trim() || "America/Sao_Paulo";
 
 interface PartesData {
   ano: number;
@@ -99,11 +99,41 @@ export function inicioDoDia(instante: Date, fuso: string = FUSO_APP): Date {
   return paraUtc(p.ano, p.mes, p.dia, 0, 0, fuso);
 }
 
+function doisDigitos(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
 /** Formata um instante no fuso da operação, para telas e logs. */
 export function formatarLocal(instante: Date, fuso: string = FUSO_APP): string {
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: fuso,
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(instante);
+  const p = partesNoFuso(instante, fuso);
+  return `${doisDigitos(p.dia)}/${doisDigitos(p.mes)}/${p.ano}, ${doisDigitos(p.hora)}:${doisDigitos(p.minuto)} (Brasília)`;
+}
+
+/** ISO 8601 → texto em Brasília. Uso em client components que só têm a string. */
+export function formatarIsoLocal(iso: string, fuso: string = FUSO_APP): string {
+  return formatarLocal(new Date(iso), fuso);
+}
+
+/** Valor para `<input type="datetime-local">` / prompt, já em Brasília — nunca recortar o ISO UTC. */
+export function paraInputDatetimeLocal(instante: Date, fuso: string = FUSO_APP): string {
+  const p = partesNoFuso(instante, fuso);
+  return `${p.ano}-${doisDigitos(p.mes)}-${doisDigitos(p.dia)}T${doisDigitos(p.hora)}:${doisDigitos(p.minuto)}`;
+}
+
+/** Interpreta "AAAA-MM-DDTHH:mm" como horário de Brasília (não como UTC nem como fuso do servidor). */
+export function deInputDatetimeLocal(texto: string, fuso: string = FUSO_APP): Date {
+  const casamento = /^(\d{4})-(\d{2})-(\d{2})T(\d{1,2}):(\d{2})$/.exec(texto.trim());
+  if (!casamento) throw new Error(`Data inválida: "${texto}". Use AAAA-MM-DDTHH:mm.`);
+
+  const ano = Number(casamento[1]);
+  const mes = Number(casamento[2]);
+  const dia = Number(casamento[3]);
+  const hora = Number(casamento[4]);
+  const minuto = Number(casamento[5]);
+
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31 || hora > 23 || minuto > 59) {
+    throw new Error(`Data inválida: "${texto}".`);
+  }
+
+  return paraUtc(ano, mes, dia, hora, minuto, fuso);
 }

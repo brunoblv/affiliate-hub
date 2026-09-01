@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { distribuirPostAction } from "@/app/admin/(dashboard)/posts/actions";
 import type { ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import { formatarIsoLocal } from "@/lib/agenda/fuso";
 
 export function DistribuirPostButton({ postId }: { postId: string }) {
   const router = useRouter();
@@ -52,7 +53,7 @@ export function DistribuirPostButton({ postId }: { postId: string }) {
             <li key={r.canalId}>
               <span className="font-medium">{r.canal}</span>:{" "}
               {r.agendadaPara ? (
-                <span>agendado para {new Date(r.agendadaPara).toLocaleString("pt-BR")}</span>
+                <span>agendado para {formatarIsoLocal(r.agendadaPara)}</span>
               ) : (
                 <span className="text-muted-foreground">{r.motivoPulado}</span>
               )}

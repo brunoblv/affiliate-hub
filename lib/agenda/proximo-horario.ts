@@ -1,42 +1,42 @@
 import { prisma, type Canal } from "@/lib/database";
 import { FUSO_APP, inicioDoDia, lerHorario, paraUtc, partesNoFuso } from "./fuso";
+import {
+  estaNaJanelaDePublicacao,
+  gerarHorariosDaJanela,
+  INTERVALO_PADRAO_MIN,
+  TETO_PADRAO,
+} from "./janela";
+
+export {
+  estaNaJanelaDePublicacao,
+  gerarHorariosDaJanela,
+  HORARIOS_PADRAO,
+  INTERVALO_PADRAO_MIN,
+  JANELA_FIM,
+  JANELA_INICIO,
+  rotuloJanela,
+  TETO_PADRAO,
+  tetoDaJanela,
+} from "./janela";
 
 /** Até onde procurar depois da última publicação (ou de agora, se a fila estiver vazia). */
 const DIAS_MAXIMOS_DE_BUSCA = 90;
 const MAX_ITERACOES = 180;
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 
-/** Usado quando o canal foi salvo sem horários — o formulário deixa o campo vazio por padrão. */
-export const HORARIOS_PADRAO = ["09:00", "13:00", "19:30"];
-
 export interface ResultadoAgenda {
   agendadaPara: Date;
 }
 
 export function horariosDoCanal(canal: Canal): string[] {
-  const bruto = Array.isArray(canal.horarios) ? canal.horarios : [];
-  const textos = bruto
-    .flatMap((item) => String(item).split(/[,\n]/))
-    .map((texto) => texto.trim())
-    .filter(Boolean);
-
-  const validos: string[] = [];
-  for (const texto of textos) {
-    try {
-      const { hora, minuto } = lerHorario(texto);
-      validos.push(`${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`);
-    } catch {
-      throw new Error(`Horário inválido no canal "${canal.nome}": "${texto}". Use HH:mm.`);
-    }
-  }
-
-  return validos.length > 0 ? [...new Set(validos)] : HORARIOS_PADRAO;
+  const intervalo = canal.intervaloMinimoMin === 90 ? INTERVALO_PADRAO_MIN : canal.intervaloMinimoMin || INTERVALO_PADRAO_MIN;
+  return gerarHorariosDaJanela(intervalo);
 }
 
 /**
  * Encontra o próximo horário livre de um canal, obedecendo, nesta ordem:
  *
- * 1. só horários configurados em `canal.horarios` (ou o padrão, se vazio);
+ * 1. só horários da janela 09:00–21:00 (Brasília), a cada `intervaloMinimoMin`;
  * 2. no futuro (nunca reagenda para trás);
  * 3. `intervaloMinimoMin` desde a publicação vizinha mais próxima;
  * 4. `tetoDiario` de publicações naquele dia;
@@ -50,12 +50,16 @@ export async function proximoHorarioLivre(
   apartirDe: Date = new Date(),
   excluirPublicacaoId?: string,
 ): Promise<ResultadoAgenda | null> {
+  await aplicarJanelaPadraoNosCanais();
+
   const horariosOrdenados = horariosDoCanal(canal)
     .map((texto) => lerHorario(texto))
     .sort((a, b) => a.hora - b.hora || a.minuto - b.minuto);
 
-  const teto = Math.max(1, canal.tetoDiario);
-  const intervaloMs = Math.max(0, canal.intervaloMinimoMin) * 60 * 1000;
+  const tetoBruto = canal.tetoDiario === 6 ? TETO_PADRAO : canal.tetoDiario;
+  const teto = Math.max(1, tetoBruto);
+  const intervaloMin = canal.intervaloMinimoMin === 90 ? INTERVALO_PADRAO_MIN : canal.intervaloMinimoMin;
+  const intervaloMs = Math.max(0, intervaloMin) * 60 * 1000;
 
   const ultima = await prisma.publicacao.findFirst({
     where: {
@@ -98,14 +102,16 @@ export async function proximoHorarioLivre(
       for (const { hora, minuto } of horariosOrdenados) {
         if (vagasRestantes <= 0) break;
 
-        const candidato = paraUtc(ano, mes, dia, hora, minuto, FUSO_APP).getTime();
+        const candidato = paraUtc(ano, mes, dia, hora, minuto, FUSO_APP);
+        const candidatoMs = candidato.getTime();
 
-        if (candidato <= apartirDe.getTime()) continue;
+        if (candidatoMs <= apartirDe.getTime()) continue;
+        if (!estaNaJanelaDePublicacao(candidato)) continue;
 
-        const conflita = instantesOcupados.some((t) => Math.abs(t - candidato) < intervaloMs);
+        const conflita = instantesOcupados.some((t) => Math.abs(t - candidatoMs) < intervaloMs);
         if (conflita) continue;
 
-        return { agendadaPara: new Date(candidato) };
+        return { agendadaPara: candidato };
       }
     }
 
@@ -115,6 +121,63 @@ export async function proximoHorarioLivre(
   }
 
   return null;
+}
+
+let janelaPadraoAplicada = false;
+
+/**
+ * Garante a janela 09:00–21:00 a cada 10 min nos canais que ainda estão no
+ * padrão antigo (90 min / teto 6), mesmo se a migration ainda não rodou.
+ */
+export async function aplicarJanelaPadraoNosCanais(): Promise<number> {
+  if (janelaPadraoAplicada) return 0;
+  const { count } = await prisma.canal.updateMany({
+    where: { OR: [{ intervaloMinimoMin: 90 }, { tetoDiario: 6 }] },
+    data: { intervaloMinimoMin: INTERVALO_PADRAO_MIN, tetoDiario: TETO_PADRAO },
+  });
+  janelaPadraoAplicada = true;
+  return count;
+}
+
+/**
+ * Move publicações PENDENTE cuja hora em Brasília está fora de 09:00–21:00
+ * para o próximo slot válido. 21h BRT vira 00h UTC — isso NÃO é fora da janela;
+ * 00h BRT sim, e era o que saía no Facebook de madrugada.
+ */
+export async function reagendarPublicacoesForaDaJanela(): Promise<number> {
+  const outliers = await prisma.$queryRaw<Array<{ id: string }>>`
+    SELECT id
+    FROM publicacoes
+    WHERE status = 'PENDENTE'::"StatusPublicacao"
+      AND ABS(EXTRACT(EPOCH FROM ("agendadaPara" - now()))) > 120
+      AND (
+        EXTRACT(HOUR FROM ("agendadaPara" AT TIME ZONE 'America/Sao_Paulo')) * 60
+        + EXTRACT(MINUTE FROM ("agendadaPara" AT TIME ZONE 'America/Sao_Paulo'))
+      ) NOT BETWEEN 9 * 60 AND 21 * 60
+  `;
+
+  let movidas = 0;
+  for (const { id } of outliers) {
+    const publicacao = await prisma.publicacao.findUnique({
+      where: { id },
+      include: { canal: true },
+    });
+    if (!publicacao || publicacao.status !== "PENDENTE") continue;
+
+    const vaga = await proximoHorarioLivre(publicacao.canal, new Date(), publicacao.id);
+    if (!vaga) continue;
+
+    await prisma.publicacao.update({
+      where: { id: publicacao.id },
+      data: {
+        agendadaPara: vaga.agendadaPara,
+        erro: "Reagendada: horário estava fora da janela 09:00–21:00 (Brasília).",
+      },
+    });
+    movidas++;
+  }
+
+  return movidas;
 }
 
 /**

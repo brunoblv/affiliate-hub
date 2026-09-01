@@ -4,28 +4,28 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { SendHorizontal } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  distribuirProdutosNuncaPostadosAction,
+  enfileirarNosHorariosVaziosAction,
   type ResultadoDistribuicaoEmLote,
 } from "@/app/admin/(dashboard)/produtos/actions";
 import { formatarIsoLocal } from "@/lib/agenda/fuso";
 
-export function DistribuirNuncaPostadosButton() {
+export function EnfileirarHorariosVaziosButton() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [lote, setLote] = useState<ResultadoDistribuicaoEmLote[] | null>(null);
 
-  function distribuir() {
+  function enfileirar() {
     startTransition(async () => {
-      const toastId = toast.loading("Buscando produtos nunca postados...");
+      const toastId = toast.loading("Preenchendo horários livres das 9h às 21h (Brasília)...");
       try {
-        const saida = await distribuirProdutosNuncaPostadosAction();
+        const saida = await enfileirarNosHorariosVaziosAction();
         setLote(saida);
 
         if (saida.length === 0) {
-          toast.success("Todo produto ativo já tem pelo menos uma publicação agendada ou feita.", { id: toastId });
+          toast.success("Não há horário vazio para preencher, ou todo produto ativo já está na fila.", { id: toastId });
           return;
         }
 
@@ -33,26 +33,26 @@ export function DistribuirNuncaPostadosButton() {
 
         if (agendados > 0) {
           toast.success(
-            `${agendados} publicação${agendados === 1 ? "" : "ões"} entrou${agendados === 1 ? "" : "aram"} na fila, de ${saida.length} produto${saida.length === 1 ? "" : "s"} nunca postado${saida.length === 1 ? "" : "s"}.`,
+            `${agendados} publicação${agendados === 1 ? "" : "ões"} entrou${agendados === 1 ? "" : "aram"} nos horários vazios (9h–21h, Brasília).`,
             { id: toastId, action: { label: "Ver fila", onClick: () => router.push("/admin/fila") } },
           );
         } else {
           toast.warning(
-            `${saida.length} produto${saida.length === 1 ? "" : "s"} nunca postado${saida.length === 1 ? "" : "s"}, mas nenhum entrou na fila — confira os motivos abaixo.`,
+            "Nenhum produto entrou na fila — confira os motivos abaixo (teto, cooldown ou canal inativo).",
             { id: toastId, duration: 8000 },
           );
         }
       } catch (erro) {
-        toast.error(erro instanceof Error ? erro.message : "Falha ao distribuir os produtos.", { id: toastId });
+        toast.error(erro instanceof Error ? erro.message : "Falha ao enfileirar nos horários vazios.", { id: toastId });
       }
     });
   }
 
   return (
     <div className="space-y-2">
-      <Button type="button" variant="outline" disabled={isPending} onClick={distribuir}>
-        <SendHorizontal />
-        {isPending ? "Distribuindo..." : "Enfileirar nunca postados"}
+      <Button type="button" disabled={isPending} onClick={enfileirar}>
+        <CalendarClock />
+        {isPending ? "Enfileirando..." : "Enfileirar nos horários vazios"}
       </Button>
 
       {lote && lote.length > 0 && (

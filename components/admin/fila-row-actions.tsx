@@ -9,6 +9,7 @@ import {
   republicarAction,
   reagendarAction,
 } from "@/app/admin/(dashboard)/fila/actions";
+import { paraInputDatetimeLocal } from "@/lib/agenda/fuso";
 
 export function FilaRowActions({
   id,
@@ -34,7 +35,7 @@ export function FilaRowActions({
   }
 
   function reagendar() {
-    const valor = prompt("Nova data/hora (AAAA-MM-DDTHH:mm)", agendadaPara.slice(0, 16));
+    const valor = prompt("Nova data/hora em Brasília (AAAA-MM-DDTHH:mm)", paraInputDatetimeLocal(new Date(agendadaPara)));
     if (!valor) return;
     executar("Reagendando...", "Publicação reagendada.", () => reagendarAction(id, valor));
   }

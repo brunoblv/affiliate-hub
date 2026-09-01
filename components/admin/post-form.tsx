@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EditorDoCorpo } from "@/components/admin/editor-do-corpo-dinamico";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Post } from "@/lib/database";
+import { enviarArquivoDeMidia } from "@/lib/midia/enviar-cliente";
 import type { PostFormState } from "@/app/admin/(dashboard)/posts/actions";
 
 const TIPOS = [
@@ -32,16 +33,6 @@ const DESTINOS = [
 
 type CapaPreview = { id: string; url: string; alt: string | null };
 
-async function enviarMidia(arquivo: File, alt?: string) {
-  const formData = new FormData();
-  formData.set("arquivo", arquivo);
-  if (alt) formData.set("alt", alt);
-  const resposta = await fetch("/api/admin/midia", { method: "POST", body: formData });
-  const json = await resposta.json();
-  if (!resposta.ok) throw new Error(json.erro ?? "Falha no upload");
-  return json as CapaPreview;
-}
-
 export interface PostFormDefaults {
   titulo: string;
   resumo?: string;
@@ -49,6 +40,8 @@ export interface PostFormDefaults {
   seoTitulo?: string;
   metaDescricao?: string;
   categoriaEditorial?: "DICAS_CASA" | "JORNADA_APARTAMENTO";
+  tipo?: "JORNADA" | "PRODUTO" | "LISTA";
+  avisoSeguranca?: boolean;
 }
 
 export function PostForm({
@@ -68,7 +61,7 @@ export function PostForm({
   const [corpo, setCorpo] = useState(post?.corpo ?? defaults?.corpo ?? "");
   const [capa, setCapa] = useState<CapaPreview | null>(post?.capa ?? null);
   const [enviandoCapa, setEnviandoCapa] = useState(false);
-  const [tipo, setTipo] = useState(post?.tipo ?? "JORNADA");
+  const [tipo, setTipo] = useState(post?.tipo ?? defaults?.tipo ?? "JORNADA");
   const editorRef = useRef<MDXEditorMethods>(null);
   const produtoSelectRef = useRef<HTMLSelectElement>(null);
 
@@ -78,7 +71,7 @@ export function PostForm({
 
     setEnviandoCapa(true);
     try {
-      const midia = await enviarMidia(arquivo);
+      const midia = await enviarArquivoDeMidia(arquivo);
       setCapa({ id: midia.id, url: midia.url, alt: midia.alt });
       toast.success("Capa enviada.");
     } catch (erro) {
@@ -142,7 +135,7 @@ export function PostForm({
             id="publicar"
             name="publicar"
             type="checkbox"
-            defaultChecked={post?.status === "PUBLICADO"}
+            defaultChecked={post?.status === "PUBLICADO" || (!post && defaults?.tipo === "LISTA")}
             className="size-4 rounded border-input"
           />
           <Label htmlFor="publicar" className="font-normal">
@@ -156,7 +149,7 @@ export function PostForm({
           id="avisoSeguranca"
           name="avisoSeguranca"
           type="checkbox"
-          defaultChecked={post?.avisoSeguranca ?? false}
+          defaultChecked={post?.avisoSeguranca ?? defaults?.avisoSeguranca ?? false}
           className="size-4 rounded border-input"
         />
         <Label htmlFor="avisoSeguranca" className="font-normal">
@@ -234,7 +227,9 @@ export function PostForm({
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">JPEG, PNG, WebP ou AVIF, até 8 MB. O arquivo é salvo no servidor.</p>
+        <p className="text-xs text-muted-foreground">
+          JPEG, PNG, WebP ou AVIF, até 25 MB. Ideal: 1600×900 (16:9). O arquivo é salvo no servidor.
+        </p>
       </div>
 
       <div className="space-y-1.5">

@@ -4,10 +4,10 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Canal } from "@/lib/database";
 import type { CanalFormState } from "@/app/admin/(dashboard)/canais/actions";
+import { INTERVALO_PADRAO_MIN, TETO_PADRAO, rotuloJanela } from "@/lib/agenda/janela";
 
 const REDES = [
   { value: "FACEBOOK_PAGE", label: "Página do Facebook" },
@@ -31,7 +31,6 @@ export function CanalForm({
   action: (prev: CanalFormState, formData: FormData) => Promise<CanalFormState>;
 }) {
   const [state, formAction, isPending] = useActionState<CanalFormState, FormData>(action, { status: "idle" });
-  const horarios = ((canal?.horarios as unknown as string[]) ?? []).join(", ") || "09:00, 13:00, 19:30";
   useFeedbackFormulario(state);
 
   return (
@@ -89,18 +88,22 @@ export function CanalForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="horarios">Horários (HH:mm, separados por vírgula)</Label>
-        <Textarea id="horarios" name="horarios" defaultValue={horarios} rows={2} placeholder="09:00, 13:00, 19:30" />
+        <p className="text-sm font-medium">Janela de publicação</p>
+        <p className="text-sm text-muted-foreground">{rotuloJanela(canal?.intervaloMinimoMin ?? INTERVALO_PADRAO_MIN)}</p>
+        <p className="text-xs text-muted-foreground">
+          Os horários são gerados automaticamente no fuso de Brasília. Nada é agendado antes das 9h nem depois das 21h.
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="intervaloMinimoMin">Intervalo mínimo (min)</Label>
-          <Input id="intervaloMinimoMin" name="intervaloMinimoMin" type="number" min="0" defaultValue={canal?.intervaloMinimoMin ?? 90} />
+          <Input id="intervaloMinimoMin" name="intervaloMinimoMin" type="number" min="1" defaultValue={canal?.intervaloMinimoMin ?? INTERVALO_PADRAO_MIN} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="tetoDiario">Teto diário</Label>
-          <Input id="tetoDiario" name="tetoDiario" type="number" min="1" defaultValue={canal?.tetoDiario ?? 6} />
+          <Input id="tetoDiario" name="tetoDiario" type="number" min="1" defaultValue={canal?.tetoDiario ?? TETO_PADRAO} />
+          <p className="text-xs text-muted-foreground">Com 10 min das 9h às 21h cabem {TETO_PADRAO} posts.</p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="cooldownDias">Cooldown (dias)</Label>

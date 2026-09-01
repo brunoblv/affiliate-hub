@@ -4,6 +4,7 @@ import { prisma } from "@/lib/database";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
 import { formatarLocal } from "@/lib/agenda/fuso";
+import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
@@ -65,6 +66,7 @@ async function tick(): Promise<void> {
   rodando = true;
 
   try {
+    await reagendarPublicacoesForaDaJanela();
     const ids = await reivindicarPendentes();
 
     for (const id of ids) {
@@ -82,6 +84,15 @@ async function tick(): Promise<void> {
 
 async function loop(): Promise<void> {
   console.log(`[worker] ativo — tick a cada ${INTERVALO_TICK_MS / 1000}s (agora: ${formatarLocal(new Date())})`);
+  try {
+    await aplicarJanelaPadraoNosCanais();
+    const movidas = await reagendarPublicacoesForaDaJanela();
+    if (movidas > 0) {
+      console.log(`[worker] ${movidas} publicação(ões) fora de 09:00–21:00 (Brasília) reagendada(s)`);
+    }
+  } catch (erro) {
+    console.error("[worker] falha ao reagendar publicações fora da janela", erro);
+  }
 
   while (!encerrando) {
     await tick();

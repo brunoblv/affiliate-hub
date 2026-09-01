@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma, StatusPublicacao } from "@/lib/database";
+import { deInputDatetimeLocal } from "@/lib/agenda/fuso";
 
 function falhou(erro: unknown, fallback: string): never {
   throw new Error(erro instanceof Error ? erro.message : fallback);
@@ -42,8 +43,12 @@ export async function republicarAction(id: string): Promise<void> {
 }
 
 export async function reagendarAction(id: string, novaData: string): Promise<void> {
-  const data = new Date(novaData);
-  if (Number.isNaN(data.getTime())) throw new Error("Data inválida.");
+  let data: Date;
+  try {
+    data = deInputDatetimeLocal(novaData);
+  } catch {
+    throw new Error("Data inválida. Use AAAA-MM-DDTHH:mm no horário de Brasília.");
+  }
 
   try {
     await prisma.publicacao.update({

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
+import { rotuloJanela } from "@/lib/agenda/janela";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -51,7 +52,7 @@ export default async function CanaisAdminPage({
               <TableHead>Canal</TableHead>
               <TableHead>Rede</TableHead>
               <TableHead>Destino</TableHead>
-              <TableHead>Horários</TableHead>
+              <TableHead>Agenda</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -65,7 +66,7 @@ export default async function CanaisAdminPage({
                 </TableCell>
                 <TableCell>{canal.rede}</TableCell>
                 <TableCell>{LABEL_DESTINO[canal.destino] ?? canal.destino}</TableCell>
-                <TableCell>{((canal.horarios as unknown as string[]) ?? []).join(", ") || "—"}</TableCell>
+                <TableCell>{rotuloJanela(canal.intervaloMinimoMin)}</TableCell>
                 <TableCell>
                   <Badge variant={canal.ativo ? "default" : "secondary"}>{canal.ativo ? "Ativo" : "Inativo"}</Badge>
                 </TableCell>

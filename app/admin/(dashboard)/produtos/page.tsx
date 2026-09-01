@@ -6,10 +6,11 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nunca-postados-button";
+import { EnfileirarHorariosVaziosButton } from "@/components/admin/enfileirar-horarios-vazios-button";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { ProdutosTabela } from "@/components/admin/produtos-tabela";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -60,11 +61,13 @@ export default async function ProdutosAdminPage({
       </div>
 
       <div className="border-t border-border pt-4">
-        <h2 className="text-sm font-medium">Produtos nunca postados</h2>
+        <h2 className="text-sm font-medium">Fila de publicação</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Agenda de uma vez todo produto ativo que ainda não tem nenhuma publicação em nenhum canal.
+          Horários livres das 9h às 21h, a cada 10 minutos, no fuso de Brasília. O botão preenche só as vagas vazias — não
+          substitui o que já está agendado.
         </p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap gap-2">
+          <EnfileirarHorariosVaziosButton />
           <DistribuirNuncaPostadosButton />
         </div>
       </div>

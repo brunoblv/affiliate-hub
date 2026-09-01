@@ -26,14 +26,11 @@ import {
   type MDXEditorProps,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
+import { enviarArquivoDeMidia } from "@/lib/midia/enviar-cliente";
 
 async function enviarImagem(arquivo: File): Promise<string> {
-  const formData = new FormData();
-  formData.set("arquivo", arquivo);
-  const resposta = await fetch("/api/admin/midia", { method: "POST", body: formData });
-  const json = await resposta.json();
-  if (!resposta.ok) throw new Error(json.erro ?? "Falha no upload");
-  return json.url as string;
+  const midia = await enviarArquivoDeMidia(arquivo);
+  return midia.url;
 }
 
 export default function EditorDoCorpo({

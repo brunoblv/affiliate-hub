@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma, TipoPost, StatusPost, Destino, CategoriaEditorial } from "@/lib/database";
-import { slugify } from "@/lib/produtos";
+import { slugDePostLivre } from "@/lib/conteudo/slug";
 import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
 import { enfileirarPost, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { gerarAudioTts } from "@/lib/conteudo/gemini-tts";
@@ -108,7 +108,7 @@ export async function createPostAction(_prev: PostFormState, formData: FormData)
       destino: dados.destino,
       categoriaEditorial: dados.categoriaEditorial,
       titulo: dados.titulo,
-      slug: slugify(dados.titulo),
+      slug: await slugDePostLivre(dados.titulo),
       resumo: dados.resumo || resumoAutomatico(dados.corpo),
       corpo: dados.corpo,
       capaId: dados.capaId,

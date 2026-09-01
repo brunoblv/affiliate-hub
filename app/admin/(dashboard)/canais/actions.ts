@@ -4,18 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Rede } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
-import { HORARIOS_PADRAO } from "@/lib/agenda/proximo-horario";
+import { gerarHorariosDaJanela, INTERVALO_PADRAO_MIN, TETO_PADRAO } from "@/lib/agenda/janela";
+import { formatarLocal } from "@/lib/agenda/fuso";
 
 export interface CanalFormState {
   status: "idle" | "error" | "success";
   message?: string;
-}
-
-function parseHorarios(raw: string): string[] {
-  return raw
-    .split(/[,\n]/)
-    .map((h) => h.trim())
-    .filter(Boolean);
 }
 
 function readForm(formData: FormData) {
@@ -23,13 +17,24 @@ function readForm(formData: FormData) {
   const rede = String(formData.get("rede") ?? "") as Rede;
   const destino = String(formData.get("destino") ?? "") as Destino;
   const idExterno = String(formData.get("idExterno") ?? "").trim();
-  const horarios = parseHorarios(String(formData.get("horarios") ?? ""));
-  const intervaloMinimoMin = Number(formData.get("intervaloMinimoMin") ?? 90);
-  const tetoDiario = Number(formData.get("tetoDiario") ?? 6);
+  const intervaloMinimoMin = Number(formData.get("intervaloMinimoMin") ?? INTERVALO_PADRAO_MIN);
+  const tetoDiario = Number(formData.get("tetoDiario") ?? TETO_PADRAO);
   const cooldownDias = Number(formData.get("cooldownDias") ?? 30);
   const ativo = formData.get("ativo") === "on";
+  const intervalo = Number.isFinite(intervaloMinimoMin) && intervaloMinimoMin >= 1 ? intervaloMinimoMin : INTERVALO_PADRAO_MIN;
+  const teto = Number.isFinite(tetoDiario) && tetoDiario >= 1 ? tetoDiario : TETO_PADRAO;
 
-  return { nome, rede, destino, idExterno, horarios, intervaloMinimoMin, tetoDiario, cooldownDias, ativo };
+  return {
+    nome,
+    rede,
+    destino,
+    idExterno,
+    horarios: gerarHorariosDaJanela(intervalo),
+    intervaloMinimoMin: intervalo,
+    tetoDiario: teto,
+    cooldownDias,
+    ativo,
+  };
 }
 
 export async function createCanalAction(_prev: CanalFormState, formData: FormData): Promise<CanalFormState> {
@@ -44,7 +49,7 @@ export async function createCanalAction(_prev: CanalFormState, formData: FormDat
       rede: dados.rede,
       destino: dados.destino,
       idExterno: dados.idExterno,
-      horarios: dados.horarios.length > 0 ? dados.horarios : HORARIOS_PADRAO,
+      horarios: dados.horarios,
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
@@ -69,7 +74,7 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
       rede: dados.rede,
       destino: dados.destino,
       idExterno: dados.idExterno,
-      horarios: dados.horarios.length > 0 ? dados.horarios : HORARIOS_PADRAO,
+      horarios: dados.horarios,
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
@@ -95,7 +100,7 @@ export async function testarConexaoAction(id: string): Promise<ResultadoTeste> {
   try {
     const publicador = obterPublicador(canal);
     const resultado = await publicador.publicar({
-      texto: `Teste de conexão do Affiliate Hub — ${new Date().toLocaleString("pt-BR")}`,
+      texto: `Teste de conexão do Affiliate Hub — ${formatarLocal(new Date())}`,
       link: "",
     });
     return { ok: true, mensagem: `Publicado com sucesso (id externo: ${resultado.idExterno}).` };

@@ -9,6 +9,7 @@ import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identi
 import { buscarOfertasShopee, buscarOfertaPorItem, gerarLinkAfiliado, type OfertaShopee } from "@/lib/shopee/client";
 import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
@@ -490,6 +491,55 @@ export async function distribuirProdutosNuncaPostadosAction(): Promise<Resultado
   });
 
   const saida: ResultadoDistribuicaoEmLote[] = [];
+
+  for (const produto of produtos) {
+    try {
+      const resultados = await enfileirarProduto(produto.id);
+      saida.push({ produtoId: produto.id, produto: produto.nome, resultados });
+    } catch (erro) {
+      saida.push({
+        produtoId: produto.id,
+        produto: produto.nome,
+        resultados: [
+          {
+            canalId: "erro",
+            canal: "Distribuição",
+            motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o produto.",
+          },
+        ],
+      });
+    }
+  }
+
+  revalidatePath("/admin/fila");
+  revalidatePath("/admin/produtos");
+  return saida;
+}
+
+const LIMITE_HORARIOS_VAZIOS = 500;
+
+/**
+ * Preenche os horários livres da janela 09:00–21:00 (Brasília), a cada 10 min.
+ * Prioriza produto sem publicação; também usa item ativo que não está na fila,
+ * respeitando cooldown. Antes, move o que estava agendado fora da janela (ex.: 0h).
+ */
+export async function enfileirarNosHorariosVaziosAction(): Promise<ResultadoDistribuicaoEmLote[]> {
+  await aplicarJanelaPadraoNosCanais();
+  const movidas = await reagendarPublicacoesForaDaJanela();
+
+  const produtos = await prisma.produto.findMany({
+    where: {
+      ativo: true,
+      publicacoes: { none: { status: { in: ["PENDENTE", "PUBLICANDO"] } } },
+    },
+    select: { id: true, nome: true },
+    orderBy: [{ publicacoes: { _count: "asc" } }, { criadoEm: "asc" }],
+    take: LIMITE_HORARIOS_VAZIOS,
+  });
+
+  const saida: ResultadoDistribuicaoEmLote[] = [];
+
+  if (produtos.length === 0 && movidas === 0) return saida;
 
   for (const produto of produtos) {
     try {

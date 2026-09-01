@@ -355,13 +355,13 @@ model Canal {
   idExterno String
   ativo     Boolean @default(true)
 
-  /// string[] no formato "HH:mm", no fuso TZ_APP. Ex.: ["09:00","13:00","19:30"]
+  /// Gerado da janela 09:00–21:00 (Brasília) a cada intervaloMinimoMin. O scheduler não lê este campo.
   horarios Json @default("[]")
 
   /// Minutos mínimos entre duas publicações neste canal.
-  intervaloMinimoMin Int @default(90)
+  intervaloMinimoMin Int @default(10)
   /// Máximo de publicações por dia neste canal.
-  tetoDiario         Int @default(6)
+  tetoDiario         Int @default(73)
   /// Dias antes de o mesmo produto poder repetir neste canal.
   cooldownDias       Int @default(30)
 

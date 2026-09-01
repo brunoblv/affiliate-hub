@@ -11,6 +11,7 @@ import {
   Sparkles,
   NotebookPen,
   Store,
+  ListChecks,
 } from "lucide-react";
 
 export interface NavItem {
@@ -40,6 +41,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Produtos Shopee", href: "/admin/produtos/shopee", icon: ShoppingBag },
       { title: "Posts", href: "/admin/posts", icon: Newspaper },
       { title: "Gerar artigo (IA)", href: "/admin/posts/gerar", icon: Sparkles },
+      { title: "Gerar lista (IA)", href: "/admin/posts/gerar-lista", icon: ListChecks },
       { title: "Minha jornada", href: "/admin/jornada", icon: NotebookPen },
       { title: "Vitrine", href: "/admin/vitrine", icon: Store },
     ],

@@ -4,16 +4,27 @@ import path from "node:path";
 import sharp from "sharp";
 
 import { prisma } from "@/lib/database";
+import { LARGURA_MAXIMA_MIDIA } from "@/lib/midia/constantes";
 import { slugify } from "@/lib/produtos";
+
+export { LARGURA_MAXIMA_MIDIA, TAMANHO_MAXIMO_MIDIA, TIPOS_ACEITOS_MIDIA } from "@/lib/midia/constantes";
 
 /**
  * Upload de mídia do CMS. Fica FORA de public/ (MEDIA_ROOT) e é servido por
  * /midia/[...caminho], para o Next não precisar de rebuild a cada arquivo novo.
  */
 export const RAIZ_MIDIA = process.env.MEDIA_ROOT ?? path.join(process.cwd(), ".midia");
-export const TAMANHO_MAXIMO_MIDIA = 25 * 1024 * 1024; // 25 MB (o arquivo é sempre redimensionado/recomprimido antes de salvar)
-export const LARGURA_MAXIMA_MIDIA = 1600;
-export const TIPOS_ACEITOS_MIDIA = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+function mensagemErroDeImagem(erro: unknown): Error {
+  const detalhe = erro instanceof Error ? erro.message : String(erro);
+  if (/unsupported image format|Input buffer/i.test(detalhe)) {
+    return new Error("Não foi possível ler a imagem. Use JPEG, PNG, WebP ou AVIF.");
+  }
+  if (/pixel limit|too large/i.test(detalhe)) {
+    return new Error("A imagem tem resolução grande demais. Reduza e tente de novo.");
+  }
+  return new Error("Falha ao processar a imagem.");
+}
 
 function pastaDoMes(agora = new Date()): string {
   return path.join(String(agora.getFullYear()), String(agora.getMonth() + 1).padStart(2, "0"));
@@ -24,12 +35,18 @@ export async function salvarArquivoDeMidia(entrada: {
   nomeOriginal: string;
   alt?: string | null;
 }) {
-  const processada = sharp(entrada.buffer).rotate().resize({
-    width: LARGURA_MAXIMA_MIDIA,
-    withoutEnlargement: true,
-  });
-  const metadados = await processada.metadata();
-  const conteudo = await processada.clone().webp({ quality: 82 }).toBuffer();
+  let metadados: { width?: number; height?: number };
+  let conteudo: Buffer;
+  try {
+    const processada = sharp(entrada.buffer).rotate().resize({
+      width: LARGURA_MAXIMA_MIDIA,
+      withoutEnlargement: true,
+    });
+    metadados = await processada.metadata();
+    conteudo = await processada.clone().webp({ quality: 82 }).toBuffer();
+  } catch (erro) {
+    throw mensagemErroDeImagem(erro);
+  }
 
   const pasta = pastaDoMes();
   const base = slugify(path.parse(entrada.nomeOriginal).name).slice(0, 60);
