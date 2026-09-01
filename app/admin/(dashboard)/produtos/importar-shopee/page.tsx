@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/admin/page-header";
 import { ImportarShopeeForm } from "@/components/admin/importar-shopee-form";
 import { importarShopeeAction } from "../actions";
 
+export const maxDuration = 60;
+
 export default function ImportarShopeeProdutoPage() {
   return (
     <div className="space-y-6">

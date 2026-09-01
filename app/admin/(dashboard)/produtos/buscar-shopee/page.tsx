@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/admin/page-header";
 import { BuscarShopeeForm } from "@/components/admin/buscar-shopee-form";
 import { buscarOfertasShopeeAction, importarShopeeAction } from "../actions";
 
+export const maxDuration = 60;
+
 export default function BuscarShopeeProdutoPage() {
   return (
     <div className="space-y-6">

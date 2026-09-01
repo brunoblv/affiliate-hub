@@ -5,6 +5,8 @@ import { PostForm } from "@/components/admin/post-form";
 import { ExcluirPostButton } from "@/components/admin/excluir-post-button";
 import { DistribuirPostButton } from "@/components/admin/distribuir-post-button";
 import { GerarNarracaoButton } from "@/components/admin/gerar-narracao-button";
+import { GerarFichaProdutoButton } from "@/components/admin/gerar-ficha-produto-button";
+import { fichaProdutoVazia } from "@/lib/conteudo/corpo";
 import { updatePostAction } from "../actions";
 
 export const maxDuration = 120;
@@ -25,9 +27,12 @@ export default async function EditarPostPage({ params }: { params: Promise<{ id:
         <PageHeader title={post.titulo} description={`/blog/${post.slug}`} />
         <ExcluirPostButton id={post.id} titulo={post.titulo} />
       </div>
+      {post.tipo === "PRODUTO" && (
+        <GerarFichaProdutoButton postId={post.id} fichaVazia={fichaProdutoVazia(post.corpo)} />
+      )}
       <GerarNarracaoButton postId={post.id} audioUrl={post.audio?.url ?? null} />
       {post.tipo === "LISTA" && post.status === "PUBLICADO" && <DistribuirPostButton postId={post.id} />}
-      <PostForm post={post} produtos={produtos} action={action} />
+      <PostForm key={`${post.id}-${post.atualizadoEm.getTime()}`} post={post} produtos={produtos} action={action} />
     </div>
   );
 }

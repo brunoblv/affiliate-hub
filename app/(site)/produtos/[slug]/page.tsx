@@ -94,9 +94,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {produto.notaEditorial && (
             <div className="mt-6 rounded-lg border border-sage/40 bg-secondary p-4">
               <div className="mb-1 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">
-                POR QUE SELECIONAMOS
+                PARA QUE SERVE
               </div>
-              <p className="text-sm leading-relaxed text-foreground">{produto.notaEditorial}</p>
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{produto.notaEditorial}</p>
             </div>
           )}
 

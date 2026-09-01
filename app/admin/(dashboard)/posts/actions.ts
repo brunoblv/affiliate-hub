@@ -10,6 +10,11 @@ import { enfileirarPost, type ResultadoEnfileiramento } from "@/lib/agenda/enfil
 import { gerarAudioTts } from "@/lib/conteudo/gemini-tts";
 import { textoParaNarracao } from "@/lib/conteudo/texto-para-narracao";
 import { excluirArquivoDeMidia, salvarArquivoDeAudio } from "@/lib/midia/salvar";
+import {
+  gerarFichaProduto,
+  montarCorpoFichaProduto,
+  preencherCamposVaziosDoProduto,
+} from "@/lib/conteudo/gerar-ficha-produto";
 
 export interface PostFormState {
   status: "idle" | "error" | "success";
@@ -275,5 +280,54 @@ export async function gerarNarracaoAction(postId: string): Promise<GerarNarracao
     return { ok: true, url: midia.url };
   } catch (erro) {
     return { ok: false, erro: erro instanceof Error ? erro.message : "Falha ao gerar a narração." };
+  }
+}
+
+export type GerarFichaProdutoResultado = { ok: true } | { ok: false; message: string };
+
+/** Gera descrição + utilidade via IA e grava no corpo do post tipo PRODUTO. */
+export async function gerarFichaProdutoAction(postId: string): Promise<GerarFichaProdutoResultado> {
+  const sessao = await auth();
+  if (!sessao) return { ok: false, message: "Não autorizado." };
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        produtos: { orderBy: { ordem: "asc" }, take: 1, include: { produto: true } },
+      },
+    });
+    if (!post) return { ok: false, message: "Post não encontrado." };
+    if (post.tipo !== TipoPost.PRODUTO) {
+      return { ok: false, message: "Só a ficha de produto recebe descrição e utilidade geradas." };
+    }
+
+    const produto = post.produtos[0]?.produto;
+    if (!produto) {
+      return { ok: false, message: "Este post não tem produto vinculado. Insira [produto:slug] no corpo e salve." };
+    }
+
+    const ficha = await gerarFichaProduto(produto);
+    const corpo = montarCorpoFichaProduto(produto.slug, ficha);
+    await preencherCamposVaziosDoProduto(produto.id, ficha);
+
+    await prisma.post.update({
+      where: { id: post.id },
+      data: {
+        corpo,
+        resumo: ficha.resumo.trim() || resumoAutomatico(corpo) || produto.nome,
+        metaDescricao: post.metaDescricao?.trim() ? post.metaDescricao : ficha.resumo.trim() || null,
+      },
+    });
+    await sincronizarItens(post.id, corpo);
+
+    revalidatePath(`/admin/posts/${post.id}`);
+    revalidatePath("/admin/posts");
+    revalidatePath(`/admin/produtos/${produto.id}`);
+    revalidarSitePublico(post.slug);
+    revalidatePath(`/produtos/${produto.slug}`);
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao gerar a ficha." };
   }
 }

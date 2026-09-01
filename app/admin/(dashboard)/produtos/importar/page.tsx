@@ -5,6 +5,8 @@ import { ImportarMercadoLivreForm } from "@/components/admin/importar-mercado-li
 import { Button } from "@/components/ui/button";
 import { importarMercadoLivreAction } from "../actions";
 
+export const maxDuration = 60;
+
 export default async function ImportarProdutoPage() {
   const conectado = Boolean(await getMercadoLivreTokens());
 

@@ -2,6 +2,8 @@ import { PageHeader } from "@/components/admin/page-header";
 import { ProdutoForm } from "@/components/admin/produto-form";
 import { createProdutoAction } from "../actions";
 
+export const maxDuration = 60;
+
 export default function NovoProdutoPage() {
   return (
     <div className="space-y-6">

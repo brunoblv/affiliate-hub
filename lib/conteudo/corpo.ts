@@ -84,3 +84,8 @@ export function resumoAutomatico(corpo: string, limite = 155): string {
   const cortado = textoLimpo.slice(0, limite);
   return `${cortado.slice(0, cortado.lastIndexOf(" "))}…`;
 }
+
+/** Corpo só com o card (ou texto irrelevante) — a página pública da ficha fica vazia. */
+export function fichaProdutoVazia(corpo: string): boolean {
+  return resumoAutomatico(corpo, 10_000).length < 80;
+}

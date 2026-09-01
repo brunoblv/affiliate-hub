@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deletePostsAction } from "@/app/admin/(dashboard)/posts/actions";
 import { BarraExclusaoEmLote, CheckboxLote, useSelecaoEmLote } from "@/components/admin/selecao-em-lote";
+import { LABEL_TIPO_POST } from "@/lib/conteudo/tipos-post";
+import type { TipoPost } from "@/lib/database/enums";
 
 export interface PostLinha {
   id: string;
@@ -16,7 +18,7 @@ export interface PostLinha {
   status: string;
 }
 
-export function PostsTabela({ posts }: { posts: PostLinha[] }) {
+export function PostsTabela({ posts, esconderTipo = false }: { posts: PostLinha[]; esconderTipo?: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const selecao = useSelecaoEmLote(posts.map((post) => post.id));
@@ -64,7 +66,7 @@ export function PostsTabela({ posts }: { posts: PostLinha[] }) {
               />
             </TableHead>
             <TableHead>Título</TableHead>
-            <TableHead>Tipo</TableHead>
+            {!esconderTipo && <TableHead>Tipo</TableHead>}
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -85,7 +87,9 @@ export function PostsTabela({ posts }: { posts: PostLinha[] }) {
                     {post.titulo}
                   </Link>
                 </TableCell>
-                <TableCell>{post.tipo}</TableCell>
+                {!esconderTipo && (
+                  <TableCell>{LABEL_TIPO_POST[post.tipo as TipoPost] ?? post.tipo}</TableCell>
+                )}
                 <TableCell>
                   <Badge variant={post.status === "PUBLICADO" ? "default" : "secondary"}>
                     {post.status === "PUBLICADO" ? "Publicado" : "Rascunho"}
