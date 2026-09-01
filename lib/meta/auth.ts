@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logging";
+import { getSiteUrl } from "@/lib/site-url";
 import { sincronizarPaginasMeta } from "./credentials";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION ?? "v21.0";
@@ -31,6 +32,23 @@ function requireApp() {
 
 export function metaOAuthConfigurado(): boolean {
   return Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
+}
+
+/**
+ * URI de callback do Facebook Login. Tem que ser HTTPS (Facebook recusa HTTP
+ * fora de localhost) e idêntica no authorize, no callback e no app da Meta.
+ *
+ * Não usa `request.url`: atrás de nginx/PM2 isso vira `http://127.0.0.1:3000/...`
+ * e o Facebook bloqueia com "não está usando uma conexão segura".
+ */
+export function getMetaRedirectUri(): string {
+  const bruto = process.env.META_REDIRECT_URI || `${getSiteUrl()}/api/integrations/meta/callback`;
+  const url = new URL(bruto);
+  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (!local && url.protocol === "http:") {
+    url.protocol = "https:";
+  }
+  return url.toString();
 }
 
 export function buildMetaAuthorizationUrl(params: { redirectUri: string; state: string }): string {

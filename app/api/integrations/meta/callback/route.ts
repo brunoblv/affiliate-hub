@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
-import { exchangeMetaAuthCode } from "@/lib/meta/auth";
+import { exchangeMetaAuthCode, getMetaRedirectUri } from "@/lib/meta/auth";
 import { logger } from "@/lib/logging";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -38,8 +38,7 @@ export async function GET(request: Request) {
     return destino("error");
   }
 
-  const redirectUri =
-    process.env.META_REDIRECT_URI ?? new URL("/api/integrations/meta/callback", request.url).toString();
+  const redirectUri = getMetaRedirectUri();
 
   try {
     await exchangeMetaAuthCode({ code, redirectUri });

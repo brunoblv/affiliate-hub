@@ -9,7 +9,10 @@ import { ReconectarMetaButton } from "@/components/admin/reconectar-meta-button"
 const MENSAGEM_META: Record<string, { ok: boolean; texto: string }> = {
   connected: { ok: true, texto: "Meta reconectada. Páginas sincronizadas." },
   denied: { ok: false, texto: "Autorização da Meta cancelada. Sem isso, não dá para publicar no Facebook/Instagram." },
-  error: { ok: false, texto: "Falha ao reconectar a Meta. Tente de novo; se persistir, confira META_APP_ID/SECRET e a URI de callback no app da Meta." },
+  error: {
+    ok: false,
+    texto: "Falha ao reconectar a Meta. Confira se NEXT_PUBLIC_SITE_URL (ou META_REDIRECT_URI) é HTTPS e se essa mesma URI está em Valid OAuth Redirect URIs no app da Meta.",
+  },
 };
 
 export default async function IntegracoesPage({
