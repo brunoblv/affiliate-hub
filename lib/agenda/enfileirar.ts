@@ -1,9 +1,12 @@
 import { prisma, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
-import { gerarLegendaDaLista, gerarLegendaDoProduto } from "@/lib/conteudo/gerar-legenda";
+import { proximoMeioDiaLivre } from "./meio-dia";
+import { gerarLegendaDaLista, gerarLegendaDoProduto, gerarLegendaDaJornada } from "@/lib/conteudo/gerar-legenda";
+import { montarTextoDaJornada } from "@/lib/conteudo/texto-do-post";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
-import { getSiteUrl } from "@/lib/site-url";
+import { getSiteUrl, urlPublica } from "@/lib/site-url";
+import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
 
 const ORIGEM_POR_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "facebook",
@@ -354,6 +357,183 @@ async function enfileirarPostNoCanal(
     }
     throw erro;
   }
+}
+
+const REDES_JORNADA = [Rede.FACEBOOK_PAGE, Rede.INSTAGRAM] as const;
+
+function imagemDaJornada(post: Post & { capa: { url: string } | null }): string | undefined {
+  return urlPublica(post.capa?.url) ?? urlPublica(CAPA_EDITORIAL.src);
+}
+
+/**
+ * Agenda um artigo de jornada no Facebook (página) e no Instagram do mesmo
+ * Destino. Sempre às 12h (Brasília) no próximo dia sem matéria de jornada
+ * naquele canal. A legenda aponta para o post no blog.
+ */
+export async function enfileirarJornada(
+  postId: string,
+  canalIds?: string[],
+  opcoes?: { template?: boolean },
+): Promise<ResultadoEnfileiramento[]> {
+  const post = await prisma.post.findUnique({ where: { id: postId }, include: { capa: true } });
+
+  if (!post) {
+    return [pulado(postId, "Post", "Post não encontrado.")];
+  }
+
+  if (post.tipo !== TipoPost.JORNADA) {
+    return [pulado(post.id, post.titulo, "Só posts do tipo Jornada entram neste agendamento.")];
+  }
+
+  if (post.status !== StatusPost.PUBLICADO) {
+    return [pulado(post.id, post.titulo, `Post "${post.slug}" ainda não está publicado.`)];
+  }
+
+  const canais = await prisma.canal.findMany({
+    where: {
+      ativo: true,
+      destino: post.destino,
+      rede: { in: [...REDES_JORNADA] },
+      ...(canalIds?.length ? { id: { in: canalIds } } : {}),
+    },
+  });
+
+  if (canais.length === 0) {
+    const destino = LABEL_DESTINO[post.destino] ?? post.destino;
+    return [
+      pulado(
+        post.destino,
+        "Nenhum canal",
+        `Nenhum Facebook (página) ou Instagram ativo para ${destino}. Cadastre os canais do Meu Novo Lar.`,
+      ),
+    ];
+  }
+
+  const resultados: ResultadoEnfileiramento[] = [];
+  for (const canal of canais) {
+    try {
+      resultados.push(await enfileirarJornadaNoCanal(canal, post, opcoes?.template === true));
+    } catch (erro) {
+      resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
+    }
+  }
+
+  return resultados;
+}
+
+async function enfileirarJornadaNoCanal(
+  canal: Canal,
+  post: Post & { capa: { url: string } | null },
+  usarTemplate: boolean,
+): Promise<ResultadoEnfileiramento> {
+  const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
+
+  const jaAgendado = await prisma.publicacao.findFirst({
+    where: { canalId: canal.id, postId: post.id, status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] } },
+    select: { id: true },
+  });
+  if (jaAgendado) {
+    return { ...base, motivoPulado: "Essa matéria já foi agendada/publicada neste canal." };
+  }
+
+  const imagemUrl = imagemDaJornada(post);
+  if (canal.rede === Rede.INSTAGRAM && !imagemUrl) {
+    return { ...base, motivoPulado: "Instagram exige imagem — envie uma capa no post." };
+  }
+
+  const siteUrl = getSiteUrl();
+  const link = `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+
+  let vaga: Date | null;
+  try {
+    vaga = await proximoMeioDiaLivre(canal);
+  } catch (erro) {
+    return { ...base, motivoPulado: mensagemErro(erro) };
+  }
+
+  if (!vaga) {
+    return {
+      ...base,
+      motivoPulado: "Sem dia vazio às 12h (Brasília) nos próximos 90 dias — já há jornada ou o horário está ocupado.",
+    };
+  }
+
+  const texto = usarTemplate
+    ? montarTextoDaJornada({ post, rede: canal.rede, link })
+    : await gerarLegendaDaJornada({ post, rede: canal.rede, link });
+  const chaveIdempotencia = `${post.id}:${canal.id}:${vaga.toISOString()}`;
+
+  try {
+    const publicacao = await prisma.publicacao.create({
+      data: {
+        postId: post.id,
+        canalId: canal.id,
+        agendadaPara: vaga,
+        texto,
+        // Facebook: sem foto, para o Graph publicar no /feed com preview do artigo.
+        // Instagram: capa (ou hero editorial) — a API exige imagem.
+        imagemUrl: canal.rede === Rede.INSTAGRAM ? imagemUrl : null,
+        linkDestino: link,
+        chaveIdempotencia,
+      },
+    });
+
+    await registrar("INFO", "AGENDA", `Jornada agendada em ${canal.nome} às 12h`, {
+      post: post.slug,
+      agendadaPara: vaga.toISOString(),
+    });
+
+    return { ...base, agendadaPara: vaga.toISOString(), publicacaoId: publicacao.id };
+  } catch (erro) {
+    if (isViolacaoIdempotencia(erro)) {
+      return { ...base, motivoPulado: "Slot já reservado por outro agendamento" };
+    }
+    throw erro;
+  }
+}
+
+export interface ResultadoDistribuicaoDePost {
+  postId: string;
+  post: string;
+  resultados: ResultadoEnfileiramento[];
+}
+
+const LIMITE_JORNADAS_DIAS_VAZIOS = 90;
+
+/**
+ * Preenche dias sem matéria de jornada às 12h (Brasília) no Facebook (página)
+ * e no Instagram do Meu Novo Lar, com artigos JORNADA publicados que ainda
+ * não entraram na fila daquele canal.
+ */
+export async function enfileirarJornadasNosDiasVazios(): Promise<ResultadoDistribuicaoDePost[]> {
+  const posts = await prisma.post.findMany({
+    where: { tipo: TipoPost.JORNADA, status: StatusPost.PUBLICADO },
+    orderBy: { publicadoEm: "asc" },
+    take: LIMITE_JORNADAS_DIAS_VAZIOS,
+    select: { id: true, titulo: true },
+  });
+
+  const saida: ResultadoDistribuicaoDePost[] = [];
+
+  for (const post of posts) {
+    try {
+      const resultados = await enfileirarJornada(post.id, undefined, { template: true });
+      const agendou = resultados.some((r) => r.agendadaPara);
+      const soJaAgendado =
+        !agendou &&
+        resultados.every((r) => r.motivoPulado === "Essa matéria já foi agendada/publicada neste canal.");
+      if (soJaAgendado) continue;
+      saida.push({ postId: post.id, post: post.titulo, resultados });
+    } catch (erro) {
+      saida.push({
+        postId: post.id,
+        post: post.titulo,
+        resultados: [pulado("erro", "Agendamento", mensagemErro(erro))],
+      });
+    }
+  }
+
+  return saida;
 }
 
 /**

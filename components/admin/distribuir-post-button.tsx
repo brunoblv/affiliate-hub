@@ -9,14 +9,23 @@ import { distribuirPostAction } from "@/app/admin/(dashboard)/posts/actions";
 import type { ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { formatarIsoLocal } from "@/lib/agenda/fuso";
 
-export function DistribuirPostButton({ postId }: { postId: string }) {
+export function DistribuirPostButton({
+  postId,
+  tipo = "LISTA",
+}: {
+  postId: string;
+  tipo?: "LISTA" | "JORNADA";
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [resultados, setResultados] = useState<ResultadoEnfileiramento[] | null>(null);
+  const jornada = tipo === "JORNADA";
 
   function distribuir() {
     startTransition(async () => {
-      const toastId = toast.loading("Distribuindo a lista nos canais...");
+      const toastId = toast.loading(
+        jornada ? "Agendando a matéria no Facebook e Instagram às 12h..." : "Distribuindo a lista nos canais...",
+      );
       try {
         const lista = await distribuirPostAction(postId);
         setResultados(lista);
@@ -34,10 +43,16 @@ export function DistribuirPostButton({ postId }: { postId: string }) {
             },
           );
         } else {
-          toast.warning(lista[0]?.motivoPulado ?? "Nenhum canal recebeu a lista.", { id: toastId, duration: 8000 });
+          toast.warning(
+            lista[0]?.motivoPulado ?? (jornada ? "Nenhum canal recebeu a matéria." : "Nenhum canal recebeu a lista."),
+            { id: toastId, duration: 8000 },
+          );
         }
       } catch (erro) {
-        toast.error(erro instanceof Error ? erro.message : "Falha ao distribuir a lista.", { id: toastId });
+        toast.error(
+          erro instanceof Error ? erro.message : jornada ? "Falha ao agendar a matéria." : "Falha ao distribuir a lista.",
+          { id: toastId },
+        );
       }
     });
   }
@@ -45,7 +60,13 @@ export function DistribuirPostButton({ postId }: { postId: string }) {
   return (
     <div className="space-y-2">
       <Button type="button" variant="outline" disabled={isPending} onClick={distribuir}>
-        {isPending ? "Distribuindo..." : "Distribuir nos canais"}
+        {isPending
+          ? jornada
+            ? "Agendando..."
+            : "Distribuindo..."
+          : jornada
+            ? "Agendar no Facebook e Instagram (12h)"
+            : "Distribuir nos canais"}
       </Button>
       {resultados && resultados.length > 0 && (
         <ul className="space-y-1 text-sm">

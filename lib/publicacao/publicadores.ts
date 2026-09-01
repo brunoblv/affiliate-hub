@@ -16,8 +16,10 @@ export interface ConteudoParaPublicar {
   /** Legenda completa (gancho, preço, CTA, link ou "link na bio", disclosure). */
   texto: string;
   imagemUrl?: string;
-  /** Destino do post — afiliado da loja (produto) ou URL do site (lista/vitrine). Preview no feed da Página. */
+  /** Destino do post — afiliado da loja (produto) ou URL do site (lista/vitrine/jornada). Preview no feed da Página. */
   link: string;
+  /** Facebook: publicar no /feed com preview do artigo, mesmo se houver imagem. */
+  previewDeLink?: boolean;
 }
 
 export interface ResultadoPublicacao {
@@ -72,23 +74,23 @@ class PublicadorFacebook implements Publicador {
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
     const token = await obterTokenDePagina(this.pageId);
 
-    if (conteudo.imagemUrl) {
-      const resposta = await chamarGraph<{ id?: string; post_id?: string }>(`${this.pageId}/photos`, {
-        url: conteudo.imagemUrl,
-        caption: conteudo.texto,
+    if (conteudo.previewDeLink || !conteudo.imagemUrl) {
+      const resposta = await chamarGraph<{ id: string }>(`${this.pageId}/feed`, {
+        message: conteudo.texto,
+        link: conteudo.link,
         access_token: token,
       });
 
-      return { idExterno: resposta.post_id ?? resposta.id ?? "" };
+      return { idExterno: resposta.id };
     }
 
-    const resposta = await chamarGraph<{ id: string }>(`${this.pageId}/feed`, {
-      message: conteudo.texto,
-      link: conteudo.link,
+    const resposta = await chamarGraph<{ id?: string; post_id?: string }>(`${this.pageId}/photos`, {
+      url: conteudo.imagemUrl,
+      caption: conteudo.texto,
       access_token: token,
     });
 
-    return { idExterno: resposta.id };
+    return { idExterno: resposta.post_id ?? resposta.id ?? "" };
   }
 }
 
@@ -106,6 +108,7 @@ class PublicadorFacebookGrupo implements Publicador {
 
     const resposta = await chamarGraph<{ id: string }>(`${this.groupId}/feed`, {
       message: conteudo.texto,
+      ...(conteudo.previewDeLink ? { link: conteudo.link } : {}),
       access_token: token,
     });
 
@@ -122,7 +125,7 @@ class PublicadorInstagram implements Publicador {
 
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
     if (!conteudo.imagemUrl) {
-      throw new Error("Instagram exige imagem — produto sem foto não pode ser publicado.");
+      throw new Error("Instagram exige imagem — publicação sem foto não pode sair.");
     }
 
     const token = await obterTokenPorContaInstagram(this.igUserId);

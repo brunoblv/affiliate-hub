@@ -5,10 +5,12 @@ import { gerarJson } from "@/lib/conteudo/gemini";
 import {
   montarTextoDaLanding,
   montarTextoDaLista,
+  montarTextoDaJornada,
   montarTextoDoPost,
   type EntradaTexto,
   type EntradaTextoDaLanding,
   type EntradaTextoDaLista,
+  type EntradaTextoDaJornada,
 } from "@/lib/conteudo/texto-do-post";
 import { LABEL_CATEGORIA } from "@/lib/produtos";
 import { registrar } from "@/lib/log";
@@ -205,6 +207,22 @@ export async function gerarLegendaDaLista(entrada: EntradaTextoDaLista): Promise
   }
 }
 
+/** Legenda de um artigo de jornada: resumo + convite para ler no site. */
+export async function gerarLegendaDaJornada(entrada: EntradaTextoDaJornada): Promise<string> {
+  if (!geminiDisponivel()) return montarTextoDaJornada(entrada);
+
+  try {
+    const partes = await pedirPartesJornada(entrada);
+    return montarLegendaJornada(entrada, partes);
+  } catch (erro) {
+    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da jornada, usando template. ${mensagemErro(erro)}`, {
+      post: entrada.post.slug,
+      rede: entrada.rede,
+    });
+    return montarTextoDaJornada(entrada);
+  }
+}
+
 async function pedirPartesProduto({ produto, rede, comentario }: EntradaTexto): Promise<PartesProduto> {
   const tipo = tipoDoPost(produto);
   const desconto = descontoPercentual(produto.precoAtual, produto.precoOriginal);
@@ -256,6 +274,23 @@ async function pedirPartesLista({ post, rede }: EntradaTextoDaLista): Promise<Pa
   };
 }
 
+async function pedirPartesJornada({ post, rede }: EntradaTextoDaJornada): Promise<PartesLista> {
+  const prompt = preencher(await carregarPrompt("legenda-jornada.md"), {
+    rede: LABEL_REDE[rede],
+    destino: LABEL_DESTINO[post.destino],
+    tomDestino: TOM_DESTINO[post.destino],
+    titulo: post.titulo,
+    resumo: post.resumo?.trim() || "(sem resumo — não invente detalhes da matéria)",
+  });
+
+  const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, temperature: 0.8 });
+  return {
+    abertura: limparCampo(bruto.abertura, 80) || "🏡 NO SITE",
+    chamada: limparCampo(bruto.chamada, 500),
+    cta: limparCampo(bruto.cta, 80) || "👉 LER A MATÉRIA",
+  };
+}
+
 function montarLegendaProduto({ produto, rede, link }: EntradaTexto, partes: PartesProduto): string {
   const linhas: string[] = [partes.abertura, "", produto.nome, "", blocoPreco(produto)];
 
@@ -282,6 +317,18 @@ function montarLegendaLista({ post, rede, link }: EntradaTextoDaLista, partes: P
   }
 
   linhas.push("", partes.cta, linhaDeLink(rede, link, "🔗 Confira a lista no link da bio."), "", DISCLOSURE);
+  return linhas.join("\n").trim();
+}
+
+function montarLegendaJornada({ post, rede, link }: EntradaTextoDaJornada, partes: PartesLista): string {
+  const linhas: string[] = [partes.abertura, "", post.titulo];
+
+  if (partes.chamada) {
+    linhas.push("", partes.chamada);
+  }
+
+  const instagram = rede === Rede.INSTAGRAM;
+  linhas.push("", partes.cta, instagram ? `🔗 Link na bio — ou copie: ${link}` : link);
   return linhas.join("\n").trim();
 }
 

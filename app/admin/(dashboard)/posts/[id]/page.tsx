@@ -32,6 +32,9 @@ export default async function EditarPostPage({ params }: { params: Promise<{ id:
       )}
       <GerarNarracaoButton postId={post.id} audioUrl={post.audio?.url ?? null} />
       {post.tipo === "LISTA" && post.status === "PUBLICADO" && <DistribuirPostButton postId={post.id} />}
+      {post.tipo === "JORNADA" && post.status === "PUBLICADO" && (
+        <DistribuirPostButton postId={post.id} tipo="JORNADA" />
+      )}
       <PostForm key={`${post.id}-${post.atualizadoEm.getTime()}`} post={post} produtos={produtos} action={action} />
     </div>
   );

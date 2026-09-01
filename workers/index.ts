@@ -3,13 +3,12 @@ import "dotenv/config";
 import { prisma } from "@/lib/database";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
-import { formatarLocal } from "@/lib/agenda/fuso";
+import { formatarLocal, partesNoFuso } from "@/lib/agenda/fuso";
 import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
-import { partesNoFuso } from "@/lib/agenda/fuso";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */

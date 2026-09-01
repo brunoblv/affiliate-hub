@@ -81,6 +81,33 @@ export interface EntradaTextoDaLista {
   link: string;
 }
 
+export type EntradaTextoDaJornada = EntradaTextoDaLista;
+
+/**
+ * Texto do post social pra um artigo de jornada — sempre aponta pro blog.
+ * Resumo + convite para ler o completo. Sem disclosure de afiliado: isto
+ * não é oferta, é matéria.
+ */
+export function montarTextoDaJornada({ post, rede, link }: EntradaTextoDaJornada): string {
+  const linhas: string[] = [post.titulo];
+
+  if (post.resumo) {
+    linhas.push("", post.resumo);
+  }
+
+  linhas.push("");
+
+  if (rede === Rede.INSTAGRAM) {
+    linhas.push("A matéria completa está no site — link na bio, e o endereço abaixo pra copiar.");
+    linhas.push(link);
+  } else {
+    linhas.push("A matéria completa está no site. Vale a leitura:");
+    linhas.push(link);
+  }
+
+  return linhas.join("\n").trim();
+}
+
 /**
  * Texto do post social pra uma Lista (roundup) — sempre aponta pro blog, já
  * que não existe um link de afiliado único pra vários produtos de uma vez.

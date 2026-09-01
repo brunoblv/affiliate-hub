@@ -125,8 +125,8 @@ model Post {
   /// limpeza) — marcado manualmente pelo editor em posts sobre químicos/limpeza.
   avisoSeguranca Boolean @default(false)
 
-  /// Site/grupos pra onde este post é distribuído quando tipo = LISTA — ver
-  /// enum Destino. Ignorado em JORNADA/PRODUTO (esses não entram na fila).
+  /// Site/grupos pra onde este post é distribuído (LISTA e JORNADA). Jornada
+  /// vai só para Facebook (página) e Instagram do destino, às 12h nos dias vazios.
   destino Destino @default(MEU_NOVO_LAR)
 
   autorId String?
@@ -384,7 +384,7 @@ enum StatusPublicacao {
   CANCELADA
 }
 
-/// Amarrada a um Produto, a um Post (tipo LISTA) OU a uma LandingDiaria —
+/// Amarrada a um Produto, a um Post (LISTA ou JORNADA) OU a uma LandingDiaria —
 /// exatamente um dos três (CHECK constraint na migration garante isso).
 model Publicacao {
   id              String  @id @default(cuid())

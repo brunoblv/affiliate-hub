@@ -17,7 +17,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     include: {
       canal: true,
       produto: { select: { slug: true } },
-      post: { select: { slug: true } },
+      post: { select: { slug: true, tipo: true } },
       landingDiaria: { select: { slug: true } },
     },
   });
@@ -29,6 +29,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
       texto: publicacao.texto,
       imagemUrl: publicacao.imagemUrl ?? undefined,
       link: publicacao.linkDestino,
+      previewDeLink: publicacao.post?.tipo === "JORNADA",
     });
 
     await prisma.publicacao.update({

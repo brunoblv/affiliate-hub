@@ -4,7 +4,7 @@ import { prisma } from "@/lib/database";
 import { CorpoDoPost } from "@/components/corpo-do-post";
 import { PostsRelacionados } from "@/components/site/posts-relacionados";
 import { resolverCapa } from "@/lib/conteudo/capa";
-import { getSiteUrl } from "@/lib/site-url";
+import { getSiteUrl, urlPublica } from "@/lib/site-url";
 
 const UM_DIA_MS = 24 * 60 * 60 * 1000;
 
@@ -90,12 +90,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({ where: { slug } });
+  const post = await prisma.post.findUnique({ where: { slug }, include: { capa: true } });
   if (!post) return {};
+  const siteUrl = getSiteUrl();
+  const title = post.seoTitulo ?? post.titulo;
+  const description = post.metaDescricao ?? post.resumo ?? undefined;
+  const capa = resolverCapa(post.capa, post.tipo === "JORNADA");
+  const imagem = capa ? urlPublica(capa.src) : undefined;
   return {
-    title: post.seoTitulo ?? post.titulo,
-    description: post.metaDescricao ?? post.resumo ?? undefined,
-    alternates: { canonical: `${getSiteUrl()}/blog/${slug}` },
+    title,
+    description,
+    alternates: { canonical: `${siteUrl}/blog/${slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/blog/${slug}`,
+      type: "article",
+      images: imagem ? [{ url: imagem }] : undefined,
+    },
     // LISTA/PRODUTO são conteúdo automático (roundup de ofertas / ficha de
     // produto), sem texto editorial — não indexar pra não diluir a
     // qualidade do site aos olhos do Google/AdSense. Só JORNADA é indexado.

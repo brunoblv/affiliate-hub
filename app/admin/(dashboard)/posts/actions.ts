@@ -6,7 +6,13 @@ import { auth } from "@/lib/auth";
 import { prisma, TipoPost, StatusPost, Destino, CategoriaEditorial } from "@/lib/database";
 import { slugDePostLivre } from "@/lib/conteudo/slug";
 import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
-import { enfileirarPost, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
+import {
+  enfileirarPost,
+  enfileirarJornada,
+  enfileirarJornadasNosDiasVazios,
+  type ResultadoEnfileiramento,
+  type ResultadoDistribuicaoDePost,
+} from "@/lib/agenda/enfileirar";
 import { gerarAudioTts } from "@/lib/conteudo/gemini-tts";
 import { textoParaNarracao } from "@/lib/conteudo/texto-para-narracao";
 import { excluirArquivoDeMidia, salvarArquivoDeAudio } from "@/lib/midia/salvar";
@@ -218,10 +224,12 @@ export async function deletePostAction(id: string): Promise<{ ok: true } | { ok:
   return { ok: true };
 }
 
-/** Agenda a distribuição de uma Lista (post tipo LISTA) nos canais ativos do seu Destino. */
+/** Agenda a distribuição de uma Lista ou Jornada nos canais do Destino. */
 export async function distribuirPostAction(postId: string): Promise<ResultadoEnfileiramento[]> {
   try {
-    const resultados = await enfileirarPost(postId);
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { tipo: true } });
+    const resultados =
+      post?.tipo === TipoPost.JORNADA ? await enfileirarJornada(postId) : await enfileirarPost(postId);
     revalidatePath("/admin/fila");
     revalidatePath(`/admin/posts/${postId}`);
     return resultados;
@@ -230,7 +238,31 @@ export async function distribuirPostAction(postId: string): Promise<ResultadoEnf
       {
         canalId: "erro",
         canal: "Distribuição",
-        motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir a lista.",
+        motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o post.",
+      },
+    ];
+  }
+}
+
+/** Preenche dias sem jornada às 12h no Facebook e Instagram do Meu Novo Lar. */
+export async function agendarJornadasNosDiasVaziosAction(): Promise<ResultadoDistribuicaoDePost[]> {
+  try {
+    const saida = await enfileirarJornadasNosDiasVazios();
+    revalidatePath("/admin/fila");
+    revalidatePath("/admin/posts");
+    return saida;
+  } catch (erro) {
+    return [
+      {
+        postId: "erro",
+        post: "Agendamento",
+        resultados: [
+          {
+            canalId: "erro",
+            canal: "Agendamento",
+            motivoPulado: erro instanceof Error ? erro.message : "Falha ao agendar as jornadas.",
+          },
+        ],
       },
     ];
   }
