@@ -513,6 +513,59 @@ export async function distribuirProdutosNuncaPostadosAction(): Promise<Resultado
   return saida;
 }
 
+/**
+ * Agenda os produtos selecionados na tabela — mesmos canais/cooldown/horário
+ * de `distribuirProdutoAction`, um a um.
+ */
+export async function distribuirProdutosAction(
+  ids: string[],
+): Promise<{ ok: true; lote: ResultadoDistribuicaoEmLote[] } | { ok: false; message: string }> {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { ok: false, message: "Nenhum produto selecionado." };
+  }
+  if (ids.length > LIMITE_EXCLUSAO_EM_LOTE) {
+    return { ok: false, message: `Selecione no máximo ${LIMITE_EXCLUSAO_EM_LOTE} produtos por vez.` };
+  }
+
+  const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { ok: false, message: "Nenhum produto selecionado." };
+  }
+
+  const produtos = await prisma.produto.findMany({
+    where: { id: { in: uniqueIds } },
+    select: { id: true, nome: true },
+  });
+  if (produtos.length === 0) {
+    return { ok: false, message: "Nenhum produto encontrado." };
+  }
+
+  const saida: ResultadoDistribuicaoEmLote[] = [];
+  for (const produto of produtos) {
+    try {
+      const resultados = await enfileirarProduto(produto.id);
+      saida.push({ produtoId: produto.id, produto: produto.nome, resultados });
+    } catch (erro) {
+      saida.push({
+        produtoId: produto.id,
+        produto: produto.nome,
+        resultados: [
+          {
+            canalId: "erro",
+            canal: "Distribuição",
+            motivoPulado: erro instanceof Error ? erro.message : "Falha ao distribuir o produto.",
+          },
+        ],
+      });
+    }
+  }
+
+  revalidatePath("/admin/fila");
+  revalidatePath("/admin/produtos");
+  revalidatePath("/admin/produtos/shopee");
+  return { ok: true, lote: saida };
+}
+
 /** Salva limite diário e comissão mínima da descoberta automática da Shopee. */
 export async function atualizarConfiguracaoShopeeAction(
   _prev: ProdutoFormState,

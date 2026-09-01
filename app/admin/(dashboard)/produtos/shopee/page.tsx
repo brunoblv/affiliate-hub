@@ -4,16 +4,15 @@ import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { RodarDescobertaShopeeButton } from "@/components/admin/rodar-descoberta-shopee-button";
 import { ConfiguracaoShopeeForm } from "@/components/admin/configuracao-shopee-form";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ProdutosTabela, type ProdutoLinha } from "@/components/admin/produtos-tabela";
 import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
 import { obterConfiguracao } from "@/lib/configuracao";
+import { LABEL_DESTINO } from "@/lib/vitrine/destinos";
 import { ShoppingBag } from "lucide-react";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+export const maxDuration = 60;
 
 function ehDescobertaAutomatica(produto: Pick<Produto, "dadosBrutos">): boolean {
   const dados = produto.dadosBrutos;
@@ -21,39 +20,17 @@ function ehDescobertaAutomatica(produto: Pick<Produto, "dadosBrutos">): boolean 
   return (dados as { origem?: string }).origem === "descoberta_automatica";
 }
 
-function TabelaProdutos({ produtos }: { produtos: Produto[] }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Produto</TableHead>
-          <TableHead>Categoria</TableHead>
-          <TableHead>Preço</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {produtos.map((produto) => {
-          const desconto = descontoPercentual(produto);
-          return (
-            <TableRow key={produto.id}>
-              <TableCell className="font-medium">
-                <Link href={`/admin/produtos/${produto.id}`} className="hover:underline">
-                  {produto.nome}
-                </Link>
-              </TableCell>
-              <TableCell>{LABEL_CATEGORIA[produto.categoria] ?? produto.categoria}</TableCell>
-              <TableCell>
-                {formatCurrency(Number(produto.precoAtual))}
-                {desconto !== null && <span className="ml-2 text-xs text-muted-foreground">-{desconto}%</span>}
-              </TableCell>
-              <TableCell>{produto.ativo ? "Ativo" : "Inativo"}</TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
-  );
+function paraLinha(produto: Produto): ProdutoLinha {
+  return {
+    id: produto.id,
+    nome: produto.nome,
+    plataforma: produto.plataforma,
+    destino: LABEL_DESTINO[produto.destino] ?? produto.destino,
+    categoria: LABEL_CATEGORIA[produto.categoria] ?? produto.categoria,
+    precoAtual: Number(produto.precoAtual),
+    desconto: descontoPercentual(produto),
+    ativo: produto.ativo,
+  };
 }
 
 export default async function ProdutosShopeePage({
@@ -116,7 +93,7 @@ export default async function ProdutosShopeePage({
         {ofertasDeHoje.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma oferta descoberta automaticamente hoje ainda.</p>
         ) : (
-          <TabelaProdutos produtos={ofertasDeHoje} />
+          <ProdutosTabela produtos={ofertasDeHoje.map(paraLinha)} />
         )}
       </section>
 
@@ -130,7 +107,7 @@ export default async function ProdutosShopeePage({
           />
         ) : (
           <>
-            <TabelaProdutos produtos={outrosProdutos} />
+            <ProdutosTabela produtos={outrosProdutos.map(paraLinha)} />
             <Pagination page={page} totalPages={totalPages} basePath="/admin/produtos/shopee" />
           </>
         )}

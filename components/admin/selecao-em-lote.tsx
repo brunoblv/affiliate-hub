@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -73,26 +73,34 @@ export function BarraExclusaoEmLote({
   rotuloPlural,
   isPending,
   onExcluir,
+  extra,
+  excluindo,
 }: {
   quantidade: number;
   rotuloSingular: string;
   rotuloPlural: string;
   isPending: boolean;
   onExcluir: () => void;
+  extra?: ReactNode;
+  excluindo?: boolean;
 }) {
   if (quantidade === 0) return null;
 
   const rotulo = quantidade === 1 ? rotuloSingular : rotuloPlural;
+  const apagando = excluindo ?? isPending;
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
       <p className="text-sm">
         {quantidade} {rotulo} selecionado{quantidade === 1 ? "" : "s"}
       </p>
-      <Button type="button" variant="destructive" size="sm" disabled={isPending} onClick={onExcluir}>
-        <Trash2 />
-        {isPending ? "Excluindo..." : "Excluir"}
-      </Button>
+      <div className="flex items-center gap-2">
+        {extra}
+        <Button type="button" variant="destructive" size="sm" disabled={isPending} onClick={onExcluir}>
+          <Trash2 />
+          {apagando ? "Excluindo..." : "Excluir"}
+        </Button>
+      </div>
     </div>
   );
 }

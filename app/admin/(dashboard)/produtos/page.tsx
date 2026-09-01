@@ -9,6 +9,8 @@ import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nun
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { ProdutosTabela } from "@/components/admin/produtos-tabela";
 
+export const maxDuration = 60;
+
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
   TIKTOK_SHOP: "TikTok Shop",

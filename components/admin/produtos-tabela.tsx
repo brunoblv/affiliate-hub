@@ -4,8 +4,10 @@ import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { SendHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { deleteProdutosAction } from "@/app/admin/(dashboard)/produtos/actions";
+import { deleteProdutosAction, distribuirProdutosAction, type ResultadoDistribuicaoEmLote } from "@/app/admin/(dashboard)/produtos/actions";
 import { BarraExclusaoEmLote, CheckboxLote, useSelecaoEmLote } from "@/components/admin/selecao-em-lote";
 
 export interface ProdutoLinha {
@@ -23,9 +25,30 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function avisarDistribuicao(
+  lote: ResultadoDistribuicaoEmLote[],
+  toastId: string | number,
+  router: ReturnType<typeof useRouter>,
+) {
+  const agendados = lote.reduce((soma, item) => soma + item.resultados.filter((r) => r.agendadaPara).length, 0);
+  const pulado = lote.flatMap((item) => item.resultados).find((r) => !r.agendadaPara)?.motivoPulado;
+
+  if (agendados > 0) {
+    toast.success(agendados === 1 ? "1 publicação entrou na fila." : `${agendados} publicações entraram na fila.`, {
+      id: toastId,
+      action: { label: "Ver fila", onClick: () => router.push("/admin/fila") },
+    });
+    return;
+  }
+
+  toast.warning(pulado ?? "Nenhum canal recebeu o produto.", { id: toastId, duration: 8000 });
+}
+
 export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [excluindo, startExcluir] = useTransition();
+  const [enfileirando, startEnfileirar] = useTransition();
+  const isPending = excluindo || enfileirando;
   const selecao = useSelecaoEmLote(produtos.map((produto) => produto.id));
 
   function excluirSelecionados() {
@@ -40,7 +63,7 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
       return;
     }
 
-    startTransition(async () => {
+    startExcluir(async () => {
       const toastId = toast.loading(n === 1 ? "Excluindo produto..." : `Excluindo ${n} produtos...`);
       try {
         const resultado = await deleteProdutosAction(ids);
@@ -49,12 +72,34 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
           return;
         }
         toast.success(
-          resultado.count === 1 ? "Produto e página associada excluídos." : `${resultado.count} produtos e páginas associadas excluídos.`,
+          resultado.count === 1
+            ? "Produto e página associada excluídos."
+            : `${resultado.count} produtos e páginas associadas excluídos.`,
           { id: toastId },
         );
         router.refresh();
       } catch (erro) {
         toast.error(erro instanceof Error ? erro.message : "Não foi possível excluir.", { id: toastId });
+      }
+    });
+  }
+
+  function enfileirar(ids: string[]) {
+    const n = ids.length;
+    if (n === 0) return;
+
+    startEnfileirar(async () => {
+      const toastId = toast.loading(n === 1 ? "Enviando para a fila..." : `Enviando ${n} produtos para a fila...`);
+      try {
+        const resultado = await distribuirProdutosAction(ids);
+        if (!resultado.ok) {
+          toast.error(resultado.message ?? "Não foi possível enfileirar.", { id: toastId });
+          return;
+        }
+        avisarDistribuicao(resultado.lote, toastId, router);
+        router.refresh();
+      } catch (erro) {
+        toast.error(erro instanceof Error ? erro.message : "Não foi possível enfileirar.", { id: toastId });
       }
     });
   }
@@ -66,7 +111,19 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
         rotuloSingular="produto"
         rotuloPlural="produtos"
         isPending={isPending}
+        excluindo={excluindo}
         onExcluir={excluirSelecionados}
+        extra={
+          <Button
+            type="button"
+            size="sm"
+            disabled={isPending}
+            onClick={() => enfileirar([...selecao.selecionados])}
+          >
+            <SendHorizontal />
+            {enfileirando ? "Enviando..." : "Enviar para a fila"}
+          </Button>
+        }
       />
       <Table>
         <TableHeader>
@@ -85,6 +142,7 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
             <TableHead>Categoria</TableHead>
             <TableHead>Preço</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="w-28">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -114,6 +172,19 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
                   )}
                 </TableCell>
                 <TableCell>{produto.ativo ? "Ativo" : "Inativo"}</TableCell>
+                <TableCell>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isPending || !produto.ativo}
+                    onClick={() => enfileirar([produto.id])}
+                    aria-label={`Enviar ${produto.nome} para a fila`}
+                  >
+                    <SendHorizontal />
+                    Fila
+                  </Button>
+                </TableCell>
               </TableRow>
             );
           })}
