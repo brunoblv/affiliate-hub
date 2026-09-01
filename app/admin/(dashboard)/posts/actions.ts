@@ -162,21 +162,55 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
   return { status: "success", message: "Alterações salvas." };
 }
 
+const LIMITE_EXCLUSAO_EM_LOTE = 100;
+
 /**
  * ItemDePost e MidiaEmPost somem por cascade (ver schema) — a mídia e o produto
  * em si ficam, só o vínculo com o post cai. Apagar direto no banco deixava a
  * home servindo o post excluído até o ISR virar, por isso revalida aqui.
  */
-export async function deletePostAction(id: string): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function deletePostsAction(
+  ids: string[],
+): Promise<{ ok: true; count: number } | { ok: false; message: string }> {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { ok: false, message: "Nenhum post selecionado." };
+  }
+  if (ids.length > LIMITE_EXCLUSAO_EM_LOTE) {
+    return { ok: false, message: `Selecione no máximo ${LIMITE_EXCLUSAO_EM_LOTE} posts por vez.` };
+  }
+
+  const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { ok: false, message: "Nenhum post selecionado." };
+  }
+
   try {
-    const post = await prisma.post.delete({ where: { id }, select: { slug: true } });
+    const posts = await prisma.post.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true, slug: true },
+    });
+    if (posts.length === 0) {
+      return { ok: false, message: "Nenhum post encontrado." };
+    }
+
+    await prisma.post.deleteMany({ where: { id: { in: posts.map((post) => post.id) } } });
 
     revalidatePath("/admin/posts");
-    revalidarSitePublico(post.slug);
-    return { ok: true };
+    revalidatePath("/admin/fila");
+    for (const post of posts) {
+      revalidatePath(`/admin/posts/${post.id}`);
+      revalidarSitePublico(post.slug);
+    }
+    return { ok: true, count: posts.length };
   } catch (erro) {
-    return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir o post." };
+    return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir os posts." };
   }
+}
+
+export async function deletePostAction(id: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  const resultado = await deletePostsAction([id]);
+  if (!resultado.ok) return resultado;
+  return { ok: true };
 }
 
 /** Agenda a distribuição de uma Lista (post tipo LISTA) nos canais ativos do seu Destino. */

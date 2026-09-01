@@ -84,6 +84,18 @@ export function ehArgumentoInvalido(erro: unknown): boolean {
   return /400/.test(msg) && /INVALID_ARGUMENT|invalid argument/i.test(msg);
 }
 
+export function ehTimeout(erro: unknown): boolean {
+  if (erro instanceof Error && (erro.name === "TimeoutError" || erro.name === "AbortError")) return true;
+  const msg = erro instanceof Error ? erro.message : String(erro);
+  return /não respondeu em \d+s/i.test(msg);
+}
+
 export function ehTrocarModelo(erro: unknown): boolean {
-  return ehQuotaEsgotada(erro) || ehModeloIndisponivel(erro) || ehIndisponivel(erro) || ehArgumentoInvalido(erro);
+  return (
+    ehQuotaEsgotada(erro) ||
+    ehModeloIndisponivel(erro) ||
+    ehIndisponivel(erro) ||
+    ehArgumentoInvalido(erro) ||
+    ehTimeout(erro)
+  );
 }

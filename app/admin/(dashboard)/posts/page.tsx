@@ -3,10 +3,9 @@ import { Newspaper, Plus } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
+import { PostsTabela } from "@/components/admin/posts-tabela";
 
 export default async function PostsAdminPage({
   searchParams,
@@ -39,32 +38,14 @@ export default async function PostsAdminPage({
       {posts.length === 0 ? (
         <EmptyState icon={Newspaper} title="Nenhum post ainda" description="Crie o primeiro post pelo botão acima." />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {posts.map((post) => (
-              <TableRow key={post.id}>
-                <TableCell className="font-medium">
-                  <Link href={`/admin/posts/${post.id}`} className="hover:underline">
-                    {post.titulo}
-                  </Link>
-                </TableCell>
-                <TableCell>{post.tipo}</TableCell>
-                <TableCell>
-                  <Badge variant={post.status === "PUBLICADO" ? "default" : "secondary"}>
-                    {post.status === "PUBLICADO" ? "Publicado" : "Rascunho"}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <PostsTabela
+          posts={posts.map((post) => ({
+            id: post.id,
+            titulo: post.titulo,
+            tipo: post.tipo,
+            status: post.status,
+          }))}
+        />
       )}
 
       <Pagination page={page} totalPages={totalPages} basePath="/admin/posts" />

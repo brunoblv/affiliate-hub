@@ -68,7 +68,8 @@ export async function gerarTemasEditoriais(quantidade: number, categoria: Catego
       ? existentes.map((post) => `- ${post.titulo}`).join("\n")
       : "(nenhum artigo publicado ainda nessa categoria — pode propor qualquer tema dentro da linha editorial)";
 
-  let promptCompleto = `${prompt}\n\n## Títulos já existentes no site (nessa categoria)\n\n${listaExistentes}\n\n## Pedido\n\nGere ${quantidade + 5} temas novos (peço uma folga porque alguns podem ser descartados por semelhança com os já existentes).`;
+  const pedir = quantidade + 2;
+  let promptCompleto = `${prompt}\n\n## Títulos já existentes no site (nessa categoria)\n\n${listaExistentes}\n\n## Pedido\n\nGere ${pedir} temas novos (peço uma folga porque alguns podem ser descartados por semelhança com os já existentes).`;
 
   if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO) {
     promptCompleto = promptCompleto.replace("{{contextoJornada}}", await contextoJornada());
@@ -78,6 +79,10 @@ export async function gerarTemasEditoriais(quantidade: number, categoria: Catego
     prompt: promptCompleto,
     schema: SCHEMA_PAUTA,
     temperature: 1,
+    maxOutputTokens: 2048,
+    timeoutMs: 20_000,
+    maxModelos: 3,
+    maxAttempts: 2,
   });
 
   const vistos = new Set<string>();

@@ -4,20 +4,16 @@ import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { DistribuirNuncaPostadosButton } from "@/components/admin/distribuir-nunca-postados-button";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
+import { ProdutosTabela } from "@/components/admin/produtos-tabela";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
   TIKTOK_SHOP: "TikTok Shop",
   UMBANDA: "Umbanda",
 };
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 export default async function ProdutosAdminPage({
   searchParams,
@@ -70,40 +66,18 @@ export default async function ProdutosAdminPage({
       {produtos.length === 0 ? (
         <EmptyState icon={Package} title="Nenhum produto cadastrado" description="Cadastre o primeiro produto pelo botão acima." />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Produto</TableHead>
-              <TableHead>Plataforma</TableHead>
-              <TableHead>Destino</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {produtos.map((produto) => {
-              const desconto = descontoPercentual(produto);
-              return (
-                <TableRow key={produto.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/admin/produtos/${produto.id}`} className="hover:underline">
-                      {produto.nome}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{produto.plataforma}</TableCell>
-                  <TableCell>{LABEL_DESTINO[produto.destino] ?? produto.destino}</TableCell>
-                  <TableCell>{LABEL_CATEGORIA[produto.categoria] ?? produto.categoria}</TableCell>
-                  <TableCell>
-                    {formatCurrency(Number(produto.precoAtual))}
-                    {desconto !== null && <span className="ml-2 text-xs text-muted-foreground">-{desconto}%</span>}
-                  </TableCell>
-                  <TableCell>{produto.ativo ? "Ativo" : "Inativo"}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <ProdutosTabela
+          produtos={produtos.map((produto) => ({
+            id: produto.id,
+            nome: produto.nome,
+            plataforma: produto.plataforma,
+            destino: LABEL_DESTINO[produto.destino] ?? produto.destino,
+            categoria: LABEL_CATEGORIA[produto.categoria] ?? produto.categoria,
+            precoAtual: Number(produto.precoAtual),
+            desconto: descontoPercentual(produto),
+            ativo: produto.ativo,
+          }))}
+        />
       )}
 
       <Pagination page={page} totalPages={totalPages} basePath="/admin/produtos" />

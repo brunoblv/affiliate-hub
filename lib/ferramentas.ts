@@ -24,10 +24,4 @@ export const FERRAMENTAS: Ferramenta[] = [
     description: "Calcule a metragem certa para o seu ambiente.",
     href: "/ferramentas/calculadora-de-piso",
   },
-  {
-    category: "ORGANIZAÇÃO",
-    title: "Lista de compras",
-    description: "Organize o que falta comprar para casa.",
-    href: "/ferramentas/lista-de-compras",
-  },
 ];

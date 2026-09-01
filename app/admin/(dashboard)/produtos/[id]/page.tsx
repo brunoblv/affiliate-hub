@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { ProdutoForm } from "@/components/admin/produto-form";
 import { DistribuirProdutoButton } from "@/components/admin/distribuir-produto-button";
 import { PublicarAgoraProduto } from "@/components/admin/publicar-agora-produto";
+import { ExcluirProdutoButton } from "@/components/admin/excluir-produto-button";
 import { updateProdutoAction } from "../actions";
 
 const LABEL_DESTINO: Record<string, string> = {
@@ -32,7 +33,10 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-8">
-      <PageHeader title={produto.nome} description={`/go/${produto.codigoCurto}`} />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader title={produto.nome} description={`/go/${produto.codigoCurto}`} />
+        <ExcluirProdutoButton id={produto.id} nome={produto.nome} />
+      </div>
       <ProdutoForm produto={produtoSerializado} action={action} />
       <div className="max-w-2xl border-t border-border pt-6">
         <h2 className="text-sm font-medium">Distribuição</h2>

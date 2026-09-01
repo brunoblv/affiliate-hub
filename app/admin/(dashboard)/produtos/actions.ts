@@ -10,6 +10,7 @@ import { buscarOfertasShopee, buscarOfertaPorItem, gerarLinkAfiliado, type Ofert
 import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
+import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { atualizarConfiguracao } from "@/lib/configuracao";
 
@@ -136,6 +137,50 @@ export async function updateProdutoAction(
   revalidarSitePublico(produto.slug);
 
   return { status: "success", message: "Alterações salvas." };
+}
+
+const LIMITE_EXCLUSAO_EM_LOTE = 100;
+
+/**
+ * Apaga os produtos e as páginas de ficha (Post tipo PRODUTO) ligadas a eles.
+ * Sem isso, a ficha no blog ficava órfã — o cascade só remove o vínculo, não o post.
+ */
+export async function deleteProdutosAction(
+  ids: string[],
+): Promise<{ ok: true; count: number } | { ok: false; message: string }> {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { ok: false, message: "Nenhum produto selecionado." };
+  }
+  if (ids.length > LIMITE_EXCLUSAO_EM_LOTE) {
+    return { ok: false, message: `Selecione no máximo ${LIMITE_EXCLUSAO_EM_LOTE} produtos por vez.` };
+  }
+
+  try {
+    const { produtos, paginas } = await excluirProdutosComPaginas(ids);
+    if (produtos.length === 0) {
+      return { ok: false, message: "Nenhum produto encontrado." };
+    }
+
+    revalidatePath("/admin/produtos");
+    revalidatePath("/admin/posts");
+    revalidatePath("/admin/fila");
+    revalidatePath("/");
+    revalidatePath("/ofertas");
+    revalidatePath("/produtos");
+    revalidatePath("/blog");
+    for (const produto of produtos) {
+      revalidatePath(`/admin/produtos/${produto.id}`);
+      revalidatePath(`/produtos/${produto.slug}`);
+    }
+    for (const pagina of paginas) {
+      revalidatePath(`/admin/posts/${pagina.id}`);
+      revalidatePath(`/blog/${pagina.slug}`);
+    }
+
+    return { ok: true, count: produtos.length };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir os produtos." };
+  }
 }
 
 /**
