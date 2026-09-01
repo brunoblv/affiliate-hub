@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Plus, Download, Search } from "lucide-react";
+import { Package, Plus, Download, Search, House } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -43,6 +43,10 @@ export default async function ProdutosAdminPage({
           <Button variant="outline" render={<Link href="/admin/produtos/importar" />}>
             <Download />
             Importar do Mercado Livre
+          </Button>
+          <Button variant="outline" render={<Link href="/admin/produtos/buscar-shopee" />}>
+            <House />
+            Buscar Shopee
           </Button>
           <Button variant="outline" render={<Link href="/admin/produtos/shopee" />}>
             <Search />

@@ -39,8 +39,15 @@ async function corpoComFicha(produto: Produto): Promise<{ corpo: string; resumo:
  * A distribuição nas redes usa o link de afiliado direto, não este slug.
  * Reaproveita rascunho existente. Gera descrição + utilidade via IA quando
  * o corpo ainda está vazio — senão a página pública sai só com o card.
+ *
+ * `gerarFichaComIa: false` pula a IA (import em lote do painel Shopee) e
+ * deixa o card com corpo mínimo; a ficha pode ser gerada depois no produto.
  */
-export async function garantirPostPublicadoDoProduto(produto: Produto): Promise<PostDoProduto> {
+export async function garantirPostPublicadoDoProduto(
+  produto: Produto,
+  opcoes?: { gerarFichaComIa?: boolean },
+): Promise<PostDoProduto> {
+  const gerarFichaComIa = opcoes?.gerarFichaComIa !== false;
   const vinculos = await prisma.itemDePost.findMany({
     where: { produtoId: produto.id, post: { tipo: TipoPost.PRODUTO } },
     include: { post: { select: { id: true, slug: true, status: true, corpo: true } } },
@@ -52,9 +59,13 @@ export async function garantirPostPublicadoDoProduto(produto: Produto): Promise<
   const rascunho = vinculos[0];
   if (rascunho) {
     const precisaFicha = fichaProdutoVazia(rascunho.post.corpo);
-    const { corpo, resumo } = precisaFicha
-      ? await corpoComFicha(produto)
-      : { corpo: rascunho.post.corpo, resumo: resumoAutomatico(rascunho.post.corpo) || produto.nome };
+    const minimo = corpoMinimo(produto);
+    const { corpo, resumo } =
+      precisaFicha && gerarFichaComIa
+        ? await corpoComFicha(produto)
+        : precisaFicha
+          ? { corpo: minimo, resumo: resumoAutomatico(minimo) || produto.nome }
+          : { corpo: rascunho.post.corpo, resumo: resumoAutomatico(rascunho.post.corpo) || produto.nome };
     const post = await prisma.post.update({
       where: { id: rascunho.post.id },
       data: {
@@ -69,7 +80,10 @@ export async function garantirPostPublicadoDoProduto(produto: Produto): Promise<
     return post;
   }
 
-  const { corpo, resumo } = await corpoComFicha(produto);
+  const minimo = corpoMinimo(produto);
+  const { corpo, resumo } = gerarFichaComIa
+    ? await corpoComFicha(produto)
+    : { corpo: minimo, resumo: resumoAutomatico(minimo) || produto.nome };
   const post = await prisma.post.create({
     data: {
       tipo: TipoPost.PRODUTO,

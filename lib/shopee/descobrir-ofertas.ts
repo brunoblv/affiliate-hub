@@ -1,19 +1,13 @@
-import { prisma, Plataforma, Destino, Categoria, TipoPost, StatusPost } from "@/lib/database";
+import { prisma, Destino, Categoria, TipoPost, StatusPost } from "@/lib/database";
 import { registrar } from "@/lib/log";
-import { slugify, gerarCodigoCurto } from "@/lib/produtos";
+import { slugify } from "@/lib/produtos";
 import { resumoAutomatico } from "@/lib/conteudo/corpo";
 import { enfileirarPost } from "@/lib/agenda/enfileirar";
 import { obterConfiguracao } from "@/lib/configuracao";
-import { buscarOfertasShopee, gerarLinkAfiliado, type OfertaShopee } from "./client";
-import { PALAVRAS_CHAVE_CASA, ehForaDoTemaCasa } from "./palavras-chave-casa";
-
-function ehViolacaoDeIdExternoDuplicado(erro: unknown): boolean {
-  if (!erro || typeof erro !== "object" || !("code" in erro)) return false;
-  const target = "meta" in erro && erro.meta && typeof erro.meta === "object" && "target" in erro.meta
-    ? String(erro.meta.target)
-    : "";
-  return erro.code === "P2002" && target.includes("idExterno");
-}
+import { buscarOfertasShopee, type OfertaShopee } from "./client";
+import { PALAVRAS_CHAVE_CASA } from "./palavras-chave-casa";
+import { classificarOferta } from "./qualidade-oferta";
+import { importarOfertaShopee } from "./importar-oferta";
 
 async function slugLivre(base: string): Promise<string> {
   const limpo = slugify(base) || "lista";
@@ -23,63 +17,6 @@ async function slugLivre(base: string): Promise<string> {
   for (let n = 2; n < 50; n++) {
     const candidato = `${limpo}-${n}`;
     const ocupado = await prisma.post.findUnique({ where: { slug: candidato }, select: { id: true } });
-    if (!ocupado) return candidato;
-  }
-
-  return `${limpo}-${Date.now().toString(36)}`;
-}
-
-async function importarOferta(oferta: OfertaShopee, categoria: Categoria): Promise<{ id: string; slug: string } | null> {
-  const idExterno = `${oferta.shopId}_${oferta.itemId}`;
-
-  const existente = await prisma.produto.findUnique({
-    where: { plataforma_idExterno: { plataforma: Plataforma.SHOPEE, idExterno } },
-    select: { id: true },
-  });
-  if (existente) return null;
-
-  let linkAfiliado = oferta.offerLink;
-  if (!linkAfiliado) {
-    linkAfiliado = await gerarLinkAfiliado(`https://shopee.com.br/product/${oferta.shopId}/${oferta.itemId}`);
-  }
-  if (!linkAfiliado) return null;
-
-  const slug = await slugLivreProduto(oferta.nome);
-
-  try {
-    const produto = await prisma.produto.create({
-      data: {
-        plataforma: Plataforma.SHOPEE,
-        destino: Destino.MEU_NOVO_LAR,
-        categoria,
-        idExterno,
-        slug,
-        nome: oferta.nome,
-        imagens: oferta.imagemUrl ? [oferta.imagemUrl] : [],
-        precoAtual: oferta.precoAtual,
-        precoOriginal: oferta.precoOriginal,
-        linkAfiliado,
-        codigoCurto: gerarCodigoCurto(),
-        dadosBrutos: { shop_id: oferta.shopId, item_id: oferta.itemId, origem: "descoberta_automatica" },
-        sincronizadoEm: new Date(),
-      },
-      select: { id: true, slug: true },
-    });
-    return produto;
-  } catch (erro) {
-    if (ehViolacaoDeIdExternoDuplicado(erro)) return null;
-    throw erro;
-  }
-}
-
-async function slugLivreProduto(base: string): Promise<string> {
-  const limpo = slugify(base) || "produto";
-  const jaTem = await prisma.produto.findUnique({ where: { slug: limpo }, select: { id: true } });
-  if (!jaTem) return limpo;
-
-  for (let n = 2; n < 50; n++) {
-    const candidato = `${limpo}-${n}`;
-    const ocupado = await prisma.produto.findUnique({ where: { slug: candidato }, select: { id: true } });
     if (!ocupado) return candidato;
   }
 
@@ -117,9 +54,12 @@ async function criarListaDoDia(produtos: Array<{ id: string; slug: string }>): P
  * Busca ofertas Shopee por palavra-chave de casa (uma busca por termo em
  * PALAVRAS_CHAVE_CASA — a Shopee não tem filtro de categoria funcional nessa
  * API, então "casa" é garantido pelo termo buscado, não por listType/catId),
- * importa as elegíveis (fora da blacklist de termos, comissão mínima, até o
+ * importa as elegíveis (promoção ou bom preço, comissão mínima, até o
  * limite diário) e agrupa tudo num único Post tipo LISTA, distribuído nos
  * canais ativos. Chamada periodicamente pelo worker — ver workers/index.ts.
+ *
+ * sortType 1 = relevância da keyword. O antigo 5 (maior comissão) puxava
+ * produto fora de casa mesmo com termo de quarto/cozinha.
  */
 export async function descobrirOfertasShopee(): Promise<void> {
   if (!process.env.SHOPEE_APP_ID || !process.env.SHOPEE_SECRET) {
@@ -136,7 +76,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
 
   for (const { keyword, categoria } of PALAVRAS_CHAVE_CASA) {
     try {
-      const ofertas = await buscarOfertasShopee({ keyword, sortType: 5, limit: 15 });
+      const ofertas = await buscarOfertasShopee({ keyword, sortType: 1, limit: 15 });
       for (const oferta of ofertas) {
         const chave = `${oferta.shopId}_${oferta.itemId}`;
         if (!encontradas.has(chave)) encontradas.set(chave, { oferta, categoria });
@@ -151,9 +91,9 @@ export async function descobrirOfertasShopee(): Promise<void> {
   }
 
   const ofertas = [...encontradas.values()];
-  const foraDoTema = ofertas.filter(({ oferta }) => ehForaDoTemaCasa(oferta.nome)).length;
+  const foraDoTema = ofertas.filter(({ oferta }) => classificarOferta(oferta) === null).length;
   const elegiveis = ofertas.filter(
-    ({ oferta }) => (oferta.comissaoPercentual ?? 0) >= comissaoMinima && !ehForaDoTemaCasa(oferta.nome),
+    ({ oferta }) => (oferta.comissaoPercentual ?? 0) >= comissaoMinima && classificarOferta(oferta) !== null,
   );
 
   const importados: Array<{ id: string; slug: string }> = [];
@@ -164,8 +104,12 @@ export async function descobrirOfertasShopee(): Promise<void> {
     if (importados.length >= limiteDiario) break;
 
     try {
-      const produto = await importarOferta(oferta, categoria);
-      if (produto) importados.push(produto);
+      const resultado = await importarOfertaShopee({
+        oferta,
+        categoria,
+        origem: "descoberta_automatica",
+      });
+      if (resultado.status === "importado") importados.push({ id: resultado.id, slug: resultado.slug });
       else pulados++;
     } catch (erro) {
       comErro++;

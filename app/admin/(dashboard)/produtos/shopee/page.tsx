@@ -9,8 +9,9 @@ import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
 import { obterConfiguracao } from "@/lib/configuracao";
 import { LABEL_DESTINO } from "@/lib/vitrine/destinos";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Search } from "lucide-react";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 
 export const maxDuration = 60;
 
@@ -62,7 +63,13 @@ export default async function ProdutosShopeePage({
           title="Produtos Shopee"
           description="Ofertas descobertas automaticamente todo dia + o resto do catálogo Shopee."
         />
-        <RodarDescobertaShopeeButton />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" render={<Link href="/admin/produtos/buscar-shopee" />}>
+            <Search />
+            Buscar por cômodo
+          </Button>
+          <RodarDescobertaShopeeButton />
+        </div>
       </div>
 
       <ConfiguracaoShopeeForm
@@ -80,7 +87,7 @@ export default async function ProdutosShopeePage({
 
       <div className="flex flex-wrap gap-3 text-sm">
         <Link href="/admin/produtos/buscar-shopee" className="text-primary hover:underline">
-          Buscar por palavra-chave
+          Buscar por cômodo
         </Link>
         <span className="text-muted-foreground">·</span>
         <Link href="/admin/produtos/importar-shopee" className="text-primary hover:underline">

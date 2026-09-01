@@ -16,7 +16,7 @@ export default function ImportarShopeeProdutoPage() {
       <ImportarShopeeForm action={importarShopeeAction} />
 
       <Link href="/admin/produtos/buscar-shopee" className="block text-sm text-muted-foreground hover:underline">
-        Prefere buscar por palavra-chave?
+        Prefere buscar por cômodo?
       </Link>
     </div>
   );

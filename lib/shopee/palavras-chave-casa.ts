@@ -1,25 +1,13 @@
-import { Categoria } from "@/lib/database";
+import { Categoria } from "@/lib/database/enums";
+import { COMODOS_CASA } from "./catalogo-comodos";
 
 /**
- * Termos de busca usados pela descoberta automática (`descobrir-ofertas.ts`)
- * pra puxar só produtos de casa da Shopee, em vez das top ofertas gerais
- * (que trazia qualquer coisa — tênis, action figure, videogame, seringa
- * etc., já que a Shopee não classifica a oferta por tema nenhum). Cada termo
- * já carrega a `Categoria` que o produto encontrado recebe.
+ * Um par keyword/categoria por cômodo (os dois primeiros tipos) — volume
+ * parecido com a lista antiga, mas com termos concretos do catálogo.
  */
-export const PALAVRAS_CHAVE_CASA: Array<{ keyword: string; categoria: Categoria }> = [
-  { keyword: "organizador para casa", categoria: Categoria.ORGANIZACAO },
-  { keyword: "utensílios de cozinha", categoria: Categoria.COZINHA },
-  { keyword: "acessórios para banheiro", categoria: Categoria.BANHEIRO },
-  { keyword: "cesto de roupa suja", categoria: Categoria.LAVANDERIA },
-  { keyword: "produtos de limpeza doméstica", categoria: Categoria.LIMPEZA },
-  { keyword: "decoração para casa", categoria: Categoria.DECORACAO },
-  { keyword: "luminária para casa", categoria: Categoria.ILUMINACAO },
-  { keyword: "móveis para casa", categoria: Categoria.MOVEIS },
-  { keyword: "ferramentas manuais para casa", categoria: Categoria.FERRAMENTAS },
-  { keyword: "jardinagem", categoria: Categoria.JARDIM },
-  { keyword: "eletrodomésticos para cozinha", categoria: Categoria.ELETRODOMESTICOS },
-];
+export const PALAVRAS_CHAVE_CASA: Array<{ keyword: string; categoria: Categoria }> = COMODOS_CASA.flatMap((comodo) =>
+  comodo.itens.slice(0, 2).map((item) => ({ keyword: item.keyword, categoria: item.categoria })),
+);
 
 /**
  * Rede de segurança: mesmo buscando por palavra-chave de casa, a Shopee às
@@ -27,6 +15,9 @@ export const PALAVRAS_CHAVE_CASA: Array<{ keyword: string; categoria: Categoria 
  * (ex.: "tênis de corrida leve para casa" caiu numa busca de organização).
  * Qualquer nome de produto que bata com um desses termos é descartado antes
  * de importar, independente da categoria/keyword que trouxe a oferta.
+ *
+ * Termos curtos usam fronteira de palavra — senão "maio" derruba "maior" e
+ * "console" derruba aparador console de sala.
  */
 const TERMOS_PROIBIDOS = [
   "tênis",
@@ -38,7 +29,10 @@ const TERMOS_PROIBIDOS = [
   "colecionavel",
   "videogame",
   "vídeo game",
-  "console",
+  "video game",
+  "xbox",
+  "playstation",
+  "nintendo",
   "joystick",
   "controle de video game",
   "seringa",
@@ -49,7 +43,6 @@ const TERMOS_PROIBIDOS = [
   "biquíni",
   "biquini",
   "maiô",
-  "maio",
   "whey protein",
   "suplemento alimentar",
   "power bank",
@@ -57,15 +50,26 @@ const TERMOS_PROIBIDOS = [
   "carregador portatil",
   "fone bluetooth",
   "smartwatch",
+  "relógio inteligente",
+  "relogio inteligente",
   "capinha de celular",
   "capa de celular",
   "película de celular",
   "pelicula de celular",
   "roupa fitness",
   "legging fitness",
+  "iphone",
+  "xiaomi",
+  "notebook",
+  "maquiagem",
+  "batom",
+  "barbie",
 ];
 
-const REGEX_PROIBIDOS = new RegExp(TERMOS_PROIBIDOS.join("|"), "i");
+const REGEX_PROIBIDOS = new RegExp(
+  `\\b(?:${TERMOS_PROIBIDOS.map((termo) => termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`,
+  "i",
+);
 
 /** true se o nome do produto bater com algum termo fora do tema "casa". */
 export function ehForaDoTemaCasa(nomeProduto: string): boolean {

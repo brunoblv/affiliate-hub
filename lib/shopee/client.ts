@@ -110,11 +110,11 @@ const QUERY_OFERTA_POR_ITEM = /* GraphQL */ `
 /**
  * Busca ofertas ativas. Com `keyword`, é a busca por palavra-chave da tela de
  * pesquisa do admin; sem `keyword`, usa `listType` pra pegar as top ofertas
- * gerais — usado pela descoberta automática diária. Só `listType: 0` (geral/
- * recomendados, sem filtro de lista) está confirmado em uso; os demais
- * valores não estão documentados/testados aqui — confira no GraphQL
- * Explorer da Shopee antes de usar outro. Ordenação (ex.: maior comissão)
- * é `sortType`, não `listType`.
+ * gerais. Só `listType: 0` (geral/recomendados, sem filtro de lista) está
+ * confirmado em uso; os demais valores não estão documentados/testados aqui
+ * — confira no GraphQL Explorer da Shopee antes de usar outro.
+ * `sortType`: 1 = relevância da keyword (painel e descoberta de casa);
+ * 5 = maior comissão (não usar pra tema casa — puxa produto fora do nicho).
  */
 export async function buscarOfertasShopee(params: {
   keyword?: string;

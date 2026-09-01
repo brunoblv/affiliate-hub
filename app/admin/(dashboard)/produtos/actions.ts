@@ -12,6 +12,8 @@ import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento }
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
+import { buscarOfertasPorComodo, type OfertaShopeeCurada } from "@/lib/shopee/buscar-por-comodo";
+import { importarOfertaShopee } from "@/lib/shopee/importar-oferta";
 import { atualizarConfiguracao } from "@/lib/configuracao";
 
 export interface ProdutoFormState {
@@ -603,4 +605,135 @@ export async function rodarDescobertaShopeeAction(): Promise<{ status: "success"
       message: erro instanceof Error ? erro.message : "Falha ao rodar a descoberta automática.",
     };
   }
+}
+
+export type { OfertaShopeeCurada };
+
+export interface BuscaPorComodoState {
+  status: "idle" | "error" | "success";
+  message?: string;
+  ofertas?: OfertaShopeeCurada[];
+  buscasFeitas?: number;
+  avaliadas?: number;
+  descartadas?: number;
+}
+
+/** Painel por cômodo: busca, filtra promoção/bom preço e devolve lista — não importa. */
+export async function buscarOfertasPorComodoAction(
+  _prev: BuscaPorComodoState,
+  formData: FormData,
+): Promise<BuscaPorComodoState> {
+  const comodoIds = formData.getAll("comodos").map((v) => String(v).trim()).filter(Boolean);
+  const tipoIds = formData.getAll("tipos").map((v) => String(v).trim()).filter(Boolean);
+  const keywordExtra = String(formData.get("keywordExtra") ?? "").trim();
+
+  if (comodoIds.length === 0 && tipoIds.length === 0 && !keywordExtra) {
+    return { status: "error", message: "Escolha um cômodo ou um tipo de item pra buscar." };
+  }
+
+  try {
+    const resultado = await buscarOfertasPorComodo({
+      comodoIds,
+      tipoIds,
+      keywordExtra: keywordExtra || undefined,
+    });
+    if (resultado.ofertas.length === 0) {
+      const message =
+        resultado.avaliadas === 0
+          ? "Nenhuma oferta encontrada pra essa busca."
+          : `Achei ${resultado.avaliadas} produtos, mas nenhum estava em promoção ou com preço bom o bastante. Tente outro cômodo ou tipo.`;
+      return {
+        status: "success",
+        message,
+        ofertas: [],
+        buscasFeitas: resultado.buscasFeitas,
+        avaliadas: resultado.avaliadas,
+        descartadas: resultado.descartadas,
+      };
+    }
+    return {
+      status: "success",
+      message: `${resultado.ofertas.length} ofertas em promoção ou com bom preço.`,
+      ofertas: resultado.ofertas,
+      buscasFeitas: resultado.buscasFeitas,
+      avaliadas: resultado.avaliadas,
+      descartadas: resultado.descartadas,
+    };
+  } catch (erro) {
+    return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao buscar ofertas na Shopee." };
+  }
+}
+
+const LIMITE_IMPORT_LOTE_SHOPEE = 20;
+
+export interface ResultadoImportLoteShopee {
+  ok: true;
+  importados: number;
+  jaExistiam: number;
+  semLink: number;
+  erros: number;
+}
+
+/** Importa as ofertas marcadas no painel, sem redirecionar. */
+export async function importarOfertasShopeeEmLoteAction(params: {
+  ofertas: OfertaShopeeCurada[];
+  destino?: Destino;
+}): Promise<ResultadoImportLoteShopee | { ok: false; message: string }> {
+  if (!Array.isArray(params.ofertas) || params.ofertas.length === 0) {
+    return { ok: false, message: "Nenhuma oferta selecionada." };
+  }
+  if (params.ofertas.length > LIMITE_IMPORT_LOTE_SHOPEE) {
+    return { ok: false, message: `Selecione no máximo ${LIMITE_IMPORT_LOTE_SHOPEE} ofertas por vez.` };
+  }
+
+  const destino = params.destino ?? Destino.MEU_NOVO_LAR;
+  let importados = 0;
+  let jaExistiam = 0;
+  let semLink = 0;
+  let erros = 0;
+
+  for (const curada of params.ofertas) {
+    const oferta: OfertaShopee = {
+      itemId: Number(curada.itemId),
+      shopId: Number(curada.shopId),
+      nome: String(curada.nome ?? ""),
+      imagemUrl: curada.imagemUrl ?? null,
+      precoAtual: Number(curada.precoAtual),
+      precoOriginal: curada.precoOriginal ?? null,
+      comissaoPercentual: curada.comissaoPercentual ?? null,
+      offerLink: String(curada.offerLink ?? ""),
+      avaliacaoMedia: curada.avaliacaoMedia ?? null,
+    };
+    if (!oferta.shopId || !oferta.itemId || !oferta.nome) {
+      erros++;
+      continue;
+    }
+
+    try {
+      const resultado = await importarOfertaShopee({
+        oferta,
+        categoria: curada.categoria,
+        destino,
+        origem: "busca_por_comodo",
+      });
+      if (resultado.status === "importado") {
+        const produto = await prisma.produto.findUnique({ where: { id: resultado.id } });
+        if (produto) await garantirPostPublicadoDoProduto(produto, { gerarFichaComIa: false });
+        importados++;
+        revalidarSitePublico(resultado.slug);
+      } else if (resultado.status === "ja_existia") {
+        jaExistiam++;
+      } else if (resultado.status === "sem_link") {
+        semLink++;
+      }
+    } catch {
+      erros++;
+    }
+  }
+
+  revalidatePath("/admin/produtos");
+  revalidatePath("/admin/produtos/shopee");
+  revalidatePath("/admin/posts");
+
+  return { ok: true, importados, jaExistiam, semLink, erros };
 }
