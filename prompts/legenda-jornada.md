@@ -26,6 +26,10 @@ O objetivo é um resumo fiel + um convite para ler a matéria completa no site.
   etapa, produto, preço nem opinião que não esteja no título/resumo.
 - `cta`: uma linha. Preferir: LER NO SITE, LER A MATÉRIA, CONTINUAR NO BLOG.
   Instagram: não diga "link na bio". Pode ter emoji (👉 🏡).
+- `perguntaEngajamento`: uma pergunta curta convidando a comentar — sobre a
+  experiência ou opinião da pessoa em relação ao tema do artigo (ex.: "já
+  passou por isso?", "como você resolve isso na sua casa?"). Baseie-se só no
+  título/resumo, sem inventar detalhe do artigo. Pode ter emoji (💬).
 
 ## Adaptação por rede
 

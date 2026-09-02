@@ -4,7 +4,7 @@ import { salvarArteDePublicacao } from "./salvar";
 export type { EntradaArte, ArteComposta } from "./compor";
 export type { TipoArte, Formato } from "./layouts";
 export { salvarArteComoCapa } from "./salvar";
-export { comporArte, comporArteQuadrada } from "./compor";
+export { comporArte } from "./compor";
 
 /**
  * Compõe e salva a arte de uma publicação, devolvendo a URL pública

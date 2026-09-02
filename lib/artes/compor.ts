@@ -1,5 +1,11 @@
 import sharp, { type OverlayOptions } from "sharp";
-import { ALTURA_ARTE_RETANGULAR, LADO_ARTE_QUADRADA, LARGURA_ARTE_RETANGULAR } from "./constantes";
+import {
+  ALTURA_ARTE_CAPA,
+  ALTURA_ARTE_RETANGULAR,
+  LADO_ARTE_QUADRADA,
+  LARGURA_ARTE_CAPA,
+  LARGURA_ARTE_RETANGULAR,
+} from "./constantes";
 import { caminhoDoFundo, fundoDisponivel } from "./fundos";
 import { resolverBufferDeImagem } from "./foto";
 import { escolherVariante, type Formato, type TipoArte, type ZonaFoto } from "./layouts";
@@ -7,11 +13,12 @@ import { montarSvgSelo, montarSvgTexto, type CanvasArte } from "./texto-svg";
 
 export interface EntradaArte {
   tipo: TipoArte;
-  /** "quadrada" (padrão) ou "retangular" (Facebook feed, 1200×630). */
+  /** "quadrada" (padrão), "retangular" (Facebook feed, 1200×630) ou "capa" (site, 1600×900 — sem texto). */
   formato?: Formato;
   /** Escolhe a variante de forma determinística — mesmo id sempre gera a mesma arte. */
   semente: string;
-  titulo: string;
+  /** Ignorado no formato "capa" (ela não tem zona de texto). */
+  titulo?: string;
   fotoUrl?: string | null;
   /** Já formatados (ex.: "R$ 611") — a arte não faz câmbio nem arredondamento. */
   precoAtual?: string | null;
@@ -26,9 +33,9 @@ export interface ArteComposta {
 }
 
 function canvasDoFormato(formato: Formato): CanvasArte {
-  return formato === "retangular"
-    ? { largura: LARGURA_ARTE_RETANGULAR, altura: ALTURA_ARTE_RETANGULAR }
-    : { largura: LADO_ARTE_QUADRADA, altura: LADO_ARTE_QUADRADA };
+  if (formato === "retangular") return { largura: LARGURA_ARTE_RETANGULAR, altura: ALTURA_ARTE_RETANGULAR };
+  if (formato === "capa") return { largura: LARGURA_ARTE_CAPA, altura: ALTURA_ARTE_CAPA };
+  return { largura: LADO_ARTE_QUADRADA, altura: LADO_ARTE_QUADRADA };
 }
 
 /**
@@ -59,29 +66,26 @@ export async function comporArte(entrada: EntradaArte): Promise<ArteComposta | n
     camadas.push({ input: Buffer.from(montarSvgSelo(layout.selo, entrada.selo, canvas)), left: 0, top: 0 });
   }
 
-  camadas.push({
-    input: Buffer.from(
-      montarSvgTexto(
-        layout.texto,
-        {
-          titulo: entrada.titulo,
-          precoAtual: entrada.precoAtual ?? null,
-          precoOriginal: entrada.precoOriginal ?? null,
-        },
-        canvas,
+  if (layout.texto && entrada.titulo) {
+    camadas.push({
+      input: Buffer.from(
+        montarSvgTexto(
+          layout.texto,
+          {
+            titulo: entrada.titulo,
+            precoAtual: entrada.precoAtual ?? null,
+            precoOriginal: entrada.precoOriginal ?? null,
+          },
+          canvas,
+        ),
       ),
-    ),
-    left: 0,
-    top: 0,
-  });
+      left: 0,
+      top: 0,
+    });
+  }
 
   const buffer = await sharp(fundoBuffer).composite(camadas).png().toBuffer();
   return { buffer, variante: layout.arquivo };
-}
-
-/** @deprecated use `comporArte` (com `formato: "quadrada"`, o padrão) */
-export async function comporArteQuadrada(entrada: Omit<EntradaArte, "formato">): Promise<ArteComposta | null> {
-  return comporArte({ ...entrada, formato: "quadrada" });
 }
 
 async function comporFoto(zona: ZonaFoto, fotoUrl: string, canvas: CanvasArte): Promise<OverlayOptions | null> {

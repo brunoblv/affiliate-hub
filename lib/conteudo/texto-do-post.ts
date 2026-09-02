@@ -10,6 +10,9 @@ import { Destino, Rede, type Produto, type Post } from "@/lib/database";
 
 const AVISO_AFILIADO = "Link de afiliado — não custa nada a mais para você, e ajuda o site.";
 
+/** Redes com seção de comentários — só nelas faz sentido puxar comentário. */
+const REDES_COMENTARIO = new Set<Rede>([Rede.INSTAGRAM, Rede.FACEBOOK_PAGE, Rede.FACEBOOK_GROUP]);
+
 function reais(valor: unknown): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor));
 }
@@ -95,6 +98,10 @@ export function montarTextoDaJornada({ post, rede, link }: EntradaTextoDaJornada
     linhas.push("", post.resumo);
   }
 
+  if (REDES_COMENTARIO.has(rede)) {
+    linhas.push("", "💬 Já passou por isso? Conta pra gente nos comentários.");
+  }
+
   linhas.push("");
 
   if (rede === Rede.INSTAGRAM) {
@@ -124,6 +131,10 @@ export function montarTextoDaLista({ post, rede, link }: EntradaTextoDaLista): s
     linhas.push(post.resumo);
   }
 
+  if (REDES_COMENTARIO.has(rede)) {
+    linhas.push("", "💬 Qual desses itens é essencial pra você? Conta nos comentários.");
+  }
+
   linhas.push("");
   linhas.push(rede === Rede.INSTAGRAM ? "Link na bio." : "Confira a lista completa:");
 
@@ -151,6 +162,10 @@ export function montarTextoDaLanding({ headline, resumo, rede, link }: EntradaTe
 
   if (resumo) {
     linhas.push("", resumo);
+  }
+
+  if (REDES_COMENTARIO.has(rede)) {
+    linhas.push("", "💬 Qual dessas ofertas você mais quer? Conta nos comentários.");
   }
 
   linhas.push("");

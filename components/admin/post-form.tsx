@@ -94,7 +94,14 @@ export function PostForm({
 
     setGerandoCapa(true);
     try {
-      const resultado = await gerarCapaComFundoAction({ tipo, titulo, fotoUrl: capa?.url ?? null });
+      // Sem fotoUrl: a capa em tela pode ser um placeholder gerado antes, não
+      // uma foto real — reusá-la como "foto" faria a nova capa sair idêntica
+      // (a zona de foto cobre 100% do quadro), sem trocar de variante.
+      const resultado = await gerarCapaComFundoAction({
+        tipo,
+        titulo,
+        capaAnteriorId: capa?.id ?? null,
+      });
       if (!resultado.ok) {
         toast.error(resultado.message, { duration: 8000 });
         return;

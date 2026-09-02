@@ -24,6 +24,11 @@ entram por código — você **não** escreve nenhum desses.
   que não esteja no título/resumo.
 - `cta`: uma linha. Preferir: CONFERIR A LISTA, VER A SELEÇÃO, VER NO SITE.
   Instagram: não diga "link na bio". Pode ter emoji (👉 📋).
+- `perguntaEngajamento`: uma pergunta curta convidando a comentar — pergunte
+  qual item da lista é essencial pra pessoa, ou qual ela já usa/vai comprar
+  primeiro. Baseie-se só no título/resumo, sem inventar quais são os itens.
+  Se o resumo não citar itens específicos, pergunte de forma genérica (ex.:
+  "qual desses você mais precisa aí em casa?"). Pode ter emoji (💬).
 
 ## Adaptação por rede
 

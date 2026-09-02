@@ -12,8 +12,11 @@ export const TIPOS_ARTE: readonly TipoArte[] = ["produto", "lista", "oferta", "j
 /**
  * "quadrada" (1080×1080): Instagram, Pinterest, Telegram, WhatsApp.
  * "retangular" (1200×630): Facebook (página/grupo), publicado via /photos.
+ * "capa" (1600×900, 16:9): capa do artigo no site — o CSS do blog recorta
+ * essa mesma imagem em várias alturas (destaque, cards, "leia também",
+ * página do post), então ela não carrega título nem preço, só foto/fundo.
  */
-export type Formato = "quadrada" | "retangular";
+export type Formato = "quadrada" | "retangular" | "capa";
 
 /** Quantas variantes de fundo existem por tipo no formato quadrado — ver public/fundos-posts/README.md. */
 export const VARIANTES_POR_TIPO = 3;
@@ -59,10 +62,11 @@ export interface ZonaSelo {
 }
 
 export interface VarianteLayout {
-  /** Caminho relativo dentro de public/fundos-posts/<quadrado|retangular>/<tipo>/. */
+  /** Caminho relativo dentro de public/fundos-posts/<quadrado|retangular|capa>/<tipo>/. */
   arquivo: string;
   foto?: ZonaFoto;
-  texto: ZonaTexto;
+  /** Ausente no formato "capa" — a capa do site não leva título/preço em pixel, só foto/fundo. */
+  texto?: ZonaTexto;
   selo?: ZonaSelo;
 }
 
@@ -326,12 +330,46 @@ export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
   ],
 };
 
+/**
+ * Formato capa do site (1600×900, 16:9) — só produto/lista/jornada têm capa
+ * de post (oferta é a landing diária, não tem capa própria). Sem zona de
+ * texto: é só foto em tela cheia sobre o fundo (o título já é renderizado em
+ * HTML na própria página). Foto cobre 100% do canvas — sem foto, o CSS do
+ * blog mostra só o fundo, que funciona como placeholder de marca.
+ */
+export const LAYOUTS_CAPA: Record<TipoArte, VarianteLayout[]> = {
+  produto: [
+    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+  ],
+  lista: [
+    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+  ],
+  oferta: [
+    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+  ],
+  jornada: [
+    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+  ],
+};
+
+const LAYOUTS_POR_FORMATO: Record<Formato, Record<TipoArte, VarianteLayout[]>> = {
+  quadrada: LAYOUTS_QUADRADOS,
+  retangular: LAYOUTS_RETANGULARES,
+  capa: LAYOUTS_CAPA,
+};
+
 /** Escolhe a variante de forma determinística — o mesmo id sempre gera a mesma arte. */
 export function escolherVariante(tipo: TipoArte, semente: string, formato: Formato = "quadrada"): VarianteLayout {
   let hash = 0;
   for (let i = 0; i < semente.length; i++) {
     hash = (hash * 31 + semente.charCodeAt(i)) >>> 0;
   }
-  const variantes = (formato === "retangular" ? LAYOUTS_RETANGULARES : LAYOUTS_QUADRADOS)[tipo];
+  const variantes = LAYOUTS_POR_FORMATO[formato][tipo];
   return variantes[hash % variantes.length];
 }

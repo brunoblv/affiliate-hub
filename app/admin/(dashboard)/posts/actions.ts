@@ -21,7 +21,7 @@ import {
   montarCorpoFichaProduto,
   preencherCamposVaziosDoProduto,
 } from "@/lib/conteudo/gerar-ficha-produto";
-import { comporArteQuadrada, salvarArteComoCapa, type TipoArte } from "@/lib/artes";
+import { comporArte, salvarArteComoCapa, type TipoArte } from "@/lib/artes";
 import { slugify } from "@/lib/produtos";
 
 export interface PostFormState {
@@ -337,6 +337,8 @@ export async function gerarCapaComFundoAction(entrada: {
   tipo: string;
   titulo: string;
   fotoUrl?: string | null;
+  /** Midia da capa gerada anteriormente (se houver) — apagada se não estiver salva em nenhum post. */
+  capaAnteriorId?: string | null;
 }): Promise<GerarCapaResultado> {
   const sessao = await auth();
   if (!sessao) return { ok: false, message: "Não autorizado." };
@@ -348,16 +350,16 @@ export async function gerarCapaComFundoAction(entrada: {
   if (!tipoArte) return { ok: false, message: "Tipo de post inválido." };
 
   try {
-    const arte = await comporArteQuadrada({
+    const arte = await comporArte({
       tipo: tipoArte,
+      formato: "capa",
       semente: `${entrada.tipo}:${titulo}:${Date.now()}`,
-      titulo,
       fotoUrl: entrada.fotoUrl ?? null,
     });
     if (!arte) {
       return {
         ok: false,
-        message: `Ainda não há fundo cadastrado em public/fundos-posts/quadrado/${tipoArte}/. Adicione os PNGs (1080×1080, arquivos 1.png/2.png/3.png) e tente de novo.`,
+        message: `Ainda não há fundo cadastrado em public/fundos-posts/capa/${tipoArte}/. Adicione os PNGs (1600×900, arquivos 1.png/2.png/3.png) e tente de novo.`,
       };
     }
 
@@ -365,6 +367,22 @@ export async function gerarCapaComFundoAction(entrada: {
       nomeBase: slugify(titulo).slice(0, 60) || "capa",
       alt: titulo,
     });
+
+    // Regenerar troca a capa em tela — a anterior só some de vez se nenhum
+    // post (nem este, ainda não salvo com a nova) já a usa como capaId.
+    if (entrada.capaAnteriorId && entrada.capaAnteriorId !== midia.id) {
+      const aindaUsada = await prisma.post.count({ where: { capaId: entrada.capaAnteriorId } });
+      if (aindaUsada === 0) {
+        const anterior = await prisma.midia.findUnique({
+          where: { id: entrada.capaAnteriorId },
+          select: { caminho: true },
+        });
+        if (anterior) {
+          await excluirArquivoDeMidia(anterior.caminho);
+          await prisma.midia.delete({ where: { id: entrada.capaAnteriorId } }).catch(() => undefined);
+        }
+      }
+    }
 
     return { ok: true, midia: { id: midia.id, url: midia.url, alt: midia.alt } };
   } catch (erro) {

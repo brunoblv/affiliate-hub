@@ -36,7 +36,7 @@ function wordmark(x: number, y: number, cor: string, fontSize: number, anchor: "
 
 interface Fundo {
   tipo: string;
-  formato: "quadrado" | "retangular";
+  formato: "quadrado" | "retangular" | "capa";
   arquivo: string;
   largura: number;
   altura: number;
@@ -268,6 +268,103 @@ FUNDOS.push(
       <defs><radialGradient id="g5"><stop offset="0" stop-color="${CORES.oliva}" stop-opacity="0.25"/><stop offset="0.7" stop-color="${CORES.oliva}" stop-opacity="0"/></radialGradient></defs>
       ${wordmark(W * 0.08, H * 0.11, CORES.grafiteClaro, 22)}
     `,
+  },
+);
+
+// ---------------------------------------------------------------------------
+// CAPA (1600×900, 16:9) — capa do site: sem texto, só fundo/foto em tela cheia.
+// Reaproveita a paleta das variantes quadradas pra manter a identidade.
+// ---------------------------------------------------------------------------
+const CW = 1600;
+const CH = 900;
+
+FUNDOS.push(
+  {
+    tipo: "produto",
+    formato: "capa",
+    arquivo: "1.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="url(#c1)"/>
+      <defs><linearGradient id="c1" x1="0" y1="0" x2="0.5" y2="1">
+        <stop offset="0" stop-color="${CORES.terracota}"/><stop offset="1" stop-color="${CORES.terracotaEscura}"/>
+      </linearGradient></defs>`,
+  },
+  {
+    tipo: "produto",
+    formato: "capa",
+    arquivo: "2.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.grafite}"/>
+      <circle cx="${CW * 0.85}" cy="${CH * 0.15}" r="${CH * 0.6}" fill="url(#c2)"/>
+      <defs><radialGradient id="c2"><stop offset="0" stop-color="${CORES.terracota}" stop-opacity="0.4"/><stop offset="0.7" stop-color="${CORES.terracota}" stop-opacity="0"/></radialGradient></defs>`,
+  },
+  {
+    tipo: "produto",
+    formato: "capa",
+    arquivo: "3.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.areia}"/>${listras(CW, CH, "rgba(184,102,79,.07)", 35)}`,
+  },
+  {
+    tipo: "lista",
+    formato: "capa",
+    arquivo: "1.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.salvia}"/><circle cx="${CW * 0.88}" cy="${CH * 0.12}" r="${CH * 0.55}" fill="rgba(255,255,255,.10)"/>`,
+  },
+  {
+    tipo: "lista",
+    formato: "capa",
+    arquivo: "2.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.creme}"/><rect width="${CW}" height="${CH * 0.05}" fill="${CORES.salvia}"/>`,
+  },
+  {
+    tipo: "lista",
+    formato: "capa",
+    arquivo: "3.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.oliva}"/><circle cx="${CW * 0.08}" cy="${CH * 0.9}" r="${CH * 0.55}" fill="rgba(0,0,0,.12)"/>`,
+  },
+  {
+    tipo: "oferta",
+    formato: "capa",
+    arquivo: "1.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.terracota}"/>${pontilhado(CW, CH, 28)}`,
+  },
+  {
+    tipo: "jornada",
+    formato: "capa",
+    arquivo: "1.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.grafite}"/>
+      <circle cx="${CW * 0.15}" cy="${CH * 1.1}" r="${CH * 0.7}" fill="url(#c3)"/>
+      <defs><radialGradient id="c3"><stop offset="0" stop-color="${CORES.oliva}" stop-opacity="0.25"/><stop offset="0.7" stop-color="${CORES.oliva}" stop-opacity="0"/></radialGradient></defs>`,
+  },
+  {
+    tipo: "jornada",
+    formato: "capa",
+    arquivo: "2.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.creme}"/><rect width="${CW}" height="${CH * 0.05}" fill="${CORES.terracota}"/>`,
+  },
+  {
+    tipo: "jornada",
+    formato: "capa",
+    arquivo: "3.png",
+    largura: CW,
+    altura: CH,
+    svg: `<rect width="${CW}" height="${CH}" fill="${CORES.areia}"/>${listras(CW, CH, "rgba(184,102,79,.05)", 35)}`,
   },
 );
 

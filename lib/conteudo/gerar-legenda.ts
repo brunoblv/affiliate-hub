@@ -34,6 +34,8 @@ interface PartesLista {
   abertura: string;
   chamada: string;
   cta: string;
+  /** Pergunta pra puxar comentário — só entra na legenda de Instagram/Facebook. */
+  perguntaEngajamento: string;
 }
 
 const SCHEMA_PRODUTO = {
@@ -53,9 +55,13 @@ const SCHEMA_LISTA = {
     abertura: { type: "STRING" },
     chamada: { type: "STRING" },
     cta: { type: "STRING" },
+    perguntaEngajamento: { type: "STRING" },
   },
-  required: ["abertura", "chamada", "cta"],
+  required: ["abertura", "chamada", "cta", "perguntaEngajamento"],
 };
+
+/** Redes com seção de comentários — só nelas faz sentido puxar comentário. */
+const REDES_COMENTARIO = new Set<Rede>([Rede.INSTAGRAM, Rede.FACEBOOK_PAGE, Rede.FACEBOOK_GROUP]);
 
 const LABEL_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "Facebook (página)",
@@ -271,6 +277,8 @@ async function pedirPartesLista({ post, rede }: EntradaTextoDaLista): Promise<Pa
     abertura: limparCampo(bruto.abertura, 80) || "📋 LISTA",
     chamada: limparCampo(bruto.chamada, 500),
     cta: limparCampo(bruto.cta, 80) || "👉 CONFERIR A LISTA",
+    perguntaEngajamento:
+      limparCampo(bruto.perguntaEngajamento, 200) || "💬 Qual desses itens é essencial pra você? Conta nos comentários.",
   };
 }
 
@@ -288,6 +296,8 @@ async function pedirPartesJornada({ post, rede }: EntradaTextoDaJornada): Promis
     abertura: limparCampo(bruto.abertura, 80) || "🏡 NO SITE",
     chamada: limparCampo(bruto.chamada, 500),
     cta: limparCampo(bruto.cta, 80) || "👉 LER A MATÉRIA",
+    perguntaEngajamento:
+      limparCampo(bruto.perguntaEngajamento, 200) || "💬 Já passou por isso? Conta pra gente nos comentários.",
   };
 }
 
@@ -316,6 +326,10 @@ function montarLegendaLista({ post, rede, link }: EntradaTextoDaLista, partes: P
     linhas.push("", partes.chamada);
   }
 
+  if (REDES_COMENTARIO.has(rede) && partes.perguntaEngajamento) {
+    linhas.push("", partes.perguntaEngajamento);
+  }
+
   linhas.push("", partes.cta, linhaDeLink(rede, link, "🔗 Confira a lista no link da bio."), "", DISCLOSURE);
   return linhas.join("\n").trim();
 }
@@ -325,6 +339,10 @@ function montarLegendaJornada({ post, rede, link }: EntradaTextoDaJornada, parte
 
   if (partes.chamada) {
     linhas.push("", partes.chamada);
+  }
+
+  if (REDES_COMENTARIO.has(rede) && partes.perguntaEngajamento) {
+    linhas.push("", partes.perguntaEngajamento);
   }
 
   const instagram = rede === Rede.INSTAGRAM;
@@ -350,10 +368,12 @@ export async function gerarLegendaDaLanding(entrada: EntradaTextoDaLanding): Pro
       abertura: limparCampo(bruto.abertura, 80) || "🛍️ OFERTAS DO DIA",
       chamada: limparCampo(bruto.chamada, 500),
       cta: limparCampo(bruto.cta, 80) || "👉 VER OFERTAS DO DIA",
+      perguntaEngajamento: limparCampo(bruto.perguntaEngajamento, 200) || "💬 Qual dessas ofertas você mais quer? Conta nos comentários.",
     };
 
     const linhas: string[] = [partes.abertura, "", entrada.headline];
     if (partes.chamada) linhas.push("", partes.chamada);
+    if (REDES_COMENTARIO.has(entrada.rede) && partes.perguntaEngajamento) linhas.push("", partes.perguntaEngajamento);
     linhas.push(
       "",
       partes.cta,

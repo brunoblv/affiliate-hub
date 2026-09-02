@@ -4,3 +4,7 @@ export const LADO_ARTE_QUADRADA = 1080;
 /** Dimensões, em pixels, das artes retangulares (Facebook feed, via /photos). */
 export const LARGURA_ARTE_RETANGULAR = 1200;
 export const ALTURA_ARTE_RETANGULAR = 630;
+
+/** Dimensões, em pixels, da capa do site (16:9) — ver README de public/fundos-posts. */
+export const LARGURA_ARTE_CAPA = 1600;
+export const ALTURA_ARTE_CAPA = 900;

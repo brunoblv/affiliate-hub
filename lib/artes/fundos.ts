@@ -12,7 +12,9 @@ import type { Formato, TipoArte } from "./layouts";
 const RAIZ_FUNDOS = path.join(process.cwd(), "public", "fundos-posts");
 
 function pastaDoFormato(formato: Formato): string {
-  return formato === "retangular" ? "retangular" : "quadrado";
+  if (formato === "retangular") return "retangular";
+  if (formato === "capa") return "capa";
+  return "quadrado";
 }
 
 export function caminhoDoFundo(tipo: TipoArte, arquivo: string, formato: Formato = "quadrada"): string {
