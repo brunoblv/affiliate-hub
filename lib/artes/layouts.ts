@@ -1,15 +1,21 @@
 import { CORES } from "./paleta";
 
 /**
- * Tipo de arte quadrada gerada pelo pipeline — corresponde ao tipo de post/
- * publicação que consome a imagem (ver docs/Meu Novo Lar visual design/Fundos
+ * Tipo de arte gerada pelo pipeline — corresponde ao tipo de post/publicação
+ * que consome a imagem (ver docs/Meu Novo Lar visual design (1)/Fundos
  * Templates Arte.dc.html). "oferta" é a landing diária (vitrine).
  */
 export type TipoArte = "produto" | "lista" | "oferta" | "jornada";
 
 export const TIPOS_ARTE: readonly TipoArte[] = ["produto", "lista", "oferta", "jornada"] as const;
 
-/** Quantas variantes de fundo existem por tipo — ver public/fundos-posts/README.md. */
+/**
+ * "quadrada" (1080×1080): Instagram, Pinterest, Telegram, WhatsApp.
+ * "retangular" (1200×630): Facebook (página/grupo), publicado via /photos.
+ */
+export type Formato = "quadrada" | "retangular";
+
+/** Quantas variantes de fundo existem por tipo no formato quadrado — ver public/fundos-posts/README.md. */
 export const VARIANTES_POR_TIPO = 3;
 
 interface RetanguloPct {
@@ -53,7 +59,7 @@ export interface ZonaSelo {
 }
 
 export interface VarianteLayout {
-  /** Caminho relativo dentro de public/fundos-posts/<tipo>/. */
+  /** Caminho relativo dentro de public/fundos-posts/<quadrado|retangular>/<tipo>/. */
   arquivo: string;
   foto?: ZonaFoto;
   texto: ZonaTexto;
@@ -65,7 +71,7 @@ export interface VarianteLayout {
  * (Fundos Templates Arte.dc.html) — o fundo em si (wordmark, decoração,
  * cor) já vem pronto no PNG; o pipeline só preenche foto + texto + selo.
  */
-export const LAYOUTS: Record<TipoArte, VarianteLayout[]> = {
+export const LAYOUTS_QUADRADOS: Record<TipoArte, VarianteLayout[]> = {
   produto: [
     {
       arquivo: "1.png",
@@ -247,12 +253,85 @@ export const LAYOUTS: Record<TipoArte, VarianteLayout[]> = {
   ],
 };
 
+/**
+ * Formato Facebook feed (1200×630, ver seção "Formato Facebook (feed)" do
+ * mockup) — só 1 variante por tipo. Jornada não tem zona de foto: hoje o
+ * Facebook de Jornada não leva imagem própria (post de link), então esse
+ * layout fica pronto sem uso ainda — ver README de public/fundos-posts.
+ */
+export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
+  produto: [
+    {
+      arquivo: "1.png",
+      foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 44, alturaPct: 100 },
+      texto: {
+        xPct: 50,
+        yPct: 40,
+        larguraPct: 44,
+        alturaPct: 40,
+        alinhamento: "left",
+        corTitulo: CORES.texto,
+        corPreco: CORES.terracota,
+        corPrecoOriginal: CORES.textoSecundario,
+      },
+    },
+  ],
+  lista: [
+    {
+      arquivo: "1.png",
+      texto: {
+        xPct: 8,
+        yPct: 10,
+        larguraPct: 70,
+        alturaPct: 10,
+        alinhamento: "left",
+        corTitulo: CORES.card,
+        corPreco: CORES.card,
+        corPrecoOriginal: CORES.card,
+      },
+      foto: { formato: "retangulo", xPct: 8, yPct: 20, larguraPct: 34, alturaPct: 34, raioPct: 1.5 },
+    },
+  ],
+  oferta: [
+    {
+      arquivo: "1.png",
+      selo: { xPct: 6, yPct: 24, alinhamento: "left", corFundo: CORES.card, corTexto: CORES.terracota },
+      texto: {
+        xPct: 6,
+        yPct: 38,
+        larguraPct: 44,
+        alturaPct: 40,
+        alinhamento: "left",
+        corTitulo: CORES.card,
+        corPreco: CORES.card,
+        corPrecoOriginal: CORES.terracotaClara,
+      },
+      foto: { formato: "retangulo", xPct: 59, yPct: 19, larguraPct: 39, alturaPct: 61, raioPct: 1.5 },
+    },
+  ],
+  jornada: [
+    {
+      arquivo: "1.png",
+      texto: {
+        xPct: 8,
+        yPct: 40,
+        larguraPct: 52,
+        alturaPct: 24,
+        alinhamento: "left",
+        corTitulo: CORES.card,
+        corPreco: CORES.card,
+        corPrecoOriginal: CORES.card,
+      },
+    },
+  ],
+};
+
 /** Escolhe a variante de forma determinística — o mesmo id sempre gera a mesma arte. */
-export function escolherVariante(tipo: TipoArte, semente: string): VarianteLayout {
+export function escolherVariante(tipo: TipoArte, semente: string, formato: Formato = "quadrada"): VarianteLayout {
   let hash = 0;
   for (let i = 0; i < semente.length; i++) {
     hash = (hash * 31 + semente.charCodeAt(i)) >>> 0;
   }
-  const variantes = LAYOUTS[tipo];
+  const variantes = (formato === "retangular" ? LAYOUTS_RETANGULARES : LAYOUTS_QUADRADOS)[tipo];
   return variantes[hash % variantes.length];
 }

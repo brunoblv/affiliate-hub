@@ -1,4 +1,4 @@
-import { prisma, type Canal, type LandingDiaria } from "@/lib/database";
+import { prisma, Rede, type Canal, type LandingDiaria } from "@/lib/database";
 import { proximoHorarioLivre } from "@/lib/agenda/proximo-horario";
 import { gerarLegendaDaLanding } from "@/lib/conteudo/gerar-legenda";
 import { registrar } from "@/lib/log";
@@ -6,7 +6,7 @@ import { getSiteUrl, urlPublica } from "@/lib/site-url";
 import { primeiraImagem } from "@/lib/produtos";
 import type { ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { LABEL_DESTINO } from "./destinos";
-import { gerarImagemDePublicacao } from "@/lib/artes";
+import { gerarImagemDePublicacao, type EntradaArte } from "@/lib/artes";
 import { reais } from "./rotulos";
 
 const ORIGEM_POR_REDE: Record<Canal["rede"], string> = {
@@ -16,6 +16,46 @@ const ORIGEM_POR_REDE: Record<Canal["rede"], string> = {
   TELEGRAM: "telegram",
   WHATSAPP: "whatsapp",
 };
+
+interface ImagensPorFormato {
+  quadrada?: string;
+  retangular?: string;
+}
+
+/**
+ * Compõe a arte nos dois formatos em paralelo — cai de volta pra `fallback`
+ * em cada formato individualmente se o fundo daquele tipo/formato ainda não
+ * existir ou se a composição falhar.
+ */
+async function comporImagensPorFormato(
+  base: Omit<EntradaArte, "formato">,
+  fallback: string | undefined,
+  contexto: Record<string, unknown>,
+): Promise<ImagensPorFormato> {
+  async function tentar(formato: "quadrada" | "retangular"): Promise<string | undefined> {
+    try {
+      const url = await gerarImagemDePublicacao({ ...base, formato });
+      if (url) return urlPublica(url);
+    } catch (erro) {
+      await registrar("ERRO", "ARTES", `Falha ao compor arte ${formato} — publicando com a imagem crua.`, {
+        ...contexto,
+        erro: mensagemErro(erro),
+      });
+    }
+    return fallback;
+  }
+
+  const [quadrada, retangular] = await Promise.all([tentar("quadrada"), tentar("retangular")]);
+  return { quadrada, retangular };
+}
+
+/** Facebook (página/grupo) usa o formato retangular (1200×630, /photos); as demais redes usam o quadrado. */
+function imagemParaRede(rede: Rede, imagens: ImagensPorFormato): string | undefined {
+  if (rede === Rede.FACEBOOK_PAGE || rede === Rede.FACEBOOK_GROUP) {
+    return imagens.retangular ?? imagens.quadrada;
+  }
+  return imagens.quadrada ?? imagens.retangular;
+}
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof Error ? erro.message : String(erro);
@@ -78,12 +118,12 @@ export async function enfileirarDivulgacaoDaLanding(
     ];
   }
 
-  const imagemUrl = await imagemDaOferta(landing);
+  const imagens = await imagensDaOferta(landing);
 
   const resultados: ResultadoEnfileiramento[] = [];
   for (const canal of canais) {
     try {
-      resultados.push(await enfileirarNoCanal(canal, landing, imagemUrl));
+      resultados.push(await enfileirarNoCanal(canal, landing, imagemParaRede(canal.rede, imagens) ?? null));
     } catch (erro) {
       resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
     }
@@ -101,40 +141,27 @@ type HeroDaLanding = {
 } | null;
 
 /**
- * Compõe a arte quadrada da oferta (fundo + foto do hero + título + de/por).
- * Cai de volta para a foto crua do hero se o fundo do tipo "oferta" ainda
- * não existir ou se a composição falhar.
+ * Compõe as artes da oferta (fundo + foto do hero + título + de/por) nos
+ * dois formatos. Cai de volta para a foto crua do hero se o fundo do tipo
+ * "oferta" ainda não existir.
  */
-async function imagemDaOferta(landing: LandingDiaria & { heroProduto: HeroDaLanding }): Promise<string | null> {
+async function imagensDaOferta(landing: LandingDiaria & { heroProduto: HeroDaLanding }): Promise<ImagensPorFormato> {
   const hero = landing.heroProduto;
-  const fotoCrua = hero ? (primeiraImagem({ imagens: hero.imagens as never }) ?? null) : null;
-  if (!hero) return fotoCrua;
+  const fotoCrua = hero ? (primeiraImagem({ imagens: hero.imagens as never }) ?? undefined) : undefined;
+  if (!hero) return { quadrada: fotoCrua, retangular: fotoCrua };
 
-  try {
-    const precoAtual = reais(hero.precoAtual);
-    const temDesconto = hero.precoOriginal && Number(hero.precoOriginal) > Number(hero.precoAtual);
-    const precoOriginal = temDesconto ? reais(hero.precoOriginal) : null;
-    const selo = temDesconto
-      ? `-${Math.round((1 - Number(hero.precoAtual) / Number(hero.precoOriginal)) * 100)}% hoje`
-      : "Ofertas do dia";
+  const precoAtual = reais(hero.precoAtual);
+  const temDesconto = hero.precoOriginal && Number(hero.precoOriginal) > Number(hero.precoAtual);
+  const precoOriginal = temDesconto ? reais(hero.precoOriginal) : null;
+  const selo = temDesconto
+    ? `-${Math.round((1 - Number(hero.precoAtual) / Number(hero.precoOriginal)) * 100)}% hoje`
+    : "Ofertas do dia";
 
-    const url = await gerarImagemDePublicacao({
-      tipo: "oferta",
-      semente: landing.id,
-      titulo: landing.headline?.trim() || hero.nome,
-      fotoUrl: fotoCrua,
-      precoAtual,
-      precoOriginal,
-      selo,
-    });
-    if (url) return urlPublica(url) ?? null;
-  } catch (erro) {
-    await registrar("ERRO", "ARTES", "Falha ao compor arte da oferta — publicando com a foto crua.", {
-      slug: landing.slug,
-      erro: mensagemErro(erro),
-    });
-  }
-  return fotoCrua;
+  return comporImagensPorFormato(
+    { tipo: "oferta", semente: landing.id, titulo: landing.headline?.trim() || hero.nome, fotoUrl: fotoCrua ?? null, precoAtual, precoOriginal, selo },
+    fotoCrua,
+    { slug: landing.slug },
+  );
 }
 
 async function enfileirarNoCanal(

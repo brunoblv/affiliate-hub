@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,500..600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F8F6F1;font-family:'Manrope',sans-serif;color:#292824;-webkit-font-smoothing:antialiased}
+a{color:#B8664F;text-decoration:none}
+a:hover{color:#8F493A}
+* {box-sizing:border-box}
+</style>
+</helmet>
+
+<div style="max-width:1440px;margin:0 auto;padding:48px 40px 24px">
+  <div style="font:600 11px/1 'Manrope';letter-spacing:.12em;text-transform:uppercase;color:#77736B;margin-bottom:6px">MEU NOVO LAR — PLANO VISUAL</div>
+  <h1 style="font:600 32px/1.2 'Newsreader',serif;margin:0 0 20px;color:#292824">Sistema (admin) + Blog/Ferramentas (público)</h1>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#F8F6F1;border:1px solid #DDD7CC"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Fundo · #F8F6F1</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#FFFFFF;border:1px solid #DDD7CC"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Card · #FFFFFF</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#292824"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Texto · #292824</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#B8664F"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Terracota · #B8664F</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#8F493A"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Terracota escura</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#87947B"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Sálvia · #87947B</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#657A55"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Oliva (ofertas)</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="width:104px;height:56px;border-radius:8px;background:#EDE6DA;border:1px solid #DDD7CC"></div><span style="font:500 10px/1.3 ui-monospace,monospace;color:#77736B">Areia · #EDE6DA</span></div>
+  </div>
+  <div style="margin-top:14px;font:400 13px/1.6 'Manrope';color:#77736B">Tipografia: <span style="font:600 13px 'Newsreader',serif;color:#292824">Newsreader</span> nos títulos editoriais, <span style="font:600 13px 'Manrope'">Manrope</span> no corpo, UI e sistema admin.</div>
+</div>
+
+<!-- ================= SISTEMA / ADMIN ================= -->
+<div style="max-width:1440px;margin:32px auto 0;padding:0 40px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+    <span style="font:700 10px/1 'Manrope';letter-spacing:.1em;background:#292824;color:#F8F6F1;padding:5px 9px;border-radius:5px">ÁREA ADMINISTRATIVA</span>
+    <span style="font:400 13px/1.4 'Manrope';color:#77736B">/admin — utilitário, denso, terracota só como destaque de ação</span>
+  </div>
+</div>
+
+<div style="max-width:1440px;margin:0 auto 56px;padding:0 40px">
+<div style="display:flex;border:1px solid #DDD7CC;border-radius:14px;overflow:hidden;background:#FFFFFF;min-height:640px">
+
+  <!-- sidebar -->
+  <div style="width:236px;flex:none;background:#FFFFFF;border-right:1px solid #DDD7CC;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px;padding:20px 18px;border-bottom:1px solid #DDD7CC">
+      <div style="width:26px;height:26px;border-radius:7px;background:#B8664F;display:flex;align-items:center;justify-content:center;font:700 13px 'Newsreader',serif;color:#fff">M</div>
+      <div>
+        <div style="font:600 13px 'Manrope';color:#292824">Meu Novo Lar</div>
+        <div style="font:500 10px 'Manrope';color:#77736B;letter-spacing:.04em">PAINEL ADMIN</div>
+      </div>
+    </div>
+    <div style="padding:14px 10px;display:flex;flex-direction:column;gap:16px;overflow-y:auto">
+
+      <div>
+        <div style="font:700 10px 'Manrope';letter-spacing:.09em;color:#77736B;padding:0 10px;margin-bottom:6px">GERAL</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;background:#EDE6DA">
+          <span style="width:6px;height:6px;border-radius:2px;background:#B8664F"></span>
+          <span style="font:600 13px 'Manrope';color:#292824">Dashboard</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font:700 10px 'Manrope';letter-spacing:.09em;color:#77736B;padding:0 10px;margin-bottom:6px">CATÁLOGO</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Produtos</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Oportunidades</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Categorias</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font:700 10px 'Manrope';letter-spacing:.09em;color:#77736B;padding:0 10px;margin-bottom:6px">CONTEÚDO</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Conteúdo</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Templates</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Campanhas</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Blog</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font:700 10px 'Manrope';letter-spacing:.09em;color:#77736B;padding:0 10px;margin-bottom:6px">DISTRIBUIÇÃO</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Publicações</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Agenda</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Canais</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font:700 10px 'Manrope';letter-spacing:.09em;color:#77736B;padding:0 10px;margin-bottom:6px">AUTOMAÇÃO</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Central de Automação</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Autopilot</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px"><span style="width:6px;height:6px;border-radius:2px;background:#DDD7CC"></span><span style="font:500 13px 'Manrope';color:#4a473f">Logs</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- main -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+    <div style="height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 22px;border-bottom:1px solid #DDD7CC">
+      <span style="font:600 13px 'Manrope';color:#292824">Dashboard</span>
+      <span style="color:#DDD7CC">/</span>
+      <span style="font:500 13px 'Manrope';color:#77736B">Visão geral</span>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#F8F6F1;border:1px solid #DDD7CC;border-radius:8px;padding:6px 10px 6px 10px">
+        <span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #77736B"></span>
+        <span style="font:400 12px 'Manrope';color:#77736B">Buscar...</span>
+      </div>
+      <div style="width:30px;height:30px;border-radius:50%;background:#B8664F;color:#fff;display:flex;align-items:center;justify-content:center;font:700 12px 'Manrope'">BL</div>
+    </div>
+
+    <div style="padding:24px 22px;overflow:auto">
+      <div style="font:600 20px 'Manrope';color:#292824;margin-bottom:2px">Bom dia, Bruno</div>
+      <div style="font:400 13px 'Manrope';color:#77736B;margin-bottom:20px">Resumo das últimas 24 horas do sistema.</div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+        <div style="border:1px solid #DDD7CC;border-radius:12px;padding:16px">
+          <div style="font:500 11px 'Manrope';color:#77736B;margin-bottom:8px">PRODUTOS ATIVOS</div>
+          <div style="font:700 26px 'Manrope';color:#292824">1.284</div>
+          <div style="font:600 11px 'Manrope';color:#657A55;margin-top:4px">+4,2% esta semana</div>
+        </div>
+        <div style="border:1px solid #DDD7CC;border-radius:12px;padding:16px">
+          <div style="font:500 11px 'Manrope';color:#77736B;margin-bottom:8px">CLIQUES HOJE</div>
+          <div style="font:700 26px 'Manrope';color:#292824">312</div>
+          <div style="font:600 11px 'Manrope';color:#657A55;margin-top:4px">+11% vs. ontem</div>
+        </div>
+        <div style="border:1px solid #DDD7CC;border-radius:12px;padding:16px">
+          <div style="font:500 11px 'Manrope';color:#77736B;margin-bottom:8px">COMISSÃO ESTIMADA</div>
+          <div style="font:700 26px 'Manrope';color:#292824">R$ 1.940</div>
+          <div style="font:600 11px 'Manrope';color:#77736B;margin-top:4px">mês atual</div>
+        </div>
+        <div style="border:1px solid #DDD7CC;border-radius:12px;padding:16px">
+          <div style="font:500 11px 'Manrope';color:#77736B;margin-bottom:8px">POSTS PUBLICADOS</div>
+          <div style="font:700 26px 'Manrope';color:#292824">86</div>
+          <div style="font:600 11px 'Manrope';color:#77736B;margin-top:4px">total</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px">
+        <div style="border:1px solid #DDD7CC;border-radius:12px">
+          <div style="padding:14px 16px;border-bottom:1px solid #DDD7CC;font:600 13px 'Manrope';color:#292824">Últimas oportunidades</div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EDE6DA">
+              <div style="width:34px;height:34px;border-radius:8px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 4px,#F8F6F1 4px,#F8F6F1 8px)"></div>
+              <div style="flex:1"><div style="font:600 12.5px 'Manrope';color:#292824">Aspirador robô 2L</div><div style="font:400 11px 'Manrope';color:#77736B">Mercado Livre</div></div>
+              <span style="font:700 10px 'Manrope';background:#EDE6DA;color:#8F493A;padding:3px 8px;border-radius:20px">score 91</span>
+              <span style="font:600 12px 'Manrope';color:#B8664F">Revisar</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EDE6DA">
+              <div style="width:34px;height:34px;border-radius:8px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 4px,#F8F6F1 4px,#F8F6F1 8px)"></div>
+              <div style="flex:1"><div style="font:600 12.5px 'Manrope';color:#292824">Jogo de panelas antiaderente</div><div style="font:400 11px 'Manrope';color:#77736B">Shopee</div></div>
+              <span style="font:700 10px 'Manrope';background:#EDE6DA;color:#8F493A;padding:3px 8px;border-radius:20px">score 84</span>
+              <span style="font:600 12px 'Manrope';color:#B8664F">Revisar</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+              <div style="width:34px;height:34px;border-radius:8px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 4px,#F8F6F1 4px,#F8F6F1 8px)"></div>
+              <div style="flex:1"><div style="font:600 12.5px 'Manrope';color:#292824">Organizador de armário modular</div><div style="font:400 11px 'Manrope';color:#77736B">Amazon</div></div>
+              <span style="font:700 10px 'Manrope';background:#EDE6DA;color:#8F493A;padding:3px 8px;border-radius:20px">score 79</span>
+              <span style="font:600 12px 'Manrope';color:#B8664F">Revisar</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border:1px solid #DDD7CC;border-radius:12px">
+          <div style="padding:14px 16px;border-bottom:1px solid #DDD7CC;font:600 13px 'Manrope';color:#292824">Fila de publicação</div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #EDE6DA">
+              <span style="width:8px;height:8px;border-radius:50%;background:#657A55"></span>
+              <div style="flex:1"><div style="font:600 12px 'Manrope';color:#292824">Instagram</div><div style="font:400 11px 'Manrope';color:#77736B">hoje, 14:30</div></div>
+              <span style="font:600 10px 'Manrope';background:#EDE6DA;color:#657A55;padding:3px 8px;border-radius:20px">agendado</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #EDE6DA">
+              <span style="width:8px;height:8px;border-radius:50%;background:#77736B"></span>
+              <div style="flex:1"><div style="font:600 12px 'Manrope';color:#292824">Blog</div><div style="font:400 11px 'Manrope';color:#77736B">amanhã, 09:00</div></div>
+              <span style="font:600 10px 'Manrope';background:#F8F6F1;color:#77736B;padding:3px 8px;border-radius:20px">rascunho</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px">
+              <span style="width:8px;height:8px;border-radius:50%;background:#657A55"></span>
+              <div style="flex:1"><div style="font:600 12px 'Manrope';color:#292824">Pinterest</div><div style="font:400 11px 'Manrope';color:#77736B">hoje, 18:00</div></div>
+              <span style="font:600 10px 'Manrope';background:#EDE6DA;color:#657A55;padding:3px 8px;border-radius:20px">agendado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================= PÚBLICO: HOME ================= -->
+<div style="max-width:1440px;margin:0 auto;padding:0 40px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+    <span style="font:700 10px/1 'Manrope';letter-spacing:.1em;background:#B8664F;color:#fff;padding:5px 9px;border-radius:5px">SITE PÚBLICO — HOME</span>
+    <span style="font:400 13px/1.4 'Manrope';color:#77736B">/ — editorial, creme como base, terracota só em CTAs e detalhes</span>
+  </div>
+</div>
+
+<div style="background:#F8F6F1;border:1px solid #DDD7CC;border-radius:14px;max-width:1440px;margin:0 auto 56px;overflow:hidden">
+
+  <!-- public header -->
+  <div style="display:flex;align-items:center;gap:36px;padding:18px 40px;border-bottom:1px solid #DDD7CC;background:#FFFFFF">
+    <span style="font:600 20px 'Newsreader',serif;color:#292824;letter-spacing:.01em">Meu Novo Lar</span>
+    <div style="display:flex;gap:26px;flex:1">
+      <span style="font:600 13px 'Manrope';color:#292824">Casa</span>
+      <span style="font:500 13px 'Manrope';color:#77736B">Blog</span>
+      <span style="font:500 13px 'Manrope';color:#77736B">Produtos</span>
+      <span style="font:500 13px 'Manrope';color:#77736B">Ofertas</span>
+      <span style="font:500 13px 'Manrope';color:#77736B">Ferramentas</span>
+    </div>
+    <div style="width:32px;height:32px;border-radius:50%;border:1.5px solid #DDD7CC;display:flex;align-items:center;justify-content:center">
+      <span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #77736B"></span>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;padding:72px 40px;align-items:center">
+    <div>
+      <div style="font:700 12px 'Manrope';letter-spacing:.14em;color:#B8664F;margin-bottom:16px">IDEIAS PARA O SEU LAR</div>
+      <h2 style="font:600 44px/1.15 'Newsreader',serif;color:#292824;margin:0 0 18px;max-width:480px">Deixe sua casa mais prática, bonita e funcional.</h2>
+      <p style="font:400 15px/1.65 'Manrope';color:#77736B;max-width:440px;margin:0 0 28px">Inspiração, dicas, produtos selecionados e ferramentas úteis para o dia a dia da sua casa.</p>
+      <div style="display:flex;gap:12px">
+        <span style="font:600 13px 'Manrope';background:#B8664F;color:#fff;padding:12px 22px;border-radius:9px">Explorar conteúdos</span>
+        <span style="font:600 13px 'Manrope';color:#292824;border:1.5px solid #DDD7CC;padding:12px 22px;border-radius:9px">Ver ofertas</span>
+      </div>
+    </div>
+    <div style="height:340px;border-radius:14px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 10px,#F8F6F1 10px,#F8F6F1 20px);display:flex;align-items:center;justify-content:center">
+      <span style="font:500 12px ui-monospace,monospace;color:#77736B;background:#FFFFFF;padding:6px 12px;border-radius:6px;border:1px solid #DDD7CC">foto editorial — sala aconchegante</span>
+    </div>
+  </div>
+
+  <!-- categorias -->
+  <div style="padding:8px 40px 56px">
+    <div style="font:700 11px 'Manrope';letter-spacing:.12em;color:#77736B;margin-bottom:18px">EXPLORE POR CATEGORIA</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Casa</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Organização</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Cozinha</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Decoração</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Limpeza</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Jardim</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Ferramentas</span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDD7CC;border-radius:10px;padding:10px 16px"><span style="width:9px;height:9px;background:#87947B;border-radius:2px"></span><span style="font:600 13px 'Manrope';color:#292824">Tecnologia</span></div>
+    </div>
+  </div>
+
+  <!-- conteudos recentes -->
+  <div style="padding:0 40px 64px">
+    <div style="font:700 11px 'Manrope';letter-spacing:.12em;color:#77736B;margin-bottom:8px">CONTEÚDOS RECENTES</div>
+    <h3 style="font:600 26px 'Newsreader',serif;color:#292824;margin:0 0 26px">Ideias para o seu lar</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div>
+        <div style="height:180px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px;display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">imagem</span></div>
+        <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">COZINHA</span>
+        <h4 style="font:600 17px 'Newsreader',serif;margin:6px 0 6px;color:#292824">Como organizar a cozinha em 5 passos simples</h4>
+        <p style="font:400 13px/1.5 'Manrope';color:#77736B;margin:0 0 8px">Dicas práticas para ganhar espaço e manter tudo à mão no dia a dia.</p>
+        <span style="font:500 11px 'Manrope';color:#77736B">5 min de leitura</span>
+      </div>
+      <div>
+        <div style="height:180px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px;display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">imagem</span></div>
+        <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">DECORAÇÃO</span>
+        <h4 style="font:600 17px 'Newsreader',serif;margin:6px 0 6px;color:#292824">8 ideias de decoração para salas pequenas</h4>
+        <p style="font:400 13px/1.5 'Manrope';color:#77736B;margin:0 0 8px">Truques de escala e iluminação para ambientes compactos.</p>
+        <span style="font:500 11px 'Manrope';color:#77736B">6 min de leitura</span>
+      </div>
+      <div>
+        <div style="height:180px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px;display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">imagem</span></div>
+        <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">ORGANIZAÇÃO</span>
+        <h4 style="font:600 17px 'Newsreader',serif;margin:6px 0 6px;color:#292824">Guia de armazenamento para closets pequenos</h4>
+        <p style="font:400 13px/1.5 'Manrope';color:#77736B;margin:0 0 8px">Como aproveitar cada centímetro sem perder o estilo.</p>
+        <span style="font:500 11px 'Manrope';color:#77736B">4 min de leitura</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ofertas -->
+  <div style="background:#EDE6DA;padding:56px 40px">
+    <div style="font:700 11px 'Manrope';letter-spacing:.12em;color:#77736B;margin-bottom:8px">OFERTAS QUE ENCONTRAMOS</div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:26px">
+      <h3 style="font:600 26px 'Newsreader',serif;color:#292824;margin:0">Boas oportunidades para sua casa</h3>
+      <span style="font:500 12px 'Manrope';color:#77736B">Atualizado hoje às 09:15</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div style="background:#FFFFFF;border-radius:12px;overflow:hidden">
+        <div style="height:150px;background:repeating-linear-gradient(45deg,#F8F6F1,#F8F6F1 8px,#EDE6DA 8px,#EDE6DA 16px);display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">produto</span></div>
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font:600 11px 'Manrope';color:#77736B">Mercado Livre</span><span style="font:700 11px 'Manrope';background:#657A55;color:#fff;padding:3px 8px;border-radius:20px">-32%</span></div>
+          <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Aspirador robô 2L</div>
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font:400 12px 'Manrope';color:#77736B;text-decoration:line-through">R$ 899</span><span style="font:700 17px 'Manrope';color:#292824">R$ 611</span></div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border-radius:12px;overflow:hidden">
+        <div style="height:150px;background:repeating-linear-gradient(45deg,#F8F6F1,#F8F6F1 8px,#EDE6DA 8px,#EDE6DA 16px);display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">produto</span></div>
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font:600 11px 'Manrope';color:#77736B">Shopee</span><span style="font:700 11px 'Manrope';background:#657A55;color:#fff;padding:3px 8px;border-radius:20px">-18%</span></div>
+          <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Jogo de panelas antiaderente</div>
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font:400 12px 'Manrope';color:#77736B;text-decoration:line-through">R$ 349</span><span style="font:700 17px 'Manrope';color:#292824">R$ 286</span></div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border-radius:12px;overflow:hidden">
+        <div style="height:150px;background:repeating-linear-gradient(45deg,#F8F6F1,#F8F6F1 8px,#EDE6DA 8px,#EDE6DA 16px);display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">produto</span></div>
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font:600 11px 'Manrope';color:#77736B">Amazon</span><span style="font:700 11px 'Manrope';background:#657A55;color:#fff;padding:3px 8px;border-radius:20px">-25%</span></div>
+          <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Organizador de armário modular</div>
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font:400 12px 'Manrope';color:#77736B;text-decoration:line-through">R$ 199</span><span style="font:700 17px 'Manrope';color:#292824">R$ 149</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ferramentas preview -->
+  <div style="padding:56px 40px">
+    <div style="font:700 11px 'Manrope';letter-spacing:.12em;color:#77736B;margin-bottom:8px">FERRAMENTAS</div>
+    <h3 style="font:600 26px 'Newsreader',serif;color:#292824;margin:0 0 26px">Ferramentas para facilitar sua vida</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <div style="border:1px solid #DDD7CC;border-radius:12px;padding:20px">
+        <div style="width:38px;height:38px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><span style="width:14px;height:14px;background:#87947B;border-radius:3px"></span></div>
+        <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Calculadora de tinta</div>
+        <div style="font:400 12.5px/1.5 'Manrope';color:#77736B;margin-bottom:14px">Descubra quantos litros você precisa comprar.</div>
+        <span style="font:600 12px 'Manrope';color:#B8664F">Usar ferramenta →</span>
+      </div>
+      <div style="border:1px solid #DDD7CC;border-radius:12px;padding:20px">
+        <div style="width:38px;height:38px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><span style="width:14px;height:14px;background:#87947B;border-radius:3px"></span></div>
+        <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Calculadora de piso</div>
+        <div style="font:400 12.5px/1.5 'Manrope';color:#77736B;margin-bottom:14px">Calcule a metragem certa para o seu ambiente.</div>
+        <span style="font:600 12px 'Manrope';color:#B8664F">Usar ferramenta →</span>
+      </div>
+      <div style="border:1px solid #DDD7CC;border-radius:12px;padding:20px">
+        <div style="width:38px;height:38px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><span style="width:14px;height:14px;background:#87947B;border-radius:3px"></span></div>
+        <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Lista de compras</div>
+        <div style="font:400 12.5px/1.5 'Manrope';color:#77736B;margin-bottom:14px">Organize o que falta comprar para casa.</div>
+        <span style="font:600 12px 'Manrope';color:#B8664F">Usar ferramenta →</span>
+      </div>
+      <div style="border:1px solid #DDD7CC;border-radius:12px;padding:20px">
+        <div style="width:38px;height:38px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><span style="width:14px;height:14px;background:#87947B;border-radius:3px"></span></div>
+        <div style="font:600 14px 'Manrope';color:#292824;margin-bottom:6px">Comparador de produtos</div>
+        <div style="font:400 12.5px/1.5 'Manrope';color:#77736B;margin-bottom:14px">Compare preço, loja e avaliação lado a lado.</div>
+        <span style="font:600 12px 'Manrope';color:#B8664F">Usar ferramenta →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- newsletter -->
+  <div style="padding:44px 40px;border-top:1px solid #DDD7CC;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+    <div>
+      <div style="font:600 17px 'Newsreader',serif;color:#292824;margin-bottom:4px">Receba boas ideias para sua casa</div>
+      <div style="font:400 13px 'Manrope';color:#77736B">Dicas, ferramentas e ofertas selecionadas, sem spam.</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div style="border:1px solid #DDD7CC;border-radius:9px;padding:11px 16px;background:#FFFFFF;font:400 13px 'Manrope';color:#77736B;min-width:220px">seu@email.com</div>
+      <span style="font:600 13px 'Manrope';background:#B8664F;color:#fff;padding:11px 20px;border-radius:9px">Quero receber</span>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div style="background:#292824;color:#EDE6DA;padding:48px 40px 30px">
+    <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;margin-bottom:32px">
+      <div>
+        <div style="font:600 18px 'Newsreader',serif;color:#fff;margin-bottom:10px">Meu Novo Lar</div>
+        <div style="font:400 13px/1.6 'Manrope';color:#a19c90">Conteúdo, produtos, ofertas e ferramentas para sua casa.</div>
+      </div>
+      <div>
+        <div style="font:700 11px 'Manrope';letter-spacing:.09em;color:#a19c90;margin-bottom:12px">CONTEÚDO</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font:400 13px 'Manrope';color:#EDE6DA"><span>Blog</span><span>Categorias</span><span>Produtos</span><span>Ofertas</span></div>
+      </div>
+      <div>
+        <div style="font:700 11px 'Manrope';letter-spacing:.09em;color:#a19c90;margin-bottom:12px">FERRAMENTAS</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font:400 13px 'Manrope';color:#EDE6DA"><span>Todas as ferramentas</span></div>
+      </div>
+      <div>
+        <div style="font:700 11px 'Manrope';letter-spacing:.09em;color:#a19c90;margin-bottom:12px">INFORMAÇÕES</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font:400 13px 'Manrope';color:#EDE6DA"><span>Sobre</span><span>Contato</span><span>Termos de Uso</span><span>Política de Privacidade</span></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #443f36;padding-top:18px;font:400 12px 'Manrope';color:#a19c90">© 2026 Meu Novo Lar</div>
+  </div>
+</div>
+
+<!-- ================= PÚBLICO: BLOG ================= -->
+<div style="max-width:1440px;margin:0 auto;padding:0 40px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+    <span style="font:700 10px/1 'Manrope';letter-spacing:.1em;background:#87947B;color:#fff;padding:5px 9px;border-radius:5px">SITE PÚBLICO — BLOG</span>
+    <span style="font:400 13px/1.4 'Manrope';color:#77736B">/blog — revista digital, destaque + grid</span>
+  </div>
+</div>
+<div style="background:#FFFFFF;border:1px solid #DDD7CC;border-radius:14px;max-width:1440px;margin:0 auto 56px;padding:56px 40px">
+  <h2 style="font:600 34px 'Newsreader',serif;color:#292824;margin:0 0 8px">Blog</h2>
+  <p style="font:400 14px 'Manrope';color:#77736B;margin:0 0 26px;max-width:520px">Conteúdos para deixar sua casa mais prática, bonita e funcional.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #DDD7CC;padding-bottom:22px;margin-bottom:32px">
+    <span style="font:600 12.5px 'Manrope';background:#292824;color:#fff;padding:8px 15px;border-radius:20px">Todos</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Casa</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Organização</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Cozinha</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Decoração</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Limpeza</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;padding:8px 15px">Ferramentas</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:32px;margin-bottom:44px">
+    <div style="height:320px;border-radius:12px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 10px,#F8F6F1 10px,#F8F6F1 20px);display:flex;align-items:center;justify-content:center"><span style="font:500 11px ui-monospace,monospace;color:#77736B">imagem destaque</span></div>
+    <div style="display:flex;flex-direction:column;justify-content:center">
+      <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55;margin-bottom:10px">DESTAQUE · CASA</span>
+      <h3 style="font:600 27px/1.25 'Newsreader',serif;color:#292824;margin:0 0 12px">O guia completo para organizar qualquer cômodo da casa</h3>
+      <p style="font:400 13.5px/1.6 'Manrope';color:#77736B;margin:0 0 14px">Um passo a passo prático, cômodo por cômodo, para você recuperar espaço sem gastar muito.</p>
+      <span style="font:500 12px 'Manrope';color:#77736B">12 min de leitura</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+    <div>
+      <div style="height:170px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px"></div>
+      <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">LIMPEZA</span>
+      <h4 style="font:600 16px 'Newsreader',serif;margin:6px 0 6px;color:#292824">Produtos naturais de limpeza que realmente funcionam</h4>
+      <span style="font:500 11px 'Manrope';color:#77736B">4 min de leitura</span>
+    </div>
+    <div>
+      <div style="height:170px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px"></div>
+      <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">JARDIM</span>
+      <h4 style="font:600 16px 'Newsreader',serif;margin:6px 0 6px;color:#292824">Plantas fáceis de cuidar para apartamentos</h4>
+      <span style="font:500 11px 'Manrope';color:#77736B">5 min de leitura</span>
+    </div>
+    <div>
+      <div style="height:170px;border-radius:10px;background:repeating-linear-gradient(45deg,#EDE6DA,#EDE6DA 8px,#F8F6F1 8px,#F8F6F1 16px);margin-bottom:14px"></div>
+      <span style="font:700 10px 'Manrope';letter-spacing:.08em;color:#657A55">COMPRAS</span>
+      <h4 style="font:600 16px 'Newsreader',serif;margin:6px 0 6px;color:#292824">Vale a pena comprar aspirador robô? Fizemos as contas</h4>
+      <span style="font:500 11px 'Manrope';color:#77736B">7 min de leitura</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PÚBLICO: FERRAMENTAS ================= -->
+<div style="max-width:1440px;margin:0 auto;padding:0 40px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+    <span style="font:700 10px/1 'Manrope';letter-spacing:.1em;background:#657A55;color:#fff;padding:5px 9px;border-radius:5px">SITE PÚBLICO — FERRAMENTAS</span>
+    <span style="font:400 13px/1.4 'Manrope';color:#77736B">/ferramentas — diretório de utilidades, sem login</span>
+  </div>
+</div>
+<div style="background:#FFFFFF;border:1px solid #DDD7CC;border-radius:14px;max-width:1440px;margin:0 auto 80px;padding:56px 40px">
+  <h2 style="font:600 34px 'Newsreader',serif;color:#292824;margin:0 0 8px">Ferramentas</h2>
+  <p style="font:400 14px 'Manrope';color:#77736B;margin:0 0 26px;max-width:560px">Calculadoras e utilitários gratuitos para facilitar decisões e projetos da sua casa. Funcionam sem cadastro.</p>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px">
+    <span style="font:600 12.5px 'Manrope';background:#292824;color:#fff;padding:8px 15px;border-radius:20px">Todas</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Construção</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Casa</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Organização</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Compras</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Finanças</span>
+    <span style="font:500 12.5px 'Manrope';color:#77736B;border:1px solid #DDD7CC;padding:7px 15px;border-radius:20px">Conversores</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+    <div style="border:1px solid #DDD7CC;border-radius:12px;padding:22px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:15px;height:15px;background:#87947B;border-radius:3px"></span></div>
+      <div style="font:700 10px 'Manrope';letter-spacing:.08em;color:#77736B;margin-bottom:8px">CONSTRUÇÃO</div>
+      <div style="font:600 14.5px 'Manrope';color:#292824;margin-bottom:6px">Calculadora de tinta</div>
+      <div style="font:400 12.5px/1.5 'Manrope';color:#77736B">Litros necessários por m².</div>
+    </div>
+    <div style="border:1px solid #DDD7CC;border-radius:12px;padding:22px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:15px;height:15px;background:#87947B;border-radius:3px"></span></div>
+      <div style="font:700 10px 'Manrope';letter-spacing:.08em;color:#77736B;margin-bottom:8px">CONSTRUÇÃO</div>
+      <div style="font:600 14.5px 'Manrope';color:#292824;margin-bottom:6px">Calculadora de piso</div>
+      <div style="font:400 12.5px/1.5 'Manrope';color:#77736B">Metragem e sobra de material.</div>
+    </div>
+    <div style="border:1px solid #DDD7CC;border-radius:12px;padding:22px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:15px;height:15px;background:#87947B;border-radius:3px"></span></div>
+      <div style="font:700 10px 'Manrope';letter-spacing:.08em;color:#77736B;margin-bottom:8px">COMPRAS</div>
+      <div style="font:600 14.5px 'Manrope';color:#292824;margin-bottom:6px">Comparador de produtos</div>
+      <div style="font:400 12.5px/1.5 'Manrope';color:#77736B">Preço, loja e avaliação lado a lado.</div>
+    </div>
+    <div style="border:1px solid #DDD7CC;border-radius:12px;padding:22px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#EDE6DA;display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:15px;height:15px;background:#87947B;border-radius:3px"></span></div>
+      <div style="font:700 10px 'Manrope';letter-spacing:.08em;color:#77736B;margin-bottom:8px">ORGANIZAÇÃO</div>
+      <div style="font:600 14.5px 'Manrope';color:#292824;margin-bottom:6px">Lista de compras</div>
+      <div style="font:400 12.5px/1.5 'Manrope';color:#77736B">Organize o que falta comprar.</div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

@@ -1,12 +1,14 @@
 import sharp, { type OverlayOptions } from "sharp";
-import { LADO_ARTE_QUADRADA } from "./constantes";
+import { ALTURA_ARTE_RETANGULAR, LADO_ARTE_QUADRADA, LARGURA_ARTE_RETANGULAR } from "./constantes";
 import { caminhoDoFundo, fundoDisponivel } from "./fundos";
 import { resolverBufferDeImagem } from "./foto";
-import { escolherVariante, type TipoArte, type ZonaFoto } from "./layouts";
-import { montarSvgSelo, montarSvgTexto } from "./texto-svg";
+import { escolherVariante, type Formato, type TipoArte, type ZonaFoto } from "./layouts";
+import { montarSvgSelo, montarSvgTexto, type CanvasArte } from "./texto-svg";
 
 export interface EntradaArte {
   tipo: TipoArte;
+  /** "quadrada" (padrão) ou "retangular" (Facebook feed, 1200×630). */
+  formato?: Formato;
   /** Escolhe a variante de forma determinística — mesmo id sempre gera a mesma arte. */
   semente: string;
   titulo: string;
@@ -23,39 +25,51 @@ export interface ArteComposta {
   variante: string;
 }
 
-/**
- * Compõe a arte quadrada (1080×1080): fundo pronto (wordmark/decoração já
- * embutidos no PNG) + foto do produto/capa recortada na zona reservada +
- * título/preço/selo em texto. Devolve `null` quando o fundo daquele tipo
- * ainda não foi colocado em public/fundos-posts/<tipo>/ — quem chama deve
- * cair de volta no comportamento antigo (foto crua) nesse caso.
- */
-export async function comporArteQuadrada(entrada: EntradaArte): Promise<ArteComposta | null> {
-  const layout = escolherVariante(entrada.tipo, entrada.semente);
-  if (!fundoDisponivel(entrada.tipo, layout.arquivo)) return null;
+function canvasDoFormato(formato: Formato): CanvasArte {
+  return formato === "retangular"
+    ? { largura: LARGURA_ARTE_RETANGULAR, altura: ALTURA_ARTE_RETANGULAR }
+    : { largura: LADO_ARTE_QUADRADA, altura: LADO_ARTE_QUADRADA };
+}
 
-  const fundoBuffer = await sharp(caminhoDoFundo(entrada.tipo, layout.arquivo))
-    .resize(LADO_ARTE_QUADRADA, LADO_ARTE_QUADRADA, { fit: "cover" })
+/**
+ * Compõe a arte (fundo pronto — wordmark/decoração já embutidos no PNG —
+ * + foto do produto/capa recortada na zona reservada + título/preço/selo em
+ * texto). Devolve `null` quando o fundo daquele tipo/formato ainda não foi
+ * colocado em public/fundos-posts/ — quem chama deve cair de volta no
+ * comportamento antigo (foto crua) nesse caso.
+ */
+export async function comporArte(entrada: EntradaArte): Promise<ArteComposta | null> {
+  const formato = entrada.formato ?? "quadrada";
+  const canvas = canvasDoFormato(formato);
+  const layout = escolherVariante(entrada.tipo, entrada.semente, formato);
+  if (!fundoDisponivel(entrada.tipo, layout.arquivo, formato)) return null;
+
+  const fundoBuffer = await sharp(caminhoDoFundo(entrada.tipo, layout.arquivo, formato))
+    .resize(canvas.largura, canvas.altura, { fit: "cover" })
     .toBuffer();
 
   const camadas: OverlayOptions[] = [];
 
   if (layout.foto && entrada.fotoUrl) {
-    const fotoComposta = await comporFoto(layout.foto, entrada.fotoUrl);
+    const fotoComposta = await comporFoto(layout.foto, entrada.fotoUrl, canvas);
     if (fotoComposta) camadas.push(fotoComposta);
   }
 
   if (layout.selo && entrada.selo) {
-    camadas.push({ input: Buffer.from(montarSvgSelo(layout.selo, entrada.selo)), left: 0, top: 0 });
+    camadas.push({ input: Buffer.from(montarSvgSelo(layout.selo, entrada.selo, canvas)), left: 0, top: 0 });
   }
 
   camadas.push({
     input: Buffer.from(
-      montarSvgTexto(layout.texto, {
-        titulo: entrada.titulo,
-        precoAtual: entrada.precoAtual ?? null,
-        precoOriginal: entrada.precoOriginal ?? null,
-      }),
+      montarSvgTexto(
+        layout.texto,
+        {
+          titulo: entrada.titulo,
+          precoAtual: entrada.precoAtual ?? null,
+          precoOriginal: entrada.precoOriginal ?? null,
+        },
+        canvas,
+      ),
     ),
     left: 0,
     top: 0,
@@ -65,15 +79,20 @@ export async function comporArteQuadrada(entrada: EntradaArte): Promise<ArteComp
   return { buffer, variante: layout.arquivo };
 }
 
-async function comporFoto(zona: ZonaFoto, fotoUrl: string): Promise<OverlayOptions | null> {
+/** @deprecated use `comporArte` (com `formato: "quadrada"`, o padrão) */
+export async function comporArteQuadrada(entrada: Omit<EntradaArte, "formato">): Promise<ArteComposta | null> {
+  return comporArte({ ...entrada, formato: "quadrada" });
+}
+
+async function comporFoto(zona: ZonaFoto, fotoUrl: string, canvas: CanvasArte): Promise<OverlayOptions | null> {
   try {
     const original = await resolverBufferDeImagem(fotoUrl);
-    const lado = LADO_ARTE_QUADRADA;
+    const { largura: larguraCanvas, altura: alturaCanvas } = canvas;
 
     if (zona.formato === "circulo") {
-      const diametro = Math.round((zona.raioPct * 2 * lado) / 100);
-      const left = Math.round((zona.cxPct * lado) / 100 - diametro / 2);
-      const top = Math.round((zona.cyPct * lado) / 100 - diametro / 2);
+      const diametro = Math.round((zona.raioPct * 2 * larguraCanvas) / 100);
+      const left = Math.round((zona.cxPct * larguraCanvas) / 100 - diametro / 2);
+      const top = Math.round((zona.cyPct * alturaCanvas) / 100 - diametro / 2);
       const mascara = Buffer.from(
         `<svg width="${diametro}" height="${diametro}"><circle cx="${diametro / 2}" cy="${diametro / 2}" r="${diametro / 2}" fill="#fff"/></svg>`,
       );
@@ -85,11 +104,11 @@ async function comporFoto(zona: ZonaFoto, fotoUrl: string): Promise<OverlayOptio
       return { input: foto, left, top };
     }
 
-    const largura = Math.round((zona.larguraPct * lado) / 100);
-    const altura = Math.round((zona.alturaPct * lado) / 100);
-    const left = Math.round((zona.xPct * lado) / 100);
-    const top = Math.round((zona.yPct * lado) / 100);
-    const raio = Math.round(((zona.raioPct ?? 0) * lado) / 100);
+    const largura = Math.round((zona.larguraPct / 100) * larguraCanvas);
+    const altura = Math.round((zona.alturaPct / 100) * alturaCanvas);
+    const left = Math.round((zona.xPct / 100) * larguraCanvas);
+    const top = Math.round((zona.yPct / 100) * alturaCanvas);
+    const raio = Math.round(((zona.raioPct ?? 0) / 100) * larguraCanvas);
     const mascara = Buffer.from(
       `<svg width="${largura}" height="${altura}"><rect width="${largura}" height="${altura}" rx="${raio}" ry="${raio}" fill="#fff"/></svg>`,
     );

@@ -1,6 +1,12 @@
 import { LADO_ARTE_QUADRADA } from "./constantes";
 import type { ZonaSelo, ZonaTexto } from "./layouts";
 
+/** Dimensões do canvas em que o SVG será composto — o quadrado (1080) é a referência de escala da fonte. */
+export interface CanvasArte {
+  largura: number;
+  altura: number;
+}
+
 function escapeXml(texto: string): string {
   return texto
     .replace(/&/g, "&amp;")
@@ -51,15 +57,19 @@ export interface DadosTexto {
   precoOriginal?: string | null;
 }
 
-/** Monta o SVG (tamanho da arte inteira) com o bloco de título + preço posicionado na zona de texto. */
-export function montarSvgTexto(zona: ZonaTexto, dados: DadosTexto): string {
-  const lado = LADO_ARTE_QUADRADA;
-  const x = (zona.xPct / 100) * lado;
-  const y = (zona.yPct / 100) * lado;
-  const largura = (zona.larguraPct / 100) * lado;
+/** Monta o SVG (tamanho do canvas inteiro) com o bloco de título + preço posicionado na zona de texto. */
+export function montarSvgTexto(zona: ZonaTexto, dados: DadosTexto, canvas: CanvasArte): string {
+  const { largura: larguraCanvas, altura: alturaCanvas } = canvas;
+  // A geometria dos layouts foi desenhada pensando num canvas de 1080px de altura — escala as fontes
+  // proporcionalmente pra formatos mais baixos (ex.: o retangular de 630px) manterem a mesma leitura.
+  const escala = alturaCanvas / LADO_ARTE_QUADRADA;
+
+  const x = (zona.xPct / 100) * larguraCanvas;
+  const y = (zona.yPct / 100) * alturaCanvas;
+  const largura = (zona.larguraPct / 100) * larguraCanvas;
 
   const temPreco = Boolean(dados.precoAtual);
-  const fontSizeTitulo = temPreco ? 42 : 50;
+  const fontSizeTitulo = Math.round((temPreco ? 42 : 50) * escala);
   const maxLinhas = temPreco ? 2 : 3;
   const alturaLinha = Math.round(fontSizeTitulo * 1.22);
 
@@ -77,36 +87,38 @@ export function montarSvgTexto(zona: ZonaTexto, dados: DadosTexto): string {
 
   let blocoPreco = "";
   if (temPreco) {
-    const fontSizePreco = 34;
-    const fontSizePrecoOriginal = 20;
-    const yPreco = fimTitulo + 40;
+    const fontSizePreco = Math.round(34 * escala);
+    const fontSizePrecoOriginal = Math.round(20 * escala);
+    const yPreco = fimTitulo + Math.round(40 * escala);
     const precoOriginalTspan = dados.precoOriginal
       ? `<tspan font-family="'Manrope','Segoe UI',sans-serif" font-weight="400" text-decoration="line-through" font-size="${fontSizePrecoOriginal}" fill="${zona.corPrecoOriginal}">${escapeXml(dados.precoOriginal)}  </tspan>`
       : "";
     blocoPreco = `<text x="${anchorX}" y="${yPreco}" text-anchor="${textAnchor}" font-family="'Manrope','Segoe UI',sans-serif" font-weight="700" font-size="${fontSizePreco}" fill="${zona.corPreco}">${precoOriginalTspan}<tspan>${escapeXml(dados.precoAtual!)}</tspan></text>`;
   }
 
-  return `<svg width="${lado}" height="${lado}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="${larguraCanvas}" height="${alturaCanvas}" xmlns="http://www.w3.org/2000/svg">
     <text x="${anchorX}" y="${baselineTitulo}" text-anchor="${textAnchor}" font-family="'Newsreader',Georgia,serif" font-weight="600" font-size="${fontSizeTitulo}" fill="${zona.corTitulo}">${tspansTitulo}</text>
     ${blocoPreco}
   </svg>`;
 }
 
 /** Selo/badge (ex.: "-32% hoje", "Achadinho do dia") — pílula com texto centralizado. */
-export function montarSvgSelo(zona: ZonaSelo, texto: string): string {
-  const lado = LADO_ARTE_QUADRADA;
-  const fontSize = 22;
-  const paddingX = 22;
-  const paddingY = 12;
+export function montarSvgSelo(zona: ZonaSelo, texto: string, canvas: CanvasArte): string {
+  const { largura: larguraCanvas, altura: alturaCanvas } = canvas;
+  const escala = alturaCanvas / LADO_ARTE_QUADRADA;
+
+  const fontSize = Math.round(22 * escala);
+  const paddingX = Math.round(22 * escala);
+  const paddingY = Math.round(12 * escala);
   const larguraTexto = estimarLargura(texto, fontSize, 0.58);
   const largura = Math.round(larguraTexto + paddingX * 2);
   const altura = fontSize + paddingY * 2;
 
-  const xCentro = (zona.xPct / 100) * lado;
-  const y = (zona.yPct / 100) * lado;
+  const xCentro = (zona.xPct / 100) * larguraCanvas;
+  const y = (zona.yPct / 100) * alturaCanvas;
   const x = zona.alinhamento === "center" ? xCentro - largura / 2 : xCentro;
 
-  return `<svg width="${lado}" height="${lado}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="${larguraCanvas}" height="${alturaCanvas}" xmlns="http://www.w3.org/2000/svg">
     <rect x="${x}" y="${y}" width="${largura}" height="${altura}" rx="${altura / 2}" ry="${altura / 2}" fill="${zona.corFundo}"/>
     <text x="${x + largura / 2}" y="${y + altura / 2 + fontSize * 0.35}" text-anchor="middle" font-family="'Manrope','Segoe UI',sans-serif" font-weight="700" font-size="${fontSize}" fill="${zona.corTexto}">${escapeXml(texto)}</text>
   </svg>`;
