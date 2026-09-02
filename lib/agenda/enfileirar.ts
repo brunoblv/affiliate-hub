@@ -7,6 +7,8 @@ import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
 import { getSiteUrl, urlPublica } from "@/lib/site-url";
 import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
+import { gerarImagemDePublicacao } from "@/lib/artes";
+import { reais } from "@/lib/vitrine/rotulos";
 
 const ORIGEM_POR_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "facebook",
@@ -62,6 +64,38 @@ function linkAfiliadoDoProduto(produto: Produto): string {
 function primeiraImagem(produto: Produto): string | undefined {
   const imagens = (produto.imagens as unknown as string[]) ?? [];
   return imagens[0];
+}
+
+/**
+ * Compõe a arte quadrada do produto (fundo + foto + título/preço). Cai de
+ * volta para a foto crua do marketplace se o fundo do tipo "produto" ainda
+ * não existir em public/fundos-posts/ ou se a composição falhar por
+ * qualquer motivo — nunca trava o agendamento por causa da arte.
+ */
+async function imagemDoProduto(produto: Produto): Promise<string | undefined> {
+  const fotoCrua = primeiraImagem(produto);
+  try {
+    const precoAtual = reais(produto.precoAtual);
+    const precoOriginal =
+      produto.precoOriginal && Number(produto.precoOriginal) > Number(produto.precoAtual)
+        ? reais(produto.precoOriginal)
+        : null;
+    const url = await gerarImagemDePublicacao({
+      tipo: "produto",
+      semente: produto.id,
+      titulo: produto.nome,
+      fotoUrl: fotoCrua ?? null,
+      precoAtual,
+      precoOriginal,
+    });
+    if (url) return urlPublica(url);
+  } catch (erro) {
+    await registrar("ERRO", "ARTES", "Falha ao compor arte do produto — publicando com a foto crua.", {
+      produto: produto.slug,
+      erro: mensagemErro(erro),
+    });
+  }
+  return fotoCrua;
 }
 
 function pulado(canalId: string, canal: string, motivoPulado: string): ResultadoEnfileiramento {
@@ -151,6 +185,8 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     }
   }
 
+  const imagemUrl = await imagemDoProduto(produto);
+
   const resultados: ResultadoEnfileiramento[] = [];
   let agendadoTikTokEm: string | null = null;
 
@@ -163,7 +199,7 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     }
 
     try {
-      const resultado = await enfileirarNoCanal(canal, produto);
+      const resultado = await enfileirarNoCanal(canal, produto, imagemUrl);
       resultados.push(resultado);
       if (ehProdutoTikTok(produto) && resultado.agendadaPara) {
         agendadoTikTokEm = canal.nome;
@@ -179,6 +215,7 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
 async function enfileirarNoCanal(
   canal: Canal,
   produto: Produto,
+  imagemUrl: string | undefined,
 ): Promise<ResultadoEnfileiramento> {
   const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
 
@@ -221,7 +258,7 @@ async function enfileirarNoCanal(
         canalId: canal.id,
         agendadaPara: vaga.agendadaPara,
         texto,
-        imagemUrl: primeiraImagem(produto),
+        imagemUrl,
         linkDestino: link,
         chaveIdempotencia,
       },
@@ -283,10 +320,12 @@ export async function enfileirarPost(postId: string, canalIds?: string[]): Promi
     ];
   }
 
+  const imagemUrl = await imagemDaLista(post);
+
   const resultados: ResultadoEnfileiramento[] = [];
   for (const canal of canais) {
     try {
-      resultados.push(await enfileirarPostNoCanal(canal, post));
+      resultados.push(await enfileirarPostNoCanal(canal, post, imagemUrl));
     } catch (erro) {
       resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
     }
@@ -295,9 +334,34 @@ export async function enfileirarPost(postId: string, canalIds?: string[]): Promi
   return resultados;
 }
 
+/**
+ * Compõe a arte quadrada da lista (fundo + capa + título do roundup). Cai de
+ * volta para a capa manual crua se o fundo do tipo "lista" ainda não existir
+ * ou se a composição falhar.
+ */
+async function imagemDaLista(post: Post & { capa: { url: string } | null }): Promise<string | undefined> {
+  const capaCrua = urlPublica(post.capa?.url);
+  try {
+    const url = await gerarImagemDePublicacao({
+      tipo: "lista",
+      semente: post.id,
+      titulo: post.titulo,
+      fotoUrl: post.capa?.url ?? null,
+    });
+    if (url) return urlPublica(url);
+  } catch (erro) {
+    await registrar("ERRO", "ARTES", "Falha ao compor arte da lista — publicando com a capa crua.", {
+      post: post.slug,
+      erro: mensagemErro(erro),
+    });
+  }
+  return capaCrua;
+}
+
 async function enfileirarPostNoCanal(
   canal: Canal,
   post: Post & { capa: { url: string } | null },
+  imagemUrl: string | undefined,
 ): Promise<ResultadoEnfileiramento> {
   const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
 
@@ -339,7 +403,7 @@ async function enfileirarPostNoCanal(
         canalId: canal.id,
         agendadaPara: vaga.agendadaPara,
         texto,
-        imagemUrl: post.capa?.url,
+        imagemUrl,
         linkDestino: link,
         chaveIdempotencia,
       },
@@ -361,8 +425,29 @@ async function enfileirarPostNoCanal(
 
 const REDES_JORNADA = [Rede.FACEBOOK_PAGE, Rede.INSTAGRAM] as const;
 
-function imagemDaJornada(post: Post & { capa: { url: string } | null }): string | undefined {
-  return urlPublica(post.capa?.url) ?? urlPublica(CAPA_EDITORIAL.src);
+/**
+ * Compõe a arte quadrada da jornada (fundo + foto/hero + título do artigo).
+ * Cai de volta para a capa/hero crua se o fundo do tipo "jornada" ainda não
+ * existir ou se a composição falhar.
+ */
+async function imagemDaJornada(post: Post & { capa: { url: string } | null }): Promise<string | undefined> {
+  const fotoUrl = post.capa?.url ?? CAPA_EDITORIAL.src;
+  const bruta = urlPublica(post.capa?.url) ?? urlPublica(CAPA_EDITORIAL.src);
+  try {
+    const url = await gerarImagemDePublicacao({
+      tipo: "jornada",
+      semente: post.id,
+      titulo: post.titulo,
+      fotoUrl,
+    });
+    if (url) return urlPublica(url);
+  } catch (erro) {
+    await registrar("ERRO", "ARTES", "Falha ao compor arte da jornada — publicando com a capa crua.", {
+      post: post.slug,
+      erro: mensagemErro(erro),
+    });
+  }
+  return bruta;
 }
 
 /**
@@ -436,7 +521,7 @@ async function enfileirarJornadaNoCanal(
     return { ...base, motivoPulado: "Essa matéria já foi agendada/publicada neste canal." };
   }
 
-  const imagemUrl = imagemDaJornada(post);
+  const imagemUrl = canal.rede === Rede.INSTAGRAM ? await imagemDaJornada(post) : undefined;
   if (canal.rede === Rede.INSTAGRAM && !imagemUrl) {
     return { ...base, motivoPulado: "Instagram exige imagem — envie uma capa no post." };
   }
@@ -471,8 +556,8 @@ async function enfileirarJornadaNoCanal(
         agendadaPara: vaga,
         texto,
         // Facebook: sem foto, para o Graph publicar no /feed com preview do artigo.
-        // Instagram: capa (ou hero editorial) — a API exige imagem.
-        imagemUrl: canal.rede === Rede.INSTAGRAM ? imagemUrl : null,
+        // Instagram: arte composta (ou capa/hero crua) — a API exige imagem.
+        imagemUrl: imagemUrl ?? null,
         linkDestino: link,
         chaveIdempotencia,
       },
@@ -570,6 +655,7 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
   }
 
   const texto = await gerarLegendaDoProduto({ produto, rede: canal.rede, link });
+  const imagemUrl = await imagemDoProduto(produto);
   const agora = new Date();
   const chaveIdempotencia = `${produto.id}:${canal.id}:${agora.toISOString()}`;
 
@@ -581,7 +667,7 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
         canalId: canal.id,
         agendadaPara: agora,
         texto,
-        imagemUrl: primeiraImagem(produto),
+        imagemUrl,
         linkDestino: link,
         chaveIdempotencia,
       },

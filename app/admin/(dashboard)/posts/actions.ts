@@ -21,6 +21,8 @@ import {
   montarCorpoFichaProduto,
   preencherCamposVaziosDoProduto,
 } from "@/lib/conteudo/gerar-ficha-produto";
+import { comporArteQuadrada, salvarArteComoCapa, type TipoArte } from "@/lib/artes";
+import { slugify } from "@/lib/produtos";
 
 export interface PostFormState {
   status: "idle" | "error" | "success";
@@ -312,6 +314,61 @@ export async function gerarNarracaoAction(postId: string): Promise<GerarNarracao
     return { ok: true, url: midia.url };
   } catch (erro) {
     return { ok: false, erro: erro instanceof Error ? erro.message : "Falha ao gerar a narração." };
+  }
+}
+
+const TIPO_ARTE_POR_TIPO_POST: Record<string, TipoArte> = {
+  JORNADA: "jornada",
+  LISTA: "lista",
+  PRODUTO: "produto",
+};
+
+export type GerarCapaResultado =
+  | { ok: true; midia: { id: string; url: string; alt: string | null } }
+  | { ok: false; message: string };
+
+/**
+ * Compõe uma capa a partir dos fundos da identidade visual (fundo + foto
+ * atual + título) — mesmo pipeline usado pra imagem das publicações sociais.
+ * Não altera o post: devolve a Midia pro form tratar como qualquer capa
+ * enviada (o botão "Salvar" é que grava o capaId).
+ */
+export async function gerarCapaComFundoAction(entrada: {
+  tipo: string;
+  titulo: string;
+  fotoUrl?: string | null;
+}): Promise<GerarCapaResultado> {
+  const sessao = await auth();
+  if (!sessao) return { ok: false, message: "Não autorizado." };
+
+  const titulo = entrada.titulo.trim();
+  if (!titulo) return { ok: false, message: "Preencha o título antes de gerar a capa." };
+
+  const tipoArte = TIPO_ARTE_POR_TIPO_POST[entrada.tipo];
+  if (!tipoArte) return { ok: false, message: "Tipo de post inválido." };
+
+  try {
+    const arte = await comporArteQuadrada({
+      tipo: tipoArte,
+      semente: `${entrada.tipo}:${titulo}:${Date.now()}`,
+      titulo,
+      fotoUrl: entrada.fotoUrl ?? null,
+    });
+    if (!arte) {
+      return {
+        ok: false,
+        message: `Ainda não há fundo cadastrado em public/fundos-posts/${tipoArte}/. Adicione os PNGs (1080×1080) e tente de novo.`,
+      };
+    }
+
+    const midia = await salvarArteComoCapa(arte.buffer, {
+      nomeBase: slugify(titulo).slice(0, 60) || "capa",
+      alt: titulo,
+    });
+
+    return { ok: true, midia: { id: midia.id, url: midia.url, alt: midia.alt } };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao gerar a capa." };
   }
 }
 

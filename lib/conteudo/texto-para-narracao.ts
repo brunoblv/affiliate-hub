@@ -1,10 +1,12 @@
 /**
  * Transforma o markdown do artigo em texto falável: sem shortcode de produto,
- * sem imagem, sem URL crua de loja. O TTS recita exatamente o que receber.
+ * sem botão de CTA, sem imagem, sem URL crua de loja. O TTS recita exatamente
+ * o que receber.
  */
 export function textoParaNarracao(titulo: string, corpo: string): string {
   const falavel = corpo
     .replace(/^\\?\[produto:[a-z0-9-]+\]\s*$/gm, "")
+    .replace(/^\\?\[cta:[^\]]+\]\s*$/gm, "")
     .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")

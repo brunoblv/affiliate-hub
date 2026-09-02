@@ -104,8 +104,8 @@ model Post {
   slug               String              @unique
   resumo             String?
 
-  /// Markdown. Imagens no meio do texto via ![alt](url) e cards de produto
-  /// via shortcode em linha própria: [produto:slug-do-produto]
+  /// Markdown. Imagens no meio do texto via ![alt](url), cards de produto via
+  /// [produto:slug] e botão de lista/afiliado via [cta:url] (linha própria).
   corpo String @db.Text
 
   capaId String?

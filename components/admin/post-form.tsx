@@ -12,6 +12,7 @@ import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulari
 import type { Post } from "@/lib/database";
 import { enviarArquivoDeMidia } from "@/lib/midia/enviar-cliente";
 import type { PostFormState } from "@/app/admin/(dashboard)/posts/actions";
+import { gerarCapaComFundoAction } from "@/app/admin/(dashboard)/posts/actions";
 
 const TIPOS = [
   { value: "JORNADA", label: "Jornada (editorial)" },
@@ -61,9 +62,11 @@ export function PostForm({
   const [corpo, setCorpo] = useState(post?.corpo ?? defaults?.corpo ?? "");
   const [capa, setCapa] = useState<CapaPreview | null>(post?.capa ?? null);
   const [enviandoCapa, setEnviandoCapa] = useState(false);
+  const [gerandoCapa, setGerandoCapa] = useState(false);
   const [tipo, setTipo] = useState(post?.tipo ?? defaults?.tipo ?? "JORNADA");
   const editorRef = useRef<MDXEditorMethods>(null);
   const produtoSelectRef = useRef<HTMLSelectElement>(null);
+  const tituloRef = useRef<HTMLInputElement>(null);
 
   async function handleUploadCapa(event: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = event.target.files?.[0];
@@ -79,6 +82,29 @@ export function PostForm({
     } finally {
       setEnviandoCapa(false);
       event.target.value = "";
+    }
+  }
+
+  async function handleGerarCapa() {
+    const titulo = tituloRef.current?.value.trim();
+    if (!titulo) {
+      toast.error("Preencha o título antes de gerar a capa.");
+      return;
+    }
+
+    setGerandoCapa(true);
+    try {
+      const resultado = await gerarCapaComFundoAction({ tipo, titulo, fotoUrl: capa?.url ?? null });
+      if (!resultado.ok) {
+        toast.error(resultado.message, { duration: 8000 });
+        return;
+      }
+      setCapa(resultado.midia);
+      toast.success("Capa gerada a partir do fundo da identidade visual.");
+    } catch (erro) {
+      toast.error(erro instanceof Error ? erro.message : "Falha ao gerar a capa.");
+    } finally {
+      setGerandoCapa(false);
     }
   }
 
@@ -196,7 +222,7 @@ export function PostForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="titulo">Título</Label>
-        <Input id="titulo" name="titulo" defaultValue={post?.titulo ?? defaults?.titulo ?? ""} required />
+        <Input id="titulo" name="titulo" ref={tituloRef} defaultValue={post?.titulo ?? defaults?.titulo ?? ""} required />
       </div>
 
       <div className="space-y-1.5">
@@ -221,6 +247,9 @@ export function PostForm({
             {enviandoCapa ? "Enviando..." : capa ? "Trocar capa" : "Enviar capa"}
             <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleUploadCapa} />
           </Button>
+          <Button type="button" size="sm" variant="outline" disabled={gerandoCapa} onClick={handleGerarCapa}>
+            {gerandoCapa ? "Gerando..." : "Gerar capa com fundo"}
+          </Button>
           {capa && (
             <Button type="button" size="sm" variant="ghost" onClick={() => setCapa(null)}>
               Remover
@@ -229,6 +258,7 @@ export function PostForm({
         </div>
         <p className="text-xs text-muted-foreground">
           JPEG, PNG, WebP ou AVIF, até 25 MB. Ideal: 1600×900 (16:9). O arquivo é salvo no servidor.
+          &quot;Gerar capa com fundo&quot; usa os fundos da identidade visual (public/fundos-posts) + o título atual.
         </p>
       </div>
 
@@ -256,7 +286,8 @@ export function PostForm({
         <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? defaults?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
         <p className="text-xs text-muted-foreground">
           Editor visual: títulos, listas, links e imagens (arraste ou use o ícone). O conteúdo continua sendo
-          markdown. Cards de produto entram pelo botão acima.
+          markdown. Cards de produto entram pelo botão acima. Lista de afiliado do Mercado Livre:{" "}
+          <code className="text-[0.7rem]">[cta:https://meli.la/codigo]</code> em linha própria.
         </p>
       </div>
 

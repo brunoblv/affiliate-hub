@@ -1,15 +1,20 @@
 /**
- * Corpo do post = markdown puro, com duas extensões:
+ * Corpo do post = markdown puro, com três extensões:
  *
  *   ![alt](/midia/2026/08/cozinha.webp)   → imagem no meio do texto
  *   [produto:sofa-retratil-3-lugares]      → card de produto, em linha própria
+ *   [cta:https://meli.la/abc]              → botão para lista/link de afiliado
+ *   [cta:https://meli.la/abc|Ver a lista]  → o mesmo, com rótulo
  *
  * Markdown foi escolhido de propósito: o texto continua legível e editável em
  * qualquer lugar, e uma migração futura para outro editor não perde nada. Um
  * corpo em JSON de blocos prende o conteúdo ao editor que o gerou.
  */
 
-export type BlocoDoCorpo = { tipo: "markdown"; conteudo: string } | { tipo: "produto"; slug: string };
+export type BlocoDoCorpo =
+  | { tipo: "markdown"; conteudo: string }
+  | { tipo: "produto"; slug: string }
+  | { tipo: "cta"; url: string; rotulo: string };
 
 /**
  * Shortcode sozinho na linha. Qualquer outra ocorrência fica como texto.
@@ -20,6 +25,8 @@ export type BlocoDoCorpo = { tipo: "markdown"; conteudo: string } | { tipo: "pro
  * shortcode chega aqui como "\[produto:slug]".
  */
 const SHORTCODE_PRODUTO = /^\\?\[produto:([a-z0-9-]+)\]$/;
+const SHORTCODE_CTA = /^\\?\[cta:((?:https:\/\/[^\s\]|]+)|(?:\/go\/[a-zA-Z0-9]+))(?:\|([^\]]+))?\]$/;
+const ROTULO_CTA_PADRAO = "Ver a lista no Mercado Livre";
 
 /** Imagens embutidas — usado para manter MidiaEmPost em dia. */
 const IMAGEM_MARKDOWN = /!\[[^\]]*\]\(([^)\s]+)/g;
@@ -35,11 +42,23 @@ export function separarBlocos(corpo: string): BlocoDoCorpo[] {
   };
 
   for (const linha of corpo.split("\n")) {
-    const casamento = SHORTCODE_PRODUTO.exec(linha.trim());
-
-    if (casamento) {
+    const cortada = linha.trim();
+    const produto = SHORTCODE_PRODUTO.exec(cortada);
+    if (produto) {
       despejarMarkdown();
-      blocos.push({ tipo: "produto", slug: casamento[1]! });
+      blocos.push({ tipo: "produto", slug: produto[1]! });
+      continue;
+    }
+
+    const cta = SHORTCODE_CTA.exec(cortada);
+    if (cta) {
+      const url = cta[1]!;
+      if (!ctaAfiliadoPermitido(url)) {
+        acumulado.push(linha);
+        continue;
+      }
+      despejarMarkdown();
+      blocos.push({ tipo: "cta", url, rotulo: cta[2]?.trim() || ROTULO_CTA_PADRAO });
       continue;
     }
 
@@ -74,6 +93,7 @@ export function resumoAutomatico(corpo: string, limite = 155): string {
   const textoLimpo = corpo
     .replace(IMAGEM_MARKDOWN, "")
     .replace(/\\?\[produto:[a-z0-9-]+\]/g, "")
+    .replace(/\\?\[cta:[^\]]+\]/g, "")
     .replace(/[#*_>`]/g, "")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/\s+/g, " ")
@@ -88,4 +108,21 @@ export function resumoAutomatico(corpo: string, limite = 155): string {
 /** Corpo só com o card (ou texto irrelevante) — a página pública da ficha fica vazia. */
 export function fichaProdutoVazia(corpo: string): boolean {
   return resumoAutomatico(corpo, 10_000).length < 80;
+}
+
+/**
+ * Só CTA de afiliado de verdade: encurtador meli.la (lista/item do ML) ou
+ * /go/:codigo do próprio site. URL crua de loja não vira botão.
+ */
+export function ctaAfiliadoPermitido(url: string): boolean {
+  if (/^\/go\/[a-zA-Z0-9]+$/.test(url)) return true;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    return host === "meli.la" || host.endsWith(".meli.la");
+  } catch {
+    return false;
+  }
 }
