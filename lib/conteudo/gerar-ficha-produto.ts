@@ -2,25 +2,30 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { prisma, type Produto } from "@/lib/database";
 import { gerarJson } from "@/lib/conteudo/gemini";
+import { garantirShortcodesNoCorpo } from "@/lib/conteudo/corpo";
 import { LABEL_CATEGORIA } from "@/lib/produtos";
 import { LABEL_DESTINO } from "@/lib/vitrine/destinos";
 
 export interface FichaProduto {
+  corpo: string;
   descricao: string;
-  utilidade: string;
   resumo: string;
   notaEditorial: string;
+  seoTitulo: string;
+  metaDescricao: string;
 }
 
 const SCHEMA_FICHA = {
   type: "OBJECT",
   properties: {
+    corpo: { type: "STRING" },
     descricao: { type: "STRING" },
-    utilidade: { type: "STRING" },
     resumo: { type: "STRING" },
     notaEditorial: { type: "STRING" },
+    seoTitulo: { type: "STRING" },
+    metaDescricao: { type: "STRING" },
   },
-  required: ["descricao", "utilidade", "resumo", "notaEditorial"],
+  required: ["corpo", "descricao", "resumo", "notaEditorial", "seoTitulo", "metaDescricao"],
 };
 
 const LABEL_PLATAFORMA: Record<string, string> = {
@@ -51,33 +56,27 @@ export function textoLimpoDaDescricao(bruta: string | null | undefined, limite =
   return `${limpo.slice(0, limite)}…`;
 }
 
-export function montarCorpoFichaProduto(slug: string, ficha: Pick<FichaProduto, "descricao" | "utilidade">): string {
-  return `${ficha.descricao.trim()}
-
-## Para que serve
-
-${ficha.utilidade.trim()}
-
-[produto:${slug}]
-`;
+export function montarCorpoFichaProduto(slug: string, ficha: Pick<FichaProduto, "corpo">): string {
+  return garantirShortcodesNoCorpo(ficha.corpo, [slug]);
 }
 
 export async function gerarFichaProduto(produto: Produto): Promise<FichaProduto> {
   const base = await carregarPrompt();
   const prompt = base
-    .replace("{{nome}}", produto.nome)
-    .replace("{{categoria}}", LABEL_CATEGORIA[produto.categoria] ?? produto.categoria)
-    .replace("{{destino}}", LABEL_DESTINO[produto.destino] ?? produto.destino)
-    .replace("{{plataforma}}", LABEL_PLATAFORMA[produto.plataforma] ?? produto.plataforma)
-    .replace("{{descricao}}", textoLimpoDaDescricao(produto.descricao) || "(sem descrição da loja)")
-    .replace("{{notaEditorial}}", produto.notaEditorial?.trim() || "(nenhuma)");
+    .replaceAll("{{nome}}", produto.nome)
+    .replaceAll("{{slug}}", produto.slug)
+    .replaceAll("{{categoria}}", LABEL_CATEGORIA[produto.categoria] ?? produto.categoria)
+    .replaceAll("{{destino}}", LABEL_DESTINO[produto.destino] ?? produto.destino)
+    .replaceAll("{{plataforma}}", LABEL_PLATAFORMA[produto.plataforma] ?? produto.plataforma)
+    .replaceAll("{{descricao}}", textoLimpoDaDescricao(produto.descricao) || "(sem descrição da loja)")
+    .replaceAll("{{notaEditorial}}", produto.notaEditorial?.trim() || "(nenhuma)");
 
   return gerarJson<FichaProduto>({
     prompt,
     schema: SCHEMA_FICHA,
-    temperature: 0.7,
-    tarefa: "curto",
-    maxOutputTokens: 2048,
+    temperature: 0.8,
+    tarefa: "artigo",
+    maxOutputTokens: 4096,
   });
 }
 

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { gerarJson } from "@/lib/conteudo/gemini";
+import { garantirShortcodesNoCorpo } from "@/lib/conteudo/corpo";
 import { LABEL_CATEGORIA } from "@/lib/produtos";
 import { textoLimpoDaDescricao } from "@/lib/conteudo/gerar-ficha-produto";
 import type { PautaListaCasa } from "@/lib/conteudo/pauta-listas-casa";
@@ -26,8 +27,6 @@ const SCHEMA_LISTA = {
   required: ["titulo", "resumo", "corpo", "seoTitulo", "metaDescricao"],
 };
 
-const URL_EM_TEXTO = /https?:\/\/\S+/gi;
-
 let promptBase: string | null = null;
 
 async function carregarPrompt(): Promise<string> {
@@ -44,23 +43,6 @@ function blocoProduto(produto: ProdutoCandidatoLista, indice: number): string {
     `   categoria: ${LABEL_CATEGORIA[produto.categoria] ?? produto.categoria}`,
     `   descricao: ${descricao}`,
   ].join("\n");
-}
-
-/** Garante shortcode na linha própria, só com slugs desta lista, sem URL. */
-export function garantirShortcodesNoCorpo(corpo: string, slugs: string[]): string {
-  const permitidos = new Set(slugs);
-  let texto = corpo.replace(/\r\n/g, "\n").replace(URL_EM_TEXTO, "").trim();
-
-  texto = texto.replace(/^\\?\[produto:([a-z0-9-]+)\]\s*$/gm, (_match, slug: string) => {
-    return permitidos.has(slug) ? `[produto:${slug}]` : "";
-  });
-
-  for (const slug of slugs) {
-    const jaTem = new RegExp(`^\\[produto:${slug}\\]\\s*$`, "m").test(texto);
-    if (!jaTem) texto = `${texto.trim()}\n\n[produto:${slug}]`;
-  }
-
-  return `${texto.replace(/\n{3,}/g, "\n\n").trim()}\n`;
 }
 
 /** Gemini escreve utilidade + shortcodes; preço e link de afiliado ficam no card. */

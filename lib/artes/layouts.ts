@@ -65,7 +65,7 @@ export interface VarianteLayout {
   /** Caminho relativo dentro de public/fundos-posts/<quadrado|retangular|capa>/<tipo>/. */
   arquivo: string;
   foto?: ZonaFoto;
-  /** Ausente no formato "capa" — a capa do site não leva título/preço em pixel, só foto/fundo. */
+  /** Opcional só por flexibilidade de layout — hoje toda variante define uma zona de texto. */
   texto?: ZonaTexto;
   selo?: ZonaSelo;
 }
@@ -330,31 +330,42 @@ export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
   ],
 };
 
+/** Foto em tela cheia (o mesmo pra toda variante de capa) + título no canto inferior esquerdo, sobre véu escuro pra legibilidade. */
+const FOTO_CHEIA: ZonaFoto = { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 };
+const TEXTO_CAPA: ZonaTexto = {
+  xPct: 6,
+  yPct: 64,
+  larguraPct: 88,
+  alturaPct: 30,
+  alinhamento: "left",
+  corTitulo: CORES.card,
+  corPreco: CORES.card,
+  corPrecoOriginal: CORES.card,
+};
+
 /**
  * Formato capa do site (1600×900, 16:9) — só produto/lista/jornada têm capa
- * de post (oferta é a landing diária, não tem capa própria). Sem zona de
- * texto: é só foto em tela cheia sobre o fundo (o título já é renderizado em
- * HTML na própria página). Foto cobre 100% do canvas — sem foto, o CSS do
- * blog mostra só o fundo, que funciona como placeholder de marca.
+ * de post (oferta é a landing diária, não tem capa própria). Título no canto
+ * inferior esquerdo sobre um véu escuro (aplicado em compor.ts só nesse
+ * formato) — funciona tanto com foto real quanto com o fundo de marca puro
+ * quando ainda não há foto.
  */
 export const LAYOUTS_CAPA: Record<TipoArte, VarianteLayout[]> = {
   produto: [
-    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "1.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "2.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "3.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
   ],
   lista: [
-    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "1.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "2.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "3.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
   ],
-  oferta: [
-    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-  ],
+  oferta: [{ arquivo: "1.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA }],
   jornada: [
-    { arquivo: "1.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "2.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
-    { arquivo: "3.png", foto: { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 } },
+    { arquivo: "1.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "2.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
+    { arquivo: "3.png", foto: FOTO_CHEIA, texto: TEXTO_CAPA },
   ],
 };
 

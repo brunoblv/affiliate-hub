@@ -102,6 +102,18 @@ export function montarSvgTexto(zona: ZonaTexto, dados: DadosTexto, canvas: Canva
   </svg>`;
 }
 
+/** Véu (gradiente escuro de baixo pra cima) — garante legibilidade de texto claro sobre foto em tela cheia. */
+export function montarSvgVeu(canvas: CanvasArte): string {
+  const { largura, altura } = canvas;
+  return `<svg width="${largura}" height="${altura}" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="veu" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0.7"/>
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+    </linearGradient></defs>
+    <rect width="${largura}" height="${altura}" fill="url(#veu)"/>
+  </svg>`;
+}
+
 /** Selo/badge (ex.: "-32% hoje", "Achadinho do dia") — pílula com texto centralizado. */
 export function montarSvgSelo(zona: ZonaSelo, texto: string, canvas: CanvasArte): string {
   const { largura: larguraCanvas, altura: alturaCanvas } = canvas;

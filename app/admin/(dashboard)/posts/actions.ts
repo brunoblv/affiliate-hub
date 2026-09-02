@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma, TipoPost, StatusPost, Destino, CategoriaEditorial } from "@/lib/database";
 import { slugDePostLivre } from "@/lib/conteudo/slug";
-import { produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
+import { fichaProdutoVazia, produtosReferenciados, resumoAutomatico } from "@/lib/conteudo/corpo";
 import {
   enfileirarPost,
   enfileirarJornada,
@@ -354,6 +354,7 @@ export async function gerarCapaComFundoAction(entrada: {
       tipo: tipoArte,
       formato: "capa",
       semente: `${entrada.tipo}:${titulo}:${Date.now()}`,
+      titulo,
       fotoUrl: entrada.fotoUrl ?? null,
     });
     if (!arte) {
@@ -392,7 +393,9 @@ export async function gerarCapaComFundoAction(entrada: {
 
 export type GerarFichaProdutoResultado = { ok: true } | { ok: false; message: string };
 
-/** Gera descrição + utilidade via IA e grava no corpo do post tipo PRODUTO. */
+const LOTE_FICHAS_VAZIAS = 3;
+
+/** Gera o artigo do produto via IA e grava no corpo do post tipo PRODUTO. */
 export async function gerarFichaProdutoAction(postId: string): Promise<GerarFichaProdutoResultado> {
   const sessao = await auth();
   if (!sessao) return { ok: false, message: "Não autorizado." };
@@ -406,7 +409,7 @@ export async function gerarFichaProdutoAction(postId: string): Promise<GerarFich
     });
     if (!post) return { ok: false, message: "Post não encontrado." };
     if (post.tipo !== TipoPost.PRODUTO) {
-      return { ok: false, message: "Só a ficha de produto recebe descrição e utilidade geradas." };
+      return { ok: false, message: "Só o post de produto individual recebe o artigo gerado." };
     }
 
     const produto = post.produtos[0]?.produto;
@@ -423,7 +426,10 @@ export async function gerarFichaProdutoAction(postId: string): Promise<GerarFich
       data: {
         corpo,
         resumo: ficha.resumo.trim() || resumoAutomatico(corpo) || produto.nome,
-        metaDescricao: post.metaDescricao?.trim() ? post.metaDescricao : ficha.resumo.trim() || null,
+        seoTitulo: post.seoTitulo?.trim() ? post.seoTitulo : ficha.seoTitulo.trim() || null,
+        metaDescricao: post.metaDescricao?.trim()
+          ? post.metaDescricao
+          : ficha.metaDescricao.trim() || ficha.resumo.trim() || null,
       },
     });
     await sincronizarItens(post.id, corpo);
@@ -435,6 +441,64 @@ export async function gerarFichaProdutoAction(postId: string): Promise<GerarFich
     revalidatePath(`/produtos/${produto.slug}`);
     return { ok: true };
   } catch (erro) {
-    return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao gerar a ficha." };
+    return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao gerar o texto do produto." };
   }
+}
+
+export type GerarFichasVaziasResultado =
+  | { ok: true; geradas: number; falhas: number; restantes: number }
+  | { ok: false; message: string };
+
+/** Preenche até 5 posts de produto que ainda estão só com o card, via Gemini. */
+export async function gerarFichasVaziasEmLoteAction(): Promise<GerarFichasVaziasResultado> {
+  const sessao = await auth();
+  if (!sessao) return { ok: false, message: "Não autorizado." };
+
+  const posts = await prisma.post.findMany({
+    where: { tipo: TipoPost.PRODUTO },
+    include: { produtos: { orderBy: { ordem: "asc" }, take: 1, include: { produto: true } } },
+    orderBy: { publicadoEm: "desc" },
+  });
+  const vazios = posts.filter((post) => fichaProdutoVazia(post.corpo));
+  const lote = vazios.slice(0, LOTE_FICHAS_VAZIAS);
+
+  let geradas = 0;
+  let falhas = 0;
+
+  for (const post of lote) {
+    const produto = post.produtos[0]?.produto;
+    if (!produto) {
+      falhas++;
+      continue;
+    }
+    try {
+      const ficha = await gerarFichaProduto(produto);
+      const corpo = montarCorpoFichaProduto(produto.slug, ficha);
+      if (fichaProdutoVazia(corpo)) {
+        falhas++;
+        continue;
+      }
+      await preencherCamposVaziosDoProduto(produto.id, ficha);
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          corpo,
+          resumo: ficha.resumo.trim() || resumoAutomatico(corpo) || produto.nome,
+          seoTitulo: post.seoTitulo?.trim() ? post.seoTitulo : ficha.seoTitulo.trim() || null,
+          metaDescricao: post.metaDescricao?.trim()
+            ? post.metaDescricao
+            : ficha.metaDescricao.trim() || ficha.resumo.trim() || null,
+        },
+      });
+      await sincronizarItens(post.id, corpo);
+      revalidarSitePublico(post.slug);
+      revalidatePath(`/produtos/${produto.slug}`);
+      geradas++;
+    } catch {
+      falhas++;
+    }
+  }
+
+  revalidatePath("/admin/posts");
+  return { ok: true, geradas, falhas, restantes: Math.max(0, vazios.length - geradas) };
 }

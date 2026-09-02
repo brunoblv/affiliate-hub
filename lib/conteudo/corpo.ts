@@ -30,6 +30,7 @@ const ROTULO_CTA_PADRAO = "Ver a lista no Mercado Livre";
 
 /** Imagens embutidas — usado para manter MidiaEmPost em dia. */
 const IMAGEM_MARKDOWN = /!\[[^\]]*\]\(([^)\s]+)/g;
+const URL_EM_TEXTO = /https?:\/\/\S+/gi;
 
 export function separarBlocos(corpo: string): BlocoDoCorpo[] {
   const blocos: BlocoDoCorpo[] = [];
@@ -103,6 +104,28 @@ export function resumoAutomatico(corpo: string, limite = 155): string {
 
   const cortado = textoLimpo.slice(0, limite);
   return `${cortado.slice(0, cortado.lastIndexOf(" "))}…`;
+}
+
+/**
+ * Garante cada `[produto:slug]` numa linha própria, só com slugs desta lista,
+ * e remove URL crua (o card já é o CTA). Se faltar algum shortcode, acrescenta
+ * no fim — o Gemini às vezes esquece ou coloca no meio do parágrafo.
+ */
+export function garantirShortcodesNoCorpo(corpo: string, slugs: string[]): string {
+  const permitidos = new Set(slugs);
+  let texto = corpo.replace(/\r\n/g, "\n").replace(URL_EM_TEXTO, "").trim();
+
+  texto = texto.replace(/^#\s+.+\n+/, "");
+  texto = texto.replace(/^\\?\[produto:([a-z0-9-]+)\]\s*$/gm, (_match, slug: string) => {
+    return permitidos.has(slug) ? `[produto:${slug}]` : "";
+  });
+
+  for (const slug of slugs) {
+    const jaTem = new RegExp(`^\\[produto:${slug}\\]\\s*$`, "m").test(texto);
+    if (!jaTem) texto = `${texto.trim()}\n\n[produto:${slug}]`;
+  }
+
+  return `${texto.replace(/\n{3,}/g, "\n\n").trim()}\n`;
 }
 
 /** Corpo só com o card (ou texto irrelevante) — a página pública da ficha fica vazia. */

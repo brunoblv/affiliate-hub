@@ -77,8 +77,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <img src={capa.src} alt={capa.alt} className="mt-6 w-full rounded-lg object-cover" />
       )}
 
-      <div className="prose mt-8 max-w-none text-[15px]">
+      <div className="mt-8">
+        <div className="mt-8">
         <CorpoDoPost corpo={post.corpo} origem="blog" />
+      </div>
       </div>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

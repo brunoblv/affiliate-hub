@@ -9,15 +9,14 @@ import {
 import { caminhoDoFundo, fundoDisponivel } from "./fundos";
 import { resolverBufferDeImagem } from "./foto";
 import { escolherVariante, type Formato, type TipoArte, type ZonaFoto } from "./layouts";
-import { montarSvgSelo, montarSvgTexto, type CanvasArte } from "./texto-svg";
+import { montarSvgSelo, montarSvgTexto, montarSvgVeu, type CanvasArte } from "./texto-svg";
 
 export interface EntradaArte {
   tipo: TipoArte;
-  /** "quadrada" (padrão), "retangular" (Facebook feed, 1200×630) ou "capa" (site, 1600×900 — sem texto). */
+  /** "quadrada" (padrão), "retangular" (Facebook feed, 1200×630) ou "capa" (site, 1600×900). */
   formato?: Formato;
   /** Escolhe a variante de forma determinística — mesmo id sempre gera a mesma arte. */
   semente: string;
-  /** Ignorado no formato "capa" (ela não tem zona de texto). */
   titulo?: string;
   fotoUrl?: string | null;
   /** Já formatados (ex.: "R$ 611") — a arte não faz câmbio nem arredondamento. */
@@ -60,6 +59,13 @@ export async function comporArte(entrada: EntradaArte): Promise<ArteComposta | n
   if (layout.foto && entrada.fotoUrl) {
     const fotoComposta = await comporFoto(layout.foto, entrada.fotoUrl, canvas);
     if (fotoComposta) camadas.push(fotoComposta);
+  }
+
+  // Capa: título sempre em texto, por cima de foto em tela cheia (real ou só
+  // o fundo de marca) — o véu garante legibilidade do texto claro em
+  // qualquer foto, clara ou escura.
+  if (formato === "capa" && layout.texto) {
+    camadas.push({ input: Buffer.from(montarSvgVeu(canvas)), left: 0, top: 0 });
   }
 
   if (layout.selo && entrada.selo) {

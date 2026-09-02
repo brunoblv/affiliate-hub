@@ -8,6 +8,7 @@ import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { PostsTabela } from "@/components/admin/posts-tabela";
 import { FiltroTipoPosts } from "@/components/admin/filtro-tipo-posts";
 import { AgendarJornadasMeioDiaButton } from "@/components/admin/agendar-jornadas-meio-dia-button";
+import { GerarFichasVaziasButton } from "@/components/admin/gerar-fichas-vazias-button";
 import { TipoPost } from "@/lib/database/enums";
 import { ehTipoPost, LABEL_TIPO_POST } from "@/lib/conteudo/tipos-post";
 
@@ -49,10 +50,11 @@ export default async function PostsAdminPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Posts" description={descricaoFiltro} />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Button variant="outline" render={<Link href="/admin/posts/gerar-lista" />}>
             Gerar lista
           </Button>
+          <GerarFichasVaziasButton />
           <Button render={<Link href="/admin/posts/novo" />}>
             <Plus />
             Novo post
