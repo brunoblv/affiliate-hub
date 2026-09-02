@@ -357,7 +357,7 @@ export async function gerarCapaComFundoAction(entrada: {
     if (!arte) {
       return {
         ok: false,
-        message: `Ainda não há fundo cadastrado em public/fundos-posts/${tipoArte}/. Adicione os PNGs (1080×1080) e tente de novo.`,
+        message: `Ainda não há fundo cadastrado em public/fundos-posts/quadrado/${tipoArte}/. Adicione os PNGs (1080×1080, arquivos 1.png/2.png/3.png) e tente de novo.`,
       };
     }
 

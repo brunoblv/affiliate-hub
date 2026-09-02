@@ -281,7 +281,7 @@ export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
       arquivo: "1.png",
       texto: {
         xPct: 8,
-        yPct: 10,
+        yPct: 20,
         larguraPct: 70,
         alturaPct: 10,
         alinhamento: "left",
@@ -289,7 +289,7 @@ export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
         corPreco: CORES.card,
         corPrecoOriginal: CORES.card,
       },
-      foto: { formato: "retangulo", xPct: 8, yPct: 20, larguraPct: 34, alturaPct: 34, raioPct: 1.5 },
+      foto: { formato: "retangulo", xPct: 8, yPct: 34, larguraPct: 34, alturaPct: 34, raioPct: 1.5 },
     },
   ],
   oferta: [
