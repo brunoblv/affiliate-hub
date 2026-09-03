@@ -1,5 +1,33 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.googlesyndication.com https://*.google.com https://*.g.doubleclick.net",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.analytics.google.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net${isProd ? "" : " ws: wss:"}`,
+  "frame-src https://www.google.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.googletagmanager.com",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  ...(isProd ? ["upgrade-insecure-requests"] : []),
+].join("; ");
+
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Content-Security-Policy", value: csp },
+  ...(isProd
+    ? [{ key: "Strict-Transport-Security", value: "max-age=15552000; includeSubDomains" }]
+    : []),
+];
+
 const nextConfig: NextConfig = {
   /* config options here */
   // Permite carregar assets/HMR do dev server quando acessado via túnel ngrok
@@ -27,6 +55,12 @@ const nextConfig: NextConfig = {
     // middleware.ts ainda está no projeto (Next 16 trata como proxy): o default
     // é 10 MB e o corpo é truncado — o formData() quebra e o cliente recebe HTML.
     proxyClientMaxBodySize: "30mb",
+  },
+  async headers() {
+    return [
+      { source: "/", headers: securityHeaders },
+      { source: "/:path*", headers: securityHeaders },
+    ];
   },
   async redirects() {
     return [

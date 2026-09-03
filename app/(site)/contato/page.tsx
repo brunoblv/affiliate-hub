@@ -1,3 +1,5 @@
+import { EMAIL_CONTATO, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site-publico";
+
 export const metadata = { title: "Contato — Meu Novo Lar" };
 
 export default function ContatoPage() {
@@ -13,22 +15,22 @@ export default function ContatoPage() {
         <div className="rounded-xl border border-border p-6">
           <div className="text-[11px] font-bold tracking-[0.09em] text-muted-foreground">E-MAIL</div>
           <a
-            href="mailto:contato@meunovolar.com"
+            href={`mailto:${EMAIL_CONTATO}`}
             className="mt-1.5 block text-lg font-semibold text-foreground hover:text-primary hover:underline"
           >
-            contato@meunovolar.com
+            {EMAIL_CONTATO}
           </a>
         </div>
 
         <div className="rounded-xl border border-border p-6">
           <div className="text-[11px] font-bold tracking-[0.09em] text-muted-foreground">INSTAGRAM</div>
           <a
-            href="https://www.instagram.com/brunomeunovolar/"
+            href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-1.5 block text-lg font-semibold text-foreground hover:text-primary hover:underline"
           >
-            @brunomeunovolar
+            {INSTAGRAM_HANDLE}
           </a>
         </div>
       </div>

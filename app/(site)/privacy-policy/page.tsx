@@ -24,18 +24,21 @@ export default function PrivacyPolicyPage() {
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Cookies</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-        Usamos cookies próprios e de terceiros (como analytics e as próprias lojas parceiras, via links
-        de afiliado) para lembrar preferências, medir audiência e saber quando uma compra veio através
-        de um dos nossos links. Você pode bloquear cookies nas configurações do seu navegador — o site
-        continua funcionando, mas algumas funções podem ficar limitadas.
+        Usamos cookies próprios e de terceiros (analytics, Google AdSense quando os anúncios
+        estiverem no ar, e as lojas parceiras via links de afiliado) para lembrar preferências, medir
+        audiência, veicular publicidade e saber quando uma compra veio através de um dos nossos links.
+        No primeiro acesso mostramos um aviso de cookies: você pode aceitar ou recusar os não
+        essenciais. Também é possível bloquear cookies nas configurações do navegador — o site
+        continua funcionando, mas analytics e anúncios personalizados ficam limitados.
       </p>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Com quem compartilhamos</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
         Não vendemos seus dados. Compartilhamos informações apenas com: (1) provedores de analytics e
-        e-mail que nos ajudam a operar o site, sob contrato de confidencialidade; e (2) as redes de
+        e-mail que nos ajudam a operar o site, sob contrato de confidencialidade; (2) as redes de
         afiliados e lojas parceiras, na medida necessária para registrar que uma venda veio pelo nosso
-        link — elas não recebem seu e-mail de newsletter nem seu histórico de navegação no nosso site.
+        link — elas não recebem seu e-mail de newsletter nem seu histórico de navegação no nosso site;
+        e (3) o Google, se você aceitar cookies de analytics ou de anúncios (Analytics e AdSense).
       </p>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Seus direitos</h2>
@@ -53,6 +56,32 @@ export default function PrivacyPolicyPage() {
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
         Tomamos cuidados razoáveis para proteger os dados que coletamos, mas nenhum site é 100%
         imune a falhas — se identificarmos algum incidente que afete seus dados, vamos te avisar.
+      </p>
+
+      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Anúncios (Google AdSense)</h2>
+      <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+        O site pode exibir anúncios do Google AdSense. O Google usa cookies para veicular e medir
+        publicidade, inclusive com base em visitas anteriores a este e a outros sites. Você pode
+        recusar cookies não essenciais no aviso que aparece na primeira visita, ou gerenciar anúncios
+        personalizados em{" "}
+        <a
+          href="https://www.google.com/settings/ads"
+          rel="noopener noreferrer"
+          target="_blank"
+          className="font-semibold text-primary hover:underline"
+        >
+          configurações de anúncios do Google
+        </a>
+        . A política de cookies e parceiros do Google está em{" "}
+        <a
+          href="https://policies.google.com/technologies/ads?hl=pt-BR"
+          rel="noopener noreferrer"
+          target="_blank"
+          className="font-semibold text-primary hover:underline"
+        >
+          policies.google.com/technologies/ads
+        </a>
+        .
       </p>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Alterações nesta política</h2>

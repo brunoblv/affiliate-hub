@@ -3,9 +3,7 @@ import { Newsreader, Manrope, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
-
-/** GA4 Measurement ID — público; também pode vir de NEXT_PUBLIC_GA_ID. */
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-ZL1R0ZBN9J";
+import { GA_ID } from "@/lib/site-publico";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -25,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Meu Novo Lar",
-  description: "Ideias, produtos e ferramentas para o seu lar",
+  description: "Publicação sobre casa e lar: ideias, produtos selecionados e ferramentas para o dia a dia.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -40,15 +38,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <Script
-          strategy="beforeInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-        />
-        <Script
-          id="ga-init"
+          id="ga-consent-default"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            // Uma linha: o SSR do Next às vezes corta `window.dataLayer = ...` em multilinha
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`,
+          }}
+        />
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script
+          id="ga-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `gtag('js',new Date());gtag('config','${GA_ID}');`,
           }}
         />
         <Providers>{children}</Providers>

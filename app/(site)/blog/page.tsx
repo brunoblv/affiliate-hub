@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { prisma } from "@/lib/database";
+import { prisma, type Produto } from "@/lib/database";
 import { resolverCapa } from "@/lib/conteudo/capa";
+import { produtoVisivelNoSite } from "@/lib/produtos";
+import { CardProdutoCapa } from "@/components/site/card-produto";
 
 const PAGE_SIZE = 12;
 
@@ -20,6 +22,15 @@ const TIPO_POR_ABA = {
   produtos: "PRODUTO",
 } as const;
 
+const INCLUDE_POST = {
+  capa: true,
+  produtos: {
+    orderBy: { ordem: "asc" as const },
+    take: 1,
+    include: { produto: true },
+  },
+};
+
 export default async function BlogIndexPage({
   searchParams,
 }: {
@@ -37,7 +48,7 @@ export default async function BlogIndexPage({
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      include: { capa: true },
+      include: INCLUDE_POST,
       orderBy: { publicadoEm: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -48,6 +59,7 @@ export default async function BlogIndexPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [featured, ...rest] = posts;
   const capaDestaque = featured ? resolverCapa(featured.capa) : null;
+  const produtoDestaque = featured ? produtoDaCapa(featured) : null;
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-10">
@@ -81,6 +93,67 @@ export default async function BlogIndexPage({
           {aba === "listas" && "Nenhuma lista publicada ainda."}
           {aba === "produtos" && "Nenhum post de produto individual publicado ainda."}
         </p>
+      ) : aba === "produtos" ? (
+        <>
+          {produtoDestaque ? (
+            <div className="mt-9">
+              <CardProdutoCapa
+                href={`/blog/${featured.slug}`}
+                produto={produtoDestaque}
+                resumo={featured.resumo}
+                variante="destaque"
+              />
+            </div>
+          ) : (
+            <Link href={`/blog/${featured.slug}`} className="mt-9 grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
+              <div className="flex h-80 items-center justify-center overflow-hidden rounded-xl bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_10px,var(--background)_10px,var(--background)_20px)]">
+                {capaDestaque ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={capaDestaque.src} alt={capaDestaque.alt} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="font-mono text-xs text-muted-foreground">imagem destaque</span>
+                )}
+              </div>
+              <div className="flex flex-col justify-center">
+                <span className="mb-2.5 text-[10px] font-bold tracking-[0.08em] text-olive">DESTAQUE</span>
+                <h2 className="font-heading text-[27px] leading-[1.25] font-semibold text-foreground">{featured.titulo}</h2>
+                {featured.resumo && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{featured.resumo}</p>}
+              </div>
+            </Link>
+          )}
+
+          {rest.length > 0 && (
+            <div className="mt-11 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {rest.map((post) => {
+                const produto = produtoDaCapa(post);
+                if (produto) {
+                  return (
+                    <CardProdutoCapa
+                      key={post.id}
+                      href={`/blog/${post.slug}`}
+                      produto={produto}
+                      resumo={post.resumo}
+                    />
+                  );
+                }
+                return (
+                  <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+                    <div className="mb-3.5 flex h-44 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,var(--sand),var(--sand)_8px,var(--background)_8px,var(--background)_16px)]">
+                      {post.capa ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={post.capa.url} alt={post.capa.alt ?? ""} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="font-mono text-[11px] text-muted-foreground">imagem</span>
+                      )}
+                    </div>
+                    <h3 className="mt-1.5 font-heading text-base font-semibold text-foreground group-hover:underline">{post.titulo}</h3>
+                    {post.resumo && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.resumo}</p>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </>
       ) : (
         <>
           <Link href={`/blog/${featured.slug}`} className="mt-9 grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
@@ -145,4 +218,10 @@ export default async function BlogIndexPage({
       )}
     </div>
   );
+}
+
+function produtoDaCapa(post: { produtos: Array<{ produto: Produto }> }): Produto | null {
+  const produto = post.produtos[0]?.produto;
+  if (!produto || !produtoVisivelNoSite(produto)) return null;
+  return produto;
 }

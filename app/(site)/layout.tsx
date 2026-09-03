@@ -1,6 +1,9 @@
 import { AdminBar } from "@/components/site/admin-bar";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
+import { CookieBanner } from "@/components/site/cookie-banner";
+import { Analytics } from "@/components/site/analytics";
+import { JsonLdSite } from "@/components/site/json-ld-site";
 
 /**
  * Todas as páginas públicas leem o banco direto (sem `fetch`), então sem isto
@@ -18,6 +21,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <CookieBanner />
+      <Analytics />
+      <JsonLdSite />
     </div>
   );
 }

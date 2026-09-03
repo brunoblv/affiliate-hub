@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EMAIL_CONTATO, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site-publico";
 
 export function SiteFooter() {
   return (
@@ -7,8 +8,23 @@ export function SiteFooter() {
         <div>
           <div className="font-heading text-lg font-semibold text-background">Meu Novo Lar</div>
           <p className="mt-2 text-sm leading-relaxed text-secondary/70">
-            Conteúdo, produtos, ofertas e ferramentas para sua casa.
+            Publicação sobre casa e cotidiano: organização, cozinha, limpeza, decoração e o que realmente entra no lar.
           </p>
+          <address className="mt-4 not-italic text-sm">
+            <a href={`mailto:${EMAIL_CONTATO}`} className="text-background hover:underline">
+              {EMAIL_CONTATO}
+            </a>
+            <div className="mt-1">
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-background hover:underline"
+              >
+                Instagram {INSTAGRAM_HANDLE}
+              </a>
+            </div>
+          </address>
         </div>
         <div>
           <div className="text-[11px] font-bold tracking-[0.09em] text-secondary/70">CONTEÚDO</div>
@@ -17,6 +33,7 @@ export function SiteFooter() {
             <Link href="/produtos" className="hover:text-background">Produtos</Link>
             <Link href="/ofertas" className="hover:text-background">Ofertas</Link>
             <Link href="/vitrine" className="hover:text-background">Ofertas do dia</Link>
+            <Link href="/buscar" className="hover:text-background">Buscar</Link>
           </div>
         </div>
         <div>

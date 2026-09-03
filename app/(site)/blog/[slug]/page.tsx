@@ -21,17 +21,25 @@ export default async function BlogPostPage({
 
   const post = await prisma.post.findUnique({
     where: { slug },
-    include: { capa: true, autor: true, audio: true },
+    include: {
+      capa: true,
+      autor: true,
+      audio: true,
+      produtos: { orderBy: { ordem: "asc" }, take: 1, include: { produto: true } },
+    },
   });
 
   if (!post || post.status !== "PUBLICADO") notFound();
 
-  const capa = resolverCapa(post.capa);
+  const produto = post.produtos[0]?.produto ?? null;
+  const capaVisual = post.tipo === "PRODUTO" ? null : resolverCapa(post.capa, false, produto);
+  const capaOg = resolverCapa(post.capa, false, produto);
   const autorNome = post.autor?.name ?? "Meu Novo Lar";
   const mostrarAtualizacao =
     post.publicadoEm != null && post.atualizadoEm.getTime() - post.publicadoEm.getTime() > UM_DIA_MS;
 
   const siteUrl = getSiteUrl();
+  const imagemOg = capaOg ? urlPublica(capaOg.src) : undefined;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -39,7 +47,7 @@ export default async function BlogPostPage({
     datePublished: post.publicadoEm?.toISOString(),
     dateModified: post.atualizadoEm.toISOString(),
     author: { "@type": "Person", name: autorNome, url: `${siteUrl}/equipe` },
-    image: capa ? [`${siteUrl}${capa.src}`] : undefined,
+    image: imagemOg ? [imagemOg] : undefined,
     associatedMedia: post.audio
       ? {
           "@type": "AudioObject",
@@ -80,18 +88,16 @@ export default async function BlogPostPage({
         </div>
       )}
 
-      {capa && (
+      {capaVisual && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={capa.src} alt={capa.alt} className="mt-6 w-full rounded-lg object-cover" />
+        <img src={capaVisual.src} alt={capaVisual.alt} className="mt-6 w-full rounded-lg object-cover" />
       )}
 
       <div className="mt-8">
-        <div className="mt-8">
         <CorpoDoPost
           corpo={post.corpo}
           origem={origemDoGo({ tipo: etiquetaDoTipoPost(post.tipo), canalEtiqueta: sanitizarEtiquetaCanal(o) })}
         />
-      </div>
       </div>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -103,12 +109,16 @@ export default async function BlogPostPage({
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({ where: { slug }, include: { capa: true } });
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    include: { capa: true, produtos: { orderBy: { ordem: "asc" }, take: 1, include: { produto: true } } },
+  });
   if (!post) return {};
   const siteUrl = getSiteUrl();
   const title = post.seoTitulo ?? post.titulo;
   const description = post.metaDescricao ?? post.resumo ?? undefined;
-  const capa = resolverCapa(post.capa, post.tipo === "JORNADA");
+  const produto = post.produtos[0]?.produto ?? null;
+  const capa = resolverCapa(post.capa, post.tipo === "JORNADA", produto);
   const imagem = capa ? urlPublica(capa.src) : undefined;
   return {
     title,
