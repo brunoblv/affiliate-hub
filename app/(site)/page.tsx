@@ -7,7 +7,6 @@ import { CAPA_EDITORIAL, resolverCapa } from "@/lib/conteudo/capa";
 import { FERRAMENTAS } from "@/lib/ferramentas";
 import { NewsletterForm } from "./newsletter-form";
 import { dataCivil, isoDataCivil } from "@/lib/vitrine/data";
-import { EMAIL_CONTATO } from "@/lib/site-publico";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -51,10 +50,15 @@ export default async function HomePage() {
           <h1 className="mt-4 max-w-md font-heading text-4xl leading-[1.15] font-semibold text-foreground sm:text-5xl">
             Deixe sua casa mais prática, bonita e funcional.
           </h1>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Inspiração, dicas, produtos selecionados e ferramentas úteis para o dia a dia da sua casa.
-            Somos uma publicação de nicho casa e lar — não um catálogo genérico.
-          </p>
+          <div className="mt-4 max-w-md space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+            <p className="font-semibold text-foreground">
+              Inspiração, dicas, produtos selecionados e ferramentas úteis para o dia a dia da sua casa.
+            </p>
+            <p>
+              O Meu Novo Lar é uma publicação especializada em casa e lar, criada para ajudar você a encontrar
+              boas ideias, descobrir produtos e tornar cada ambiente mais bonito, funcional e prático.
+            </p>
+          </div>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button size="lg" render={<Link href="/blog" />} className="px-6">
               Explorar conteúdos
@@ -78,59 +82,58 @@ export default async function HomePage() {
 
       <div className="mx-auto max-w-[1200px] px-5 pb-16 sm:px-10">
         <h2 className="font-heading text-2xl font-semibold text-foreground sm:text-[26px]">
-          Uma publicação sobre o lar, não um agregador de ofertas
+          Sobre o Meu Novo Lar
         </h2>
         <div className="mt-5 max-w-3xl space-y-4 text-[15px] leading-relaxed text-muted-foreground">
           <p>
-            O Meu Novo Lar existe para quem está montando casa, reformando um cômodo ou só tentando deixar o
-            cotidiano menos improvisado. O recorte é deliberadamente estreito: organização, cozinha, banheiro,
-            lavanderia, limpeza, decoração, iluminação, móveis, ferramentas, jardim e eletrodomésticos de casa.
-            Celular, moda, skincare, suplemento e pet ficam de fora — mesmo quando gerariam comissão. Se não é
-            casa, não entra no site.
+            O Meu Novo Lar é uma publicação para quem está construindo, reformando, organizando ou simplesmente
+            querendo deixar a casa mais bonita, funcional e agradável.
           </p>
           <p>
-            O centro da publicação é o{" "}
+            Aqui você encontra ideias e conteúdos sobre organização, cozinha, banheiro, lavanderia, limpeza,
+            decoração, iluminação, móveis, ferramentas, jardim e eletrodomésticos — sempre pensando em situações
+            reais do dia a dia.
+          </p>
+          <p>
+            No nosso{" "}
             <Link href="/blog" className="font-medium text-foreground underline">
               blog
             </Link>
-            : artigos de jornada, com autoria visível, data de publicação e revisão da{" "}
-            <Link href="/equipe" className="font-medium text-foreground underline">
-              equipe editorial
-            </Link>
-            . São textos pensados para uma decisão prática (como organizar a cozinha pequena, o que considerar
-            antes de pintar, como não misturar produtos de limpeza) — não posts curtos só para empilhar links.
-            Listas e fichas de produto existem como apoio: mostram itens que encontramos nas lojas parceiras,
-            com preço atualizado. Sem link de afiliado cadastrado, o botão de compra não aparece. Não
-            divulgamos URL crua da loja.
+            , publicamos guias, ideias e conteúdos práticos para ajudar em decisões que fazem parte da rotina de
+            uma casa: como aproveitar melhor uma cozinha pequena, escolher uma iluminação adequada, organizar um
+            ambiente ou planejar uma reforma.
           </p>
           <p>
-            A{" "}
-            <Link href="/vitrine" className="font-medium text-foreground underline">
-              vitrine do dia
-            </Link>{" "}
-            é um recorte curado, não o catálogo inteiro. As{" "}
-            <Link href="/ferramentas" className="font-medium text-foreground underline">
-              ferramentas
-            </Link>{" "}
-            (calculadora de tinta e de piso) servem a uma conta concreta. Ganhamos dinheiro com comissão de
-            afiliado e, quando a conta de publicidade estiver aprovada, com anúncios. Isso não muda o critério:
-            o tema casa vem primeiro. Como escolhemos o que entra está explicado na página{" "}
+            Quando um produto pode ser útil para colocar uma ideia em prática, também apresentamos algumas
+            opções encontradas em lojas parceiras. Os produtos são selecionados de acordo com o contexto de cada
+            conteúdo, e preços e disponibilidade podem variar.
+          </p>
+          <p>
+            Também criamos ferramentas gratuitas para ajudar em tarefas práticas, como calcular a quantidade de
+            tinta ou piso necessária para um ambiente.
+          </p>
+          <p>
+            O Meu Novo Lar pode receber receita por meio de publicidade e de links de recomendação presentes em
+            alguns conteúdos. Isso nos ajuda a manter o projeto e continuar produzindo novos materiais para quem
+            gosta de cuidar da casa.
+          </p>
+          <p>
+            Conheça mais sobre o projeto e nossos critérios editoriais na página{" "}
             <Link href="/sobre" className="font-medium text-foreground underline">
               Sobre
             </Link>
-            . Dúvida, erro ou parceria: escreva para{" "}
-            <a href={`mailto:${EMAIL_CONTATO}`} className="font-medium text-foreground underline">
-              {EMAIL_CONTATO}
-            </a>{" "}
-            ou use a{" "}
+            . Para dúvidas, sugestões ou contato comercial, acesse nossa{" "}
             <Link href="/contato" className="font-medium text-foreground underline">
               página de contato
             </Link>
-            . Cookies de analytics e anúncios estão descritos na{" "}
+            .
+          </p>
+          <p>
+            Nossa{" "}
             <Link href="/privacy-policy" className="font-medium text-foreground underline">
               política de privacidade
-            </Link>
-            .
+            </Link>{" "}
+            explica como utilizamos cookies e outras tecnologias no site.
           </p>
         </div>
       </div>
