@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma, Destino } from "@/lib/database";
-import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS, produtoVisivelNoSite, deduplicarCatalogo } from "@/lib/produtos";
 
 export const metadata: Metadata = {
   title: "Ofertas",
@@ -26,7 +26,7 @@ export default async function OfertasPage() {
     take: 200,
   });
 
-  const ofertas = produtos
+  const ofertas = deduplicarCatalogo(produtos.filter(produtoVisivelNoSite))
     .map((produto) => ({ produto, desconto: descontoPercentual(produto) }))
     .filter((item): item is { produto: (typeof produtos)[number]; desconto: number } => item.desconto !== null && item.desconto > 0)
     .sort((a, b) => b.desconto - a.desconto)

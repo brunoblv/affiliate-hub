@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Canal } from "@/lib/database";
 import type { CanalFormState } from "@/app/admin/(dashboard)/canais/actions";
+import { etiquetaDoCanal } from "@/lib/shopee/etiquetas";
 import { INTERVALO_PADRAO_MIN, TETO_PADRAO, rotuloJanela } from "@/lib/agenda/janela";
 
 const REDES = [
@@ -39,6 +40,17 @@ export function CanalForm({
         <div className="space-y-1.5">
           <Label htmlFor="nome">Nome</Label>
           <Input id="nome" name="nome" defaultValue={canal?.nome} placeholder="Página Meu Novo Lar" required />
+          <p className="text-xs text-muted-foreground">
+            A etiqueta da Shopee sai da rede + nome
+            {canal ? (
+              <>
+                : <span className="font-mono">{etiquetaDoCanal(canal)}</span>
+              </>
+            ) : (
+              <> (ex.: facebook-meu-novo-lar, facebook-achadinhos)</>
+            )}
+            .
+          </p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="rede">Rede</Label>

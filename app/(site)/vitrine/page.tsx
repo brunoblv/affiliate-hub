@@ -16,17 +16,20 @@ export default async function VitrineIndexPage() {
 
   const [hojeLista, arquivo] = await Promise.all([
     prisma.landingDiaria.findMany({
-      where: { data: hoje, status: StatusLanding.PUBLICADA },
+      where: { data: hoje, destino: Destino.MEU_NOVO_LAR, status: StatusLanding.PUBLICADA },
       orderBy: { destino: "asc" },
       select: { slug: true, headline: true, destino: true, data: true, metaDescricao: true },
     }),
     prisma.landingDiaria.findMany({
-      where: { status: StatusLanding.PUBLICADA, data: { not: hoje } },
+      where: { destino: Destino.MEU_NOVO_LAR, status: StatusLanding.PUBLICADA, data: { not: hoje } },
       orderBy: { data: "desc" },
       take: 30,
-      select: { slug: true, headline: true, destino: true, data: true },
+      select: { slug: true, headline: true, destino: true, data: true, metaDescricao: true },
     }),
   ]);
+
+  const destaque = hojeLista.length > 0 ? hojeLista : arquivo.slice(0, 1);
+  const arquivoSemDestaque = arquivo.filter((item) => !destaque.some((d) => d.slug === item.slug));
 
   return (
     <div className="mx-auto max-w-[800px] px-5 py-12 sm:px-10 sm:py-16">
@@ -36,24 +39,11 @@ export default async function VitrineIndexPage() {
         Recorte curado do dia — não é o catálogo inteiro. Cada item aponta para o link de afiliado rastreado.
       </p>
 
-      {hojeLista.length === 0 ? (
-        <p className="mt-10 text-sm text-muted-foreground">
-          A vitrine de hoje ainda não foi gerada.{" "}
-          {arquivo[0] ? (
-            <>
-              Veja a última:{" "}
-              <Link href={`/vitrine/${arquivo[0].slug}`} className="underline">
-                {arquivo[0].headline ?? formatarDataCivil(arquivo[0].data)}
-              </Link>
-              .
-            </>
-          ) : (
-            "Volte mais tarde."
-          )}
-        </p>
+      {destaque.length === 0 ? (
+        <p className="mt-10 text-sm text-muted-foreground">Em breve, a vitrine do dia.</p>
       ) : (
         <ul className="mt-10 space-y-4">
-          {hojeLista.map((landing) => (
+          {destaque.map((landing) => (
             <li key={landing.slug}>
               <Link
                 href={`/vitrine/${landing.slug}`}
@@ -61,22 +51,25 @@ export default async function VitrineIndexPage() {
               >
                 <div className="text-[11px] font-bold tracking-[0.1em] text-muted-foreground">
                   {LABEL_DESTINO[landing.destino]} · {formatarDataCivil(landing.data)}
+                  {hojeLista.length === 0 ? " · última vitrine" : ""}
                 </div>
                 <div className="mt-1 font-heading text-xl font-semibold text-foreground">
                   {landing.headline ?? "Ofertas do dia"}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{landing.metaDescricao}</p>
+                {landing.metaDescricao ? (
+                  <p className="mt-1 text-sm text-muted-foreground">{landing.metaDescricao}</p>
+                ) : null}
               </Link>
             </li>
           ))}
         </ul>
       )}
 
-      {arquivo.length > 0 && (
+      {arquivoSemDestaque.length > 0 && (
         <section className="mt-14 border-t border-border pt-8">
           <h2 className="font-heading text-xl font-semibold text-foreground">Arquivo</h2>
           <ul className="mt-4 space-y-2">
-            {arquivo.map((item) => (
+            {arquivoSemDestaque.map((item) => (
               <li key={item.slug}>
                 <Link href={`/vitrine/${item.slug}`} className="text-sm text-muted-foreground hover:text-foreground hover:underline">
                   {formatarDataCivil(item.data)}

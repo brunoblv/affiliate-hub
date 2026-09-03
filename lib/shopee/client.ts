@@ -168,7 +168,7 @@ const MUTATION_GENERATE_SHORT_LINK = /* GraphQL */ `
   }
 `;
 
-/** Fallback para quando a busca não retorna `offerLink` — gera o link de afiliado real a partir da URL do produto. */
+/** Gera o link curto de afiliado. `subIds` viram etiquetas no relatório (utm_content). */
 export async function gerarLinkAfiliado(originUrl: string, subIds?: string[]): Promise<string> {
   return withRetry(async () => {
     const data = await shopeeRequest<RespostaGenerateShortLink>(MUTATION_GENERATE_SHORT_LINK, { originUrl, subIds });

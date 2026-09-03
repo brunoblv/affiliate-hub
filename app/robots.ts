@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/api"],
+      disallow: ["/admin", "/api", "/produtos/mercado_livre-", "/vitrine/achadinhos-", "/vitrine/umbanda-"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };

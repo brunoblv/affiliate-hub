@@ -9,6 +9,8 @@ import { getSiteUrl, urlPublica } from "@/lib/site-url";
 import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
 import { gerarImagemDePublicacao, type EntradaArte } from "@/lib/artes";
 import { reais } from "@/lib/vitrine/rotulos";
+import { comEtiquetaCanal, subIdsDe } from "@/lib/shopee/etiquetas";
+import { resolverLinkAfiliadoEtiquetado } from "@/lib/shopee/link-etiquetado";
 
 const ORIGEM_POR_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "facebook",
@@ -50,14 +52,14 @@ function isViolacaoIdempotencia(erro: unknown): boolean {
 }
 
 /** Link da loja com tag de afiliado — posts de produto não passam pelo site. */
-function linkAfiliadoDoProduto(produto: Produto): string {
+async function linkAfiliadoDoProduto(produto: Produto, canal: Canal): Promise<string> {
   const link = produto.linkAfiliado.trim();
   if (!link) {
     throw new Error(
       `Produto "${produto.slug}" não tem link de afiliado — não publica sem comissão.`,
     );
   }
-  return link;
+  return resolverLinkAfiliadoEtiquetado(produto, subIdsDe({ tipo: "produto", canal }));
 }
 
 /** Primeira imagem do produto, ou undefined se a API não trouxe nenhuma. */
@@ -254,7 +256,7 @@ async function enfileirarNoCanal(
 
   let link: string;
   try {
-    link = linkAfiliadoDoProduto(produto);
+    link = await linkAfiliadoDoProduto(produto, canal);
   } catch (erro) {
     return { ...base, motivoPulado: mensagemErro(erro) };
   }
@@ -393,7 +395,10 @@ async function enfileirarPostNoCanal(
   }
 
   const siteUrl = getSiteUrl();
-  const link = `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+  const link = comEtiquetaCanal(
+    `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`,
+    canal,
+  );
 
   let vaga;
   try {
@@ -546,7 +551,10 @@ async function enfileirarJornadaNoCanal(
   }
 
   const siteUrl = getSiteUrl();
-  const link = `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+  const link = comEtiquetaCanal(
+    `${siteUrl}/blog/${post.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`,
+    canal,
+  );
 
   let vaga: Date | null;
   try {
@@ -668,7 +676,7 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
 
   let link: string;
   try {
-    link = linkAfiliadoDoProduto(produto);
+    link = await linkAfiliadoDoProduto(produto, canal);
   } catch (erro) {
     return pulado(canal.id, canal.nome, mensagemErro(erro));
   }

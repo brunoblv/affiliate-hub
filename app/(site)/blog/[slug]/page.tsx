@@ -5,11 +5,19 @@ import { CorpoDoPost } from "@/components/corpo-do-post";
 import { PostsRelacionados } from "@/components/site/posts-relacionados";
 import { resolverCapa } from "@/lib/conteudo/capa";
 import { getSiteUrl, urlPublica } from "@/lib/site-url";
+import { etiquetaDoTipoPost, origemDoGo, sanitizarEtiquetaCanal } from "@/lib/shopee/etiquetas";
 
 const UM_DIA_MS = 24 * 60 * 60 * 1000;
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ o?: string }>;
+}) {
   const { slug } = await params;
+  const { o } = await searchParams;
 
   const post = await prisma.post.findUnique({
     where: { slug },
@@ -79,7 +87,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       <div className="mt-8">
         <div className="mt-8">
-        <CorpoDoPost corpo={post.corpo} origem="blog" />
+        <CorpoDoPost
+          corpo={post.corpo}
+          origem={origemDoGo({ tipo: etiquetaDoTipoPost(post.tipo), canalEtiqueta: sanitizarEtiquetaCanal(o) })}
+        />
       </div>
       </div>
 

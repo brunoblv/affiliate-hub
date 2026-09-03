@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { ProdutoFormState } from "@/app/admin/(dashboard)/produtos/actions";
+import { OPCOES_CATEGORIA_PUBLICA } from "@/lib/produtos";
 
 export function ImportarMercadoLivreForm({
   action,
@@ -27,6 +28,25 @@ export function ImportarMercadoLivreForm({
         <Input id="linkAfiliado" name="linkAfiliado" type="url" placeholder="https://..." required />
         <p className="text-xs text-muted-foreground">
           Cole o link de afiliado gerado por você — nunca vem da API automaticamente.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="categoria">Categoria (casa/lar)</Label>
+        <select
+          id="categoria"
+          name="categoria"
+          defaultValue="CASA"
+          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {OPCOES_CATEGORIA_PUBLICA.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Só entra no catálogo público se for casa. Skincare, eletrônico e suplemento são recusados.
         </p>
       </div>
 

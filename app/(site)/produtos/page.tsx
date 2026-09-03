@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma, Destino, type Categoria } from "@/lib/database";
-import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS, LABEL_CATEGORIA } from "@/lib/produtos";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS, LABEL_CATEGORIA, produtoVisivelNoSite, deduplicarCatalogo } from "@/lib/produtos";
 
 export const metadata: Metadata = {
   title: "Produtos",
@@ -38,8 +38,9 @@ export default async function ProdutosPage({
       categoria: categoriaAtiva ? categoriaAtiva : { in: HOME_CATEGORIAS },
     },
     orderBy: { atualizadoEm: "desc" },
-    take: 60,
+    take: 120,
   });
+  const visiveis = deduplicarCatalogo(produtos.filter(produtoVisivelNoSite)).slice(0, 60);
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-12 sm:px-10 sm:py-16">
@@ -75,11 +76,11 @@ export default async function ProdutosPage({
         ))}
       </div>
 
-      {produtos.length === 0 ? (
+      {visiveis.length === 0 ? (
         <p className="mt-12 text-sm text-muted-foreground">Nenhum produto publicado nessa categoria ainda.</p>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {produtos.map((produto) => {
+          {visiveis.map((produto) => {
             const desconto = descontoPercentual(produto);
             const imagem = primeiraImagem(produto);
             return (

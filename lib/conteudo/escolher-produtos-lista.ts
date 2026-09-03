@@ -1,5 +1,5 @@
 import { prisma, Destino, TipoPost, type Categoria } from "@/lib/database";
-import { slugify } from "@/lib/produtos";
+import { slugify, HOME_CATEGORIAS, produtoVisivelNoSite } from "@/lib/produtos";
 import type { PautaListaCasa } from "@/lib/conteudo/pauta-listas-casa";
 
 export interface ProdutoCandidatoLista {
@@ -7,6 +7,8 @@ export interface ProdutoCandidatoLista {
   slug: string;
   nome: string;
   categoria: Categoria;
+  destino: Destino;
+  ativo: boolean;
   descricao: string | null;
   precoAtual: unknown;
   precoOriginal: unknown;
@@ -61,6 +63,7 @@ export async function produtosElegiveisParaLista(): Promise<ProdutoCandidatoList
     where: {
       ativo: true,
       destino: Destino.MEU_NOVO_LAR,
+      categoria: { in: HOME_CATEGORIAS },
       NOT: { linkAfiliado: "" },
     },
     select: {
@@ -73,11 +76,13 @@ export async function produtosElegiveisParaLista(): Promise<ProdutoCandidatoList
       precoOriginal: true,
       imagens: true,
       criadoEm: true,
+      destino: true,
+      ativo: true,
       linkAfiliado: true,
     },
     orderBy: { criadoEm: "desc" },
   });
-  return produtos.filter(temLinkAfiliado);
+  return produtos.filter((p) => temLinkAfiliado(p) && produtoVisivelNoSite(p));
 }
 
 async function idsUsadosEmListasRecentes(): Promise<Set<string>> {

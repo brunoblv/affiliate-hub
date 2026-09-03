@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { prisma, Destino } from "@/lib/database";
-import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
+import { prisma } from "@/lib/database";
+import { notFound, permanentRedirect } from "next/navigation";
+import { descontoPercentual, primeiraImagem, produtoVisivelNoSite } from "@/lib/produtos";
+import { buscarProdutoPorSlugPublico } from "@/lib/catalogo";
+import { idExternoDeSlugMercadoLivre } from "@/lib/nicho";
 import { Button } from "@/components/ui/button";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -20,14 +22,25 @@ function formatCurrency(value: number) {
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
+  const encontrado = await buscarProdutoPorSlugPublico(slug);
+  if (!encontrado || !produtoVisivelNoSite(encontrado)) {
+    // Fora do nicho, apagado ou slug legado do ML: 301 para o catálogo, não 404 órfão.
+    if (encontrado || idExternoDeSlugMercadoLivre(slug) || /-\d+$/.test(slug)) {
+      permanentRedirect("/produtos");
+    }
+    notFound();
+  }
+  if (encontrado.slug !== slug) {
+    permanentRedirect(`/produtos/${encontrado.slug}`);
+  }
+
   const produto = await prisma.produto.findUnique({
-    where: { slug },
+    where: { id: encontrado.id },
     include: {
       precos: { orderBy: { registradoEm: "desc" }, take: 8 },
     },
   });
-
-  if (!produto || !produto.ativo || produto.destino !== Destino.MEU_NOVO_LAR || !HOME_CATEGORIAS.includes(produto.categoria)) {
+  if (!produto) {
     notFound();
   }
 
@@ -109,7 +122,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button
               size="lg"
-              render={<a href={`/go/${produto.codigoCurto}?o=blog`} target="_blank" rel="noopener noreferrer sponsored" />}
+              render={<a href={`/go/${produto.codigoCurto}?o=produto`} target="_blank" rel="noopener noreferrer sponsored" />}
               className="px-6"
             >
               Ver na loja
@@ -146,11 +159,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const produto = await prisma.produto.findUnique({
-    where: { slug },
-    select: { nome: true, descricao: true, imagens: true, ativo: true, precoAtual: true, destino: true, categoria: true },
-  });
-  if (!produto || !produto.ativo || produto.destino !== Destino.MEU_NOVO_LAR || !HOME_CATEGORIAS.includes(produto.categoria)) {
+  const produto = await buscarProdutoPorSlugPublico(slug);
+  if (!produto || !produtoVisivelNoSite(produto)) {
     return {};
   }
 
@@ -161,7 +171,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: produto.nome,
     description,
-    alternates: { canonical: `${getSiteUrl()}/produtos/${slug}` },
+    alternates: { canonical: `${getSiteUrl()}/produtos/${produto.slug}` },
     openGraph: {
       title: produto.nome,
       description,

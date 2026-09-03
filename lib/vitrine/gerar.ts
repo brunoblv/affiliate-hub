@@ -50,7 +50,18 @@ export async function gerarLandingDoDestino(
   }
 
   const config = await obterConfiguracaoVitrine(destino);
-  const itens = await curarProdutosDoDia(destino, config);
+  let itens = await curarProdutosDoDia(destino, config);
+
+  if (itens.length === 0 && config.descontoMinimoPct > 0) {
+    itens = await curarProdutosDoDia(destino, { ...config, descontoMinimoPct: 0 });
+    if (itens.length > 0) {
+      await registrar("INFO", "VITRINE", `Curadoria relaxada (sem piso de desconto) em ${LABEL_DESTINO[destino]}`, {
+        destino,
+        slug,
+        quantidade: itens.length,
+      });
+    }
+  }
 
   if (itens.length === 0) {
     const landing = await gravarFalha(existente?.id, destino, data, slug, "Nenhum produto elegível para a vitrine.");
@@ -181,10 +192,19 @@ async function gravarFalha(
   }
 }
 
-/** Job diário: gera a landing de cada destino em modo Vitrine. */
+/**
+ * Job diário: gera a landing de cada destino em modo Vitrine.
+ * Meu Novo Lar entra mesmo se só o TikTok/Umbanda estiver em modo Vitrine —
+ * senão /vitrine do meunovolar.com fica no dia anterior (ou vazia).
+ */
 export async function gerarLandingsDoDia(): Promise<ResultadoGeracaoLanding[]> {
-  const destinos = await destinosEmModoVitrine();
-  if (destinos.length === 0) return [];
+  const destinos = new Set(await destinosEmModoVitrine());
+  const recenteMnl = await prisma.landingDiaria.findFirst({
+    where: { destino: Destino.MEU_NOVO_LAR, status: StatusLanding.PUBLICADA },
+    select: { id: true },
+  });
+  if (recenteMnl) destinos.add(Destino.MEU_NOVO_LAR);
+  if (destinos.size === 0) return [];
 
   const resultados: ResultadoGeracaoLanding[] = [];
   for (const destino of destinos) {

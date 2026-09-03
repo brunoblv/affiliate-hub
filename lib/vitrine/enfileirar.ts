@@ -8,6 +8,7 @@ import type { ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { LABEL_DESTINO } from "./destinos";
 import { gerarImagemDePublicacao, type EntradaArte } from "@/lib/artes";
 import { reais } from "./rotulos";
+import { comEtiquetaCanal } from "@/lib/shopee/etiquetas";
 
 const ORIGEM_POR_REDE: Record<Canal["rede"], string> = {
   FACEBOOK_PAGE: "facebook",
@@ -184,7 +185,10 @@ async function enfileirarNoCanal(
   }
 
   const siteUrl = getSiteUrl();
-  const link = `${siteUrl}/vitrine/${landing.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`;
+  const link = comEtiquetaCanal(
+    `${siteUrl}/vitrine/${landing.slug}?utm_source=${ORIGEM_POR_REDE[canal.rede]}&utm_medium=social`,
+    canal,
+  );
 
   let vaga;
   try {

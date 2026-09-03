@@ -1,4 +1,4 @@
-import { ehForaDoTemaCasa } from "./palavras-chave-casa";
+import { ehForaDoTemaCasa } from "@/lib/nicho";
 
 export type MotivoOferta = "promocao" | "bom_preco";
 

@@ -1,5 +1,5 @@
 import { prisma, Destino, FaixaPreco, SeloLanding, type Categoria, type Produto } from "@/lib/database";
-import { descontoPercentual } from "@/lib/produtos";
+import { descontoPercentual, HOME_CATEGORIAS, produtoVisivelNoSite } from "@/lib/produtos";
 import type { DadosConfiguracaoVitrine } from "./configuracao";
 
 export interface CandidatoLanding {
@@ -51,7 +51,9 @@ function podeEntrar(produto: Produto, descontoMinimoPct: number): boolean {
   if (!produto.linkAfiliado.trim()) return false;
   if (produto.destaqueVitrine) return true;
   const desconto = descontoPercentual(produto);
-  return desconto !== null && desconto >= descontoMinimoPct;
+  if (desconto !== null && desconto >= descontoMinimoPct) return true;
+  // Fallback da geração diária: descontoMinimoPct 0 = qualquer item ativo com afiliado.
+  return descontoMinimoPct <= 0;
 }
 
 function selosDosItens(itens: Omit<ItemCurado, "selo">[]): ItemCurado[] {
@@ -93,10 +95,18 @@ export async function curarProdutosDoDia(
   config: DadosConfiguracaoVitrine,
 ): Promise<ItemCurado[]> {
   const produtos = await prisma.produto.findMany({
-    where: { destino, ativo: true },
+    where: {
+      destino,
+      ativo: true,
+      ...(destino === Destino.MEU_NOVO_LAR ? { categoria: { in: HOME_CATEGORIAS } } : {}),
+    },
   });
 
-  const elegiveis = produtos.filter((p) => podeEntrar(p, config.descontoMinimoPct));
+  const elegiveis = produtos.filter((p) => {
+    if (!podeEntrar(p, config.descontoMinimoPct)) return false;
+    if (destino === Destino.MEU_NOVO_LAR) return produtoVisivelNoSite(p);
+    return true;
+  });
   const cliques = await cliquesPorProduto(elegiveis.map((p) => p.id));
 
   const candidatos: CandidatoLanding[] = elegiveis.map((produto) => {

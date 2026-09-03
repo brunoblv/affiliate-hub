@@ -302,12 +302,13 @@ model Produto {
   /// Entra na curadoria da landing mesmo sem atingir o desconto mínimo.
   destaqueVitrine Boolean @default(false)
 
-  itens       ItemDePost[]
-  publicacoes Publicacao[]
-  cliques     Clique[]
-  precos      HistoricoPreco[]
-  itensLanding LandingProduto[]
-  landingsHero LandingDiaria[] @relation("HeroDaLanding")
+  itens            ItemDePost[]
+  publicacoes      Publicacao[]
+  cliques          Clique[]
+  linksEtiquetados LinkAfiliadoEtiquetado[]
+  precos           HistoricoPreco[]
+  itensLanding     LandingProduto[]
+  landingsHero     LandingDiaria[]          @relation("HeroDaLanding")
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -317,6 +318,23 @@ model Produto {
   @@index([destino])
   @@index([categoria])
   @@map("produtos")
+}
+
+/// Short link da Shopee com subIds (tipo de post + canal). Cache pra não
+/// chamar generateShortLink a cada clique/agendamento.
+model LinkAfiliadoEtiquetado {
+  id        String   @id @default(cuid())
+  produtoId String
+  /// subIds unidos por "|", ex.: "lista|facebook-achadinhos"
+  chave     String
+  url       String
+  criadoEm  DateTime @default(now())
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([produtoId, chave])
+  @@index([produtoId])
+  @@map("links_afiliado_etiquetados")
 }
 
 /// Só para mostrar "de R$ X por R$ Y" com honestidade e detectar produto fora do ar.
@@ -446,7 +464,7 @@ model Credencial {
 model Clique {
   id        String  @id @default(cuid())
   produtoId String
-  /// "blog" | "facebook" | "telegram" | "instagram" — parâmetro ?o= do /go
+  /// "lista:facebook-achadinhos" | "vitrine:slug" | "produto" — parâmetro ?o= do /go
   origem    String?
   /// Hash do IP + user agent. Nunca o IP em claro (LGPD).
   visitante String?

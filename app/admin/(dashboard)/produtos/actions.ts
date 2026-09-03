@@ -3,15 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Categoria, Plataforma } from "@/lib/database";
-import { gerarCodigoCurto, slugify } from "@/lib/produtos";
+import { gerarCodigoCurto, slugify, HOME_CATEGORIAS } from "@/lib/produtos";
+import { ehForaDoTemaCasa } from "@/lib/nicho";
+import { encontrarProdutoCanonico } from "@/lib/catalogo";
+import { slugDeProdutoLivre } from "@/lib/conteudo/slug";
 import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
 import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identificador";
-import { buscarOfertasShopee, buscarOfertaPorItem, gerarLinkAfiliado, type OfertaShopee } from "@/lib/shopee/client";
+import { buscarOfertasShopee, buscarOfertaPorItem, type OfertaShopee } from "@/lib/shopee/client";
 import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
 import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
+import { purgarForaDoNichoEDuplicatas } from "@/lib/conteudo/purgar-nicho";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { buscarOfertasPorComodo, type OfertaShopeeCurada } from "@/lib/shopee/buscar-por-comodo";
 import { importarOfertaShopee } from "@/lib/shopee/importar-oferta";
@@ -71,12 +75,26 @@ function readForm(formData: FormData) {
   };
 }
 
+function recusarForaDoNicho(destino: Destino, categoria: Categoria, nome: string): string | null {
+  if (destino !== Destino.MEU_NOVO_LAR) return null;
+  if (!HOME_CATEGORIAS.includes(categoria)) {
+    return "Categoria fora do nicho casa/lar — o catálogo público do Meu Novo Lar não aceita esse item.";
+  }
+  if (ehForaDoTemaCasa(nome)) {
+    return "Esse produto não é do nicho casa/lar (skincare, eletrônico, suplemento etc.). Não entra no catálogo público.";
+  }
+  return null;
+}
+
 export async function createProdutoAction(_prev: ProdutoFormState, formData: FormData): Promise<ProdutoFormState> {
   const dados = readForm(formData);
 
   if (!dados.nome || !dados.idExterno || !dados.precoAtual || !dados.linkAfiliado) {
     return { status: "error", message: "Nome, ID externo, preço e link de afiliado são obrigatórios." };
   }
+
+  const recusa = recusarForaDoNicho(dados.destino, dados.categoria, dados.nome);
+  if (recusa) return { status: "error", message: recusa };
 
   const produto = await prisma.produto.create({
     data: {
@@ -115,6 +133,9 @@ export async function updateProdutoAction(
   if (!dados.nome || !dados.idExterno || !dados.precoAtual || !dados.linkAfiliado) {
     return { status: "error", message: "Nome, ID externo, preço e link de afiliado são obrigatórios." };
   }
+
+  const recusa = recusarForaDoNicho(dados.destino, dados.categoria, dados.nome);
+  if (recusa) return { status: "error", message: recusa };
 
   const produto = await prisma.produto.update({
     where: { id },
@@ -183,6 +204,25 @@ export async function deleteProdutosAction(
     return { ok: true, count: produtos.length };
   } catch (erro) {
     return { ok: false, message: erro instanceof Error ? erro.message : "Não foi possível excluir os produtos." };
+  }
+}
+
+/** AdSense: apaga fora do nicho casa/lar e junta duplicatas (-2/-3) numa URL só. */
+export async function purgarNichoAdsenseAction(): Promise<
+  { ok: true; foraDoNicho: number; duplicatas: number } | { ok: false; message: string }
+> {
+  try {
+    const resultado = await purgarForaDoNichoEDuplicatas();
+    revalidatePath("/admin/produtos");
+    revalidatePath("/admin/posts");
+    revalidatePath("/");
+    revalidatePath("/ofertas");
+    revalidatePath("/produtos");
+    revalidatePath("/vitrine");
+    revalidatePath("/blog");
+    return { ok: true, foraDoNicho: resultado.foraDoNicho, duplicatas: resultado.duplicatas };
+  } catch (erro) {
+    return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao purgar o catálogo." };
   }
 }
 
@@ -284,30 +324,54 @@ export async function importarMercadoLivreAction(_prev: ProdutoFormState, formDa
     return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao consultar o Mercado Livre." };
   }
 
-  const slug = slugify(nome);
+  const destino = (String(formData.get("destino") ?? "").trim() || "MEU_NOVO_LAR") as Destino;
+  const categoria = (String(formData.get("categoria") ?? "").trim() || "CASA") as Categoria;
+  const recusa = recusarForaDoNicho(destino, categoria, nome);
+  if (recusa) return { status: "error", message: recusa };
+
+  const existente = await encontrarProdutoCanonico(Plataforma.MERCADO_LIVRE, nome, idExterno);
 
   let produto;
-  try {
-    produto = await prisma.produto.create({
+  if (existente) {
+    produto = await prisma.produto.update({
+      where: { id: existente.id },
       data: {
-        plataforma: Plataforma.MERCADO_LIVRE,
-        idExterno,
-        slug,
         nome,
         imagens,
         precoAtual,
         precoOriginal,
         linkAfiliado,
-        codigoCurto: gerarCodigoCurto(),
+        destino,
+        categoria,
         dadosBrutos,
         sincronizadoEm: new Date(),
       },
     });
-  } catch (erro) {
-    if (ehViolacaoDeIdExternoDuplicado(erro)) {
-      return { status: "error", message: `Esse anúncio (${idExterno}) já foi importado antes.` };
+  } else {
+    try {
+      produto = await prisma.produto.create({
+        data: {
+          plataforma: Plataforma.MERCADO_LIVRE,
+          destino,
+          categoria,
+          idExterno,
+          slug: await slugDeProdutoLivre(nome),
+          nome,
+          imagens,
+          precoAtual,
+          precoOriginal,
+          linkAfiliado,
+          codigoCurto: gerarCodigoCurto(),
+          dadosBrutos,
+          sincronizadoEm: new Date(),
+        },
+      });
+    } catch (erro) {
+      if (ehViolacaoDeIdExternoDuplicado(erro)) {
+        return { status: "error", message: `Esse anúncio (${idExterno}) já foi importado antes.` };
+      }
+      throw erro;
     }
-    throw erro;
   }
 
   const publicado = await garantirPostPublicadoDoProduto(produto);
@@ -353,7 +417,7 @@ export async function importarShopeeAction(_prev: ProdutoFormState, formData: Fo
   const shopIdRaw = String(formData.get("shopId") ?? "").trim();
   const itemIdRaw = String(formData.get("itemId") ?? "").trim();
   const destino = (String(formData.get("destino") ?? "").trim() || "MEU_NOVO_LAR") as Destino;
-  const categoria = (String(formData.get("categoria") ?? "").trim() || "OUTRA") as Categoria;
+  const categoria = (String(formData.get("categoria") ?? "").trim() || "CASA") as Categoria;
 
   let shopId: number | null = shopIdRaw ? Number(shopIdRaw) : null;
   let itemId: number | null = itemIdRaw ? Number(itemIdRaw) : null;
@@ -382,49 +446,29 @@ export async function importarShopeeAction(_prev: ProdutoFormState, formData: Fo
     return { status: "error", message: "Esse produto não está disponível como oferta de afiliado na Shopee agora." };
   }
 
-  let linkAfiliado = oferta.offerLink;
-  if (!linkAfiliado) {
-    try {
-      linkAfiliado = await gerarLinkAfiliado(`https://shopee.com.br/product/${shopId}/${itemId}`);
-    } catch (erro) {
-      return {
-        status: "error",
-        message: erro instanceof Error ? erro.message : "Falha ao gerar o link de afiliado na Shopee.",
-      };
-    }
-  }
+  const recusa = recusarForaDoNicho(destino, categoria, oferta.nome);
+  if (recusa) return { status: "error", message: recusa };
 
-  if (!linkAfiliado) {
+  const resultado = await importarOfertaShopee({
+    oferta,
+    categoria,
+    destino,
+    origem: "importacao_manual",
+  });
+
+  if (resultado.status === "sem_link") {
     return { status: "error", message: "A Shopee não retornou link de afiliado pra esse produto." };
   }
+  if (resultado.status === "fora_do_nicho") {
+    return { status: "error", message: recusa ?? "Produto fora do nicho casa/lar." };
+  }
+  if (resultado.status !== "importado" && resultado.status !== "atualizado") {
+    return { status: "error", message: "Esse produto já estava no catálogo." };
+  }
 
-  const slug = slugify(oferta.nome);
-  const idExterno = `${shopId}_${itemId}`;
-
-  let produto;
-  try {
-    produto = await prisma.produto.create({
-      data: {
-        plataforma: Plataforma.SHOPEE,
-        destino,
-        categoria,
-        idExterno,
-        slug,
-        nome: oferta.nome,
-        imagens: oferta.imagemUrl ? [oferta.imagemUrl] : [],
-        precoAtual: oferta.precoAtual,
-        precoOriginal: oferta.precoOriginal,
-        linkAfiliado,
-        codigoCurto: gerarCodigoCurto(),
-        dadosBrutos: { shop_id: shopId, item_id: itemId },
-        sincronizadoEm: new Date(),
-      },
-    });
-  } catch (erro) {
-    if (ehViolacaoDeIdExternoDuplicado(erro)) {
-      return { status: "error", message: `Esse produto (${idExterno}) já foi importado antes.` };
-    }
-    throw erro;
+  const produto = await prisma.produto.findUnique({ where: { id: resultado.id } });
+  if (!produto) {
+    return { status: "error", message: "Falha ao salvar o produto." };
   }
 
   const publicado = await garantirPostPublicadoDoProduto(produto);
@@ -771,7 +815,7 @@ export async function importarOfertasShopeeEmLoteAction(params: {
         if (produto) await garantirPostPublicadoDoProduto(produto, { gerarFichaComIa: false });
         importados++;
         revalidarSitePublico(resultado.slug);
-      } else if (resultado.status === "ja_existia") {
+      } else if (resultado.status === "atualizado" || resultado.status === "ja_existia") {
         jaExistiam++;
       } else if (resultado.status === "sem_link") {
         semLink++;

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { prisma, FaixaPreco, StatusLanding } from "@/lib/database";
-import { descontoPercentual, primeiraImagem, LABEL_CATEGORIA } from "@/lib/produtos";
+import { prisma, Destino, FaixaPreco, StatusLanding } from "@/lib/database";
+import { descontoPercentual, primeiraImagem, LABEL_CATEGORIA, produtoVisivelNoSite } from "@/lib/produtos";
 import { Button } from "@/components/ui/button";
 import { getSiteUrl } from "@/lib/site-url";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
@@ -11,6 +11,7 @@ import { LABEL_DESTINO } from "@/lib/vitrine/destinos";
 import { linkOfertaVitrine } from "@/lib/vitrine/links";
 import { LABEL_SELO, reais, tituloFaixaAcessivel } from "@/lib/vitrine/rotulos";
 import { ArquivoLandings, CtaGrupos, LandingProdutoCard } from "@/components/site/landing-vitrine";
+import { sanitizarEtiquetaCanal } from "@/lib/shopee/etiquetas";
 
 export const revalidate = 60;
 
@@ -25,6 +26,8 @@ type ItemComProduto = {
     nome: string;
     slug: string;
     categoria: keyof typeof LABEL_CATEGORIA;
+    destino: "MEU_NOVO_LAR" | "TIKTOK_SHOP" | "UMBANDA";
+    ativo: boolean;
     imagens: unknown;
     precoAtual: unknown;
     precoOriginal: unknown | null;
@@ -69,8 +72,16 @@ function jsonLd(landing: {
   };
 }
 
-export default async function LandingVitrinePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function LandingVitrinePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ o?: string }>;
+}) {
   const { slug } = await params;
+  const { o } = await searchParams;
+  const canalEtiqueta = sanitizarEtiquetaCanal(o);
 
   const landing = await prisma.landingDiaria.findUnique({
     where: { slug },
@@ -84,6 +95,8 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
               nome: true,
               slug: true,
               categoria: true,
+              destino: true,
+              ativo: true,
               imagens: true,
               precoAtual: true,
               precoOriginal: true,
@@ -96,7 +109,14 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
     },
   });
 
-  if (!landing || landing.status !== StatusLanding.PUBLICADA) notFound();
+  if (!landing || landing.status !== StatusLanding.PUBLICADA || landing.destino !== Destino.MEU_NOVO_LAR) {
+    notFound();
+  }
+
+  const itensVisiveis =
+    landing.destino === "MEU_NOVO_LAR"
+      ? landing.itens.filter((item) => produtoVisivelNoSite(item.produto))
+      : landing.itens.filter((item) => item.produto.ativo);
 
   const [config, arquivo] = await Promise.all([
     obterConfiguracaoVitrine(landing.destino),
@@ -112,8 +132,8 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
     }),
   ]);
 
-  const heroItem = landing.itens.find((i) => i.produto.id === landing.heroProdutoId) ?? landing.itens[0];
-  const resto = landing.itens.filter((i) => i.produto.id !== heroItem?.produto.id);
+  const heroItem = itensVisiveis.find((i) => i.produto.id === landing.heroProdutoId) ?? itensVisiveis[0];
+  const resto = itensVisiveis.filter((i) => i.produto.id !== heroItem?.produto.id);
   const acessiveis = resto.filter((i) => i.faixaPreco === FaixaPreco.ACESSIVEL);
   const ofertas = resto.filter((i) => i.faixaPreco !== FaixaPreco.ACESSIVEL);
 
@@ -130,7 +150,7 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
     ? descontoPercentual({ precoAtual: heroProduto.precoAtual, precoOriginal: heroProduto.precoOriginal })
     : null;
   const imagemHero = heroProduto ? primeiraImagem(heroProduto) : null;
-  const ofertaHero = heroProduto ? linkOfertaVitrine(heroProduto, slug) : null;
+  const ofertaHero = heroProduto ? linkOfertaVitrine(heroProduto, slug, canalEtiqueta) : null;
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-10 pb-24 sm:px-10 sm:py-14">
@@ -222,6 +242,7 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
                 descricao={item.descricao}
                 selo={item.selo}
                 slugLanding={slug}
+                canalEtiqueta={canalEtiqueta}
               />
             ))}
           </div>
@@ -249,6 +270,7 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
                     descricao={item.descricao}
                     selo={item.selo}
                     slugLanding={slug}
+                    canalEtiqueta={canalEtiqueta}
                   />
                 ))}
               </div>
@@ -269,7 +291,19 @@ export default async function LandingVitrinePage({ params }: { params: Promise<{
 
       <CtaGrupos whatsapp={config.linkGrupoWhatsapp} telegram={config.linkGrupoTelegram} variante="barra" />
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(landing)) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            jsonLd({
+              slug: landing.slug,
+              headline: landing.headline,
+              metaDescricao: landing.metaDescricao,
+              itens: itensVisiveis,
+            }),
+          ),
+        }}
+      />
     </div>
   );
 }
@@ -282,7 +316,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       heroProduto: { select: { imagens: true } },
     },
   });
-  if (!landing || landing.status !== StatusLanding.PUBLICADA) return {};
+  if (!landing || landing.status !== StatusLanding.PUBLICADA || landing.destino !== Destino.MEU_NOVO_LAR) {
+    return {};
+  }
 
   const imagem = landing.heroProduto ? primeiraImagem(landing.heroProduto) : null;
   const title = landing.metaTitulo;

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { ProdutoFormState } from "@/app/admin/(dashboard)/produtos/actions";
-import { OPCOES_CATEGORIA } from "@/lib/produtos";
+import { OPCOES_CATEGORIA_PUBLICA } from "@/lib/produtos";
 
 const DESTINOS = [
   { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
@@ -14,7 +14,7 @@ const DESTINOS = [
   { value: "UMBANDA", label: "Umbanda" },
 ];
 
-const CATEGORIAS = OPCOES_CATEGORIA;
+const CATEGORIAS = OPCOES_CATEGORIA_PUBLICA;
 
 export function ImportarShopeeForm({
   action,
@@ -60,7 +60,7 @@ export function ImportarShopeeForm({
           <select
             id="categoria"
             name="categoria"
-            defaultValue="OUTRA"
+            defaultValue="CASA"
             className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {CATEGORIAS.map((c) => (

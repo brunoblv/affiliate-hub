@@ -1,5 +1,6 @@
-import { Categoria } from "@/lib/database/enums";
+import { Categoria, Destino } from "@/lib/database/enums";
 import type { Produto } from "@/lib/database";
+import { ehForaDoTemaCasa } from "@/lib/nicho";
 
 /**
  * Categorias "de casa" do catálogo público do Meu Novo Lar — única fonte de
@@ -58,6 +59,27 @@ export const OPCOES_CATEGORIA: Array<{ value: Categoria; label: string }> = [
   Categoria.OUTRA,
 ].map((value) => ({ value, label: LABEL_CATEGORIA[value] }));
 
+/** Select de import/cadastro pro catálogo público — sem categorias legado. */
+export const OPCOES_CATEGORIA_PUBLICA: Array<{ value: Categoria; label: string }> = HOME_CATEGORIAS.map((value) => ({
+  value,
+  label: LABEL_CATEGORIA[value],
+}));
+
+/** Pode aparecer em /produtos, /ofertas, home e vitrine do Meu Novo Lar. */
+export function produtoVisivelNoSite(produto: {
+  ativo: boolean;
+  destino: Destino;
+  categoria: Categoria;
+  nome: string;
+}): boolean {
+  return (
+    produto.ativo &&
+    produto.destino === Destino.MEU_NOVO_LAR &&
+    HOME_CATEGORIAS.includes(produto.categoria) &&
+    !ehForaDoTemaCasa(produto.nome)
+  );
+}
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -65,6 +87,70 @@ export function slugify(value: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+const STOPWORDS_CANONICO = new Set([
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "com",
+  "para",
+  "por",
+  "sem",
+  "em",
+  "na",
+  "no",
+  "kit",
+  "peca",
+  "pecas",
+  "und",
+  "unidades",
+  "promo",
+  "promocao",
+]);
+
+/**
+ * Chave estável pra upsert/dedupe: ignora ordem das palavras no título.
+ * Os dois "Varal Secalux 12kg" com texto embaralhado viram a mesma chave —
+ * o `-2`/`-3` deixa de nascer.
+ */
+export function chaveCanonicoProduto(nome: string): string {
+  const tokens = slugify(nome)
+    .split("-")
+    .filter((t) => t.length > 2 && !STOPWORDS_CANONICO.has(t) && !/^\d+$/.test(t));
+  return [...new Set(tokens)].sort().join("-");
+}
+
+/** true se o slug é uma cópia (`…-2`, `…-3`). */
+export function slugTemSufixoNumerico(slug: string): boolean {
+  return /-\d+$/.test(slug);
+}
+
+/** Prefere a URL sem `-2`/`-3` quando o mesmo produto aparece mais de uma vez. */
+export function ehSlugCanonicoMelhor(candidato: string, atual: string): boolean {
+  const sufixoCandidato = slugTemSufixoNumerico(candidato);
+  const sufixoAtual = slugTemSufixoNumerico(atual);
+  if (sufixoCandidato !== sufixoAtual) return sufixoAtual;
+  return candidato.length > 0 && candidato.length < atual.length;
+}
+
+export function deduplicarCatalogo<T extends { nome: string; slug?: string }>(produtos: T[]): T[] {
+  const porChave = new Map<string, T>();
+  for (const produto of produtos) {
+    const chave = chaveCanonicoProduto(produto.nome);
+    if (!chave) continue;
+    const atual = porChave.get(chave);
+    if (!atual) {
+      porChave.set(chave, produto);
+      continue;
+    }
+    if (ehSlugCanonicoMelhor(produto.slug ?? "", atual.slug ?? "")) {
+      porChave.set(chave, produto);
+    }
+  }
+  return [...porChave.values()];
 }
 
 /** Código curto do /go/:codigo — não precisa ser legível, só único. */

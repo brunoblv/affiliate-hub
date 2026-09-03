@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
+import { subIdsDaOrigem } from "@/lib/shopee/etiquetas";
+import { resolverLinkAfiliadoEtiquetado } from "@/lib/shopee/link-etiquetado";
 
 export interface RegisterClickInput {
   codigoCurto: string;
@@ -10,8 +12,9 @@ export interface RegisterClickInput {
 }
 
 /**
- * Registra o clique em um Produto e retorna o linkAfiliado para
- * redirecionamento. Usado pela rota /go/[code].
+ * Registra o clique em um Produto e retorna o link de afiliado para
+ * redirecionamento. Na Shopee, o destino leva as etiquetas do `?o=`
+ * (tipo de post + canal). Usado pela rota /go/[code].
  */
 export async function registerClick(input: RegisterClickInput): Promise<string | null> {
   const produto = await prisma.produto.findUnique({ where: { codigoCurto: input.codigoCurto } });
@@ -28,5 +31,5 @@ export async function registerClick(input: RegisterClickInput): Promise<string |
 
   logger.info("AFFILIATE_SYNC", "Clique registrado", { codigoCurto: input.codigoCurto, produtoId: produto.id });
 
-  return produto.linkAfiliado;
+  return resolverLinkAfiliadoEtiquetado(produto, subIdsDaOrigem(input.origem));
 }

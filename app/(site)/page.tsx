@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma, Destino, StatusLanding } from "@/lib/database";
 import { Button } from "@/components/ui/button";
-import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS } from "@/lib/produtos";
+import { descontoPercentual, primeiraImagem, HOME_CATEGORIAS, produtoVisivelNoSite, deduplicarCatalogo } from "@/lib/produtos";
 import { CAPA_EDITORIAL, resolverCapa } from "@/lib/conteudo/capa";
 import { FERRAMENTAS } from "@/lib/ferramentas";
 import { NewsletterForm } from "./newsletter-form";
-import { dataCivil } from "@/lib/vitrine/data";
+import { dataCivil, isoDataCivil } from "@/lib/vitrine/data";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -28,15 +28,16 @@ export default async function HomePage() {
     prisma.produto.findMany({
       where: { ativo: true, destino: Destino.MEU_NOVO_LAR, categoria: { in: HOME_CATEGORIAS } },
       orderBy: { criadoEm: "desc" },
-      take: 12,
+      take: 24,
     }),
     prisma.landingDiaria.findFirst({
-      where: { destino: Destino.MEU_NOVO_LAR, data: dataCivil(), status: StatusLanding.PUBLICADA },
-      select: { slug: true, headline: true },
+      where: { destino: Destino.MEU_NOVO_LAR, status: StatusLanding.PUBLICADA },
+      orderBy: { data: "desc" },
+      select: { slug: true, headline: true, data: true },
     }),
   ]);
 
-  const deals = produtos
+  const deals = deduplicarCatalogo(produtos.filter(produtoVisivelNoSite))
     .filter((produto) => descontoPercentual(produto) !== null)
     .slice(0, 3);
 
@@ -80,7 +81,9 @@ export default async function HomePage() {
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sage/40 bg-secondary px-5 py-4"
           >
             <div>
-              <div className="text-[11px] font-bold tracking-[0.12em] text-muted-foreground">OFERTAS DO DIA</div>
+              <div className="text-[11px] font-bold tracking-[0.12em] text-muted-foreground">
+                {isoDataCivil(vitrineHoje.data) === isoDataCivil(dataCivil()) ? "OFERTAS DO DIA" : "ÚLTIMA VITRINE"}
+              </div>
               <div className="mt-1 font-heading text-lg font-semibold text-foreground">
                 {vitrineHoje.headline ?? "A vitrine de hoje está no ar"}
               </div>

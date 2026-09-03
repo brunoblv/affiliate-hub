@@ -18,7 +18,8 @@
     "telegram:get-chat-id": "tsx scripts/telegram-get-chat-id.ts",
     "whatsapp:login": "tsx scripts/whatsapp-login.mts",
     "whatsapp:test-send": "tsx scripts/whatsapp-test-send.mts",
-    "conteudo:gerar-artigos": "tsx scripts/gerar-artigos-editoriais.ts"
+    "conteudo:gerar-artigos": "tsx scripts/gerar-artigos-editoriais.ts",
+    "catalogo:purgar-nicho": "tsx scripts/purgar-fora-do-nicho.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

@@ -98,6 +98,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
 
   const importados: Array<{ id: string; slug: string }> = [];
   let pulados = 0;
+  let atualizados = 0;
   let comErro = 0;
 
   for (const { oferta, categoria } of elegiveis) {
@@ -110,6 +111,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
         origem: "descoberta_automatica",
       });
       if (resultado.status === "importado") importados.push({ id: resultado.id, slug: resultado.slug });
+      else if (resultado.status === "atualizado") atualizados++;
       else pulados++;
     } catch (erro) {
       comErro++;
@@ -136,6 +138,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
     foraDoTema,
     elegiveis: elegiveis.length,
     importados: importados.length,
+    atualizados,
     pulados,
     comErro,
     falhasBusca,

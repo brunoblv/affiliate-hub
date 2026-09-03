@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { rotuloJanela } from "@/lib/agenda/janela";
+import { etiquetaDoCanal } from "@/lib/shopee/etiquetas";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -50,6 +51,7 @@ export default async function CanaisAdminPage({
           <TableHeader>
             <TableRow>
               <TableHead>Canal</TableHead>
+              <TableHead>Etiqueta Shopee</TableHead>
               <TableHead>Rede</TableHead>
               <TableHead>Destino</TableHead>
               <TableHead>Agenda</TableHead>
@@ -64,6 +66,7 @@ export default async function CanaisAdminPage({
                     {canal.nome}
                   </Link>
                 </TableCell>
+                <TableCell className="font-mono text-xs">{etiquetaDoCanal(canal)}</TableCell>
                 <TableCell>{canal.rede}</TableCell>
                 <TableCell>{LABEL_DESTINO[canal.destino] ?? canal.destino}</TableCell>
                 <TableCell>{rotuloJanela(canal.intervaloMinimoMin)}</TableCell>

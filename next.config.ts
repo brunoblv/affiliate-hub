@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
         destination: "/admin/login",
         permanent: false,
       },
+      {
+        source: "/produtos/mercado_livre-:id",
+        destination: "/produtos",
+        permanent: true,
+      },
     ];
   },
 };

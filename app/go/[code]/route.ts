@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { registerClick } from "@/lib/tracking";
 
-/** Redirecionamento rastreado: /go/:code → Produto.linkAfiliado (nunca a URL crua da loja). */
+/** Redirecionamento rastreado: /go/:code → link de afiliado (Shopee com etiqueta quando houver ?o=). */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
 

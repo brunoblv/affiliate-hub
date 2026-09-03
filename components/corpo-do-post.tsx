@@ -4,7 +4,7 @@ import remarkBreaks from "remark-breaks";
 
 import { prisma, type Produto } from "@/lib/database";
 import { separarBlocos, produtosReferenciados } from "@/lib/conteudo/corpo";
-import { descontoPercentual, primeiraImagem } from "@/lib/produtos";
+import { descontoPercentual, primeiraImagem, produtoVisivelNoSite } from "@/lib/produtos";
 import { reais } from "@/lib/vitrine/rotulos";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
   corpo: string;
-  /** "blog" — usado no ?o= do /go, para saber de onde veio o clique. */
+  /** Valor de `?o=` do /go — tipo de post e, se veio de uma rede, a etiqueta do canal. */
   origem?: string;
 }
 
@@ -36,8 +36,9 @@ export async function CorpoDoPost({ corpo, origem = "blog" }: Props) {
   const produtos = slugs.length
     ? await prisma.produto.findMany({ where: { slug: { in: slugs }, ativo: true } })
     : [];
+  const visiveis = produtos.filter(produtoVisivelNoSite);
 
-  const porSlug = new Map(produtos.map((produto) => [produto.slug, produto]));
+  const porSlug = new Map(visiveis.map((produto) => [produto.slug, produto]));
 
   // Blocos de produto consecutivos (ex: vários [produto:slug] seguidos, sem
   // texto entre eles) viram um grid, pra caber lado a lado em vez de um card
@@ -119,7 +120,7 @@ function CtaOferta({ codigoCurto, origem, tamanho }: { codigoCurto: string; orig
   return (
     <Button
       size={tamanho}
-      render={<a href={`/go/${codigoCurto}?o=${origem}`} target="_blank" rel="nofollow sponsored noopener" />}
+      render={<a href={`/go/${codigoCurto}?o=${encodeURIComponent(origem)}`} target="_blank" rel="nofollow sponsored noopener" />}
       className="w-full"
     >
       Ver oferta

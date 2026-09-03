@@ -28,16 +28,18 @@ export function LandingProdutoCard({
   descricao,
   selo,
   slugLanding,
+  canalEtiqueta,
 }: {
   produto: ProdutoLandingCard;
   titulo: string;
   descricao: string | null;
   selo: SeloLanding | null;
   slugLanding: string;
+  canalEtiqueta?: string;
 }) {
   const imagem = primeiraImagem({ imagens: produto.imagens as never });
   const desconto = descontoDe(produto);
-  const oferta = linkOfertaVitrine(produto, slugLanding);
+  const oferta = linkOfertaVitrine(produto, slugLanding, canalEtiqueta);
 
   return (
     <article className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
