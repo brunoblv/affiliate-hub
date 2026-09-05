@@ -21,8 +21,7 @@ import {
   montarCorpoFichaProduto,
   preencherCamposVaziosDoProduto,
 } from "@/lib/conteudo/gerar-ficha-produto";
-import { comporArte, salvarArteComoCapa, type TipoArte } from "@/lib/artes";
-import { slugify } from "@/lib/produtos";
+import { gerarESalvarCapaDoPost, type TipoArte } from "@/lib/artes";
 
 export interface PostFormState {
   status: "idle" | "error" | "success";
@@ -99,6 +98,36 @@ async function validarCapa(capaId: string | null): Promise<PostFormState | null>
   return null;
 }
 
+const TIPO_ARTE_POR_TIPO_POST: Record<string, TipoArte> = {
+  JORNADA: "jornada",
+  LISTA: "lista",
+  PRODUTO: "produto",
+};
+
+async function gerarCapaSeFaltar(dados: {
+  capaId: string | null;
+  tipo: string;
+  titulo: string;
+  resumo: string;
+  corpo: string;
+}): Promise<string | null> {
+  if (dados.capaId) return dados.capaId;
+  const tipoArte = TIPO_ARTE_POR_TIPO_POST[dados.tipo];
+  if (!tipoArte) return null;
+  try {
+    const midia = await gerarESalvarCapaDoPost({
+      tipo: tipoArte,
+      titulo: dados.titulo,
+      resumo: dados.resumo,
+      corpo: dados.corpo,
+      fallbackComposicao: true,
+    });
+    return midia.id;
+  } catch {
+    return null;
+  }
+}
+
 export async function createPostAction(_prev: PostFormState, formData: FormData): Promise<PostFormState> {
   const dados = readForm(formData);
   if (!dados.titulo || !dados.corpo) {
@@ -108,6 +137,7 @@ export async function createPostAction(_prev: PostFormState, formData: FormData)
   const erroCapa = await validarCapa(dados.capaId);
   if (erroCapa) return erroCapa;
 
+  const capaId = await gerarCapaSeFaltar(dados);
   const sessao = await auth();
 
   const post = await prisma.post.create({
@@ -119,7 +149,7 @@ export async function createPostAction(_prev: PostFormState, formData: FormData)
       slug: await slugDePostLivre(dados.titulo),
       resumo: dados.resumo || resumoAutomatico(dados.corpo),
       corpo: dados.corpo,
-      capaId: dados.capaId,
+      capaId,
       seoTitulo: dados.seoTitulo || null,
       metaDescricao: dados.metaDescricao || null,
       status: dados.publicar ? StatusPost.PUBLICADO : StatusPost.RASCUNHO,
@@ -145,6 +175,7 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
   const erroCapa = await validarCapa(dados.capaId);
   if (erroCapa) return erroCapa;
 
+  const capaId = await gerarCapaSeFaltar(dados);
   const atual = await prisma.post.findUniqueOrThrow({ where: { id }, select: { status: true, slug: true } });
   const jaEstavaPublicado = atual.status === StatusPost.PUBLICADO;
 
@@ -157,7 +188,7 @@ export async function updatePostAction(id: string, _prev: PostFormState, formDat
       titulo: dados.titulo,
       resumo: dados.resumo || resumoAutomatico(dados.corpo),
       corpo: dados.corpo,
-      capaId: dados.capaId,
+      capaId,
       seoTitulo: dados.seoTitulo || null,
       metaDescricao: dados.metaDescricao || null,
       status: dados.publicar ? StatusPost.PUBLICADO : StatusPost.RASCUNHO,
@@ -317,26 +348,21 @@ export async function gerarNarracaoAction(postId: string): Promise<GerarNarracao
   }
 }
 
-const TIPO_ARTE_POR_TIPO_POST: Record<string, TipoArte> = {
-  JORNADA: "jornada",
-  LISTA: "lista",
-  PRODUTO: "produto",
-};
-
 export type GerarCapaResultado =
   | { ok: true; midia: { id: string; url: string; alt: string | null } }
   | { ok: false; message: string };
 
 /**
- * Compõe uma capa a partir dos fundos da identidade visual (fundo + foto
- * atual + título) — mesmo pipeline usado pra imagem das publicações sociais.
- * Não altera o post: devolve a Midia pro form tratar como qualquer capa
- * enviada (o botão "Salvar" é que grava o capaId).
+ * Gera a capa com a Images API da OpenAI (cena do tema + fotos dos produtos
+ * nas listas) e cola no fundo da identidade visual. Não altera o post:
+ * devolve a Midia pro form tratar como qualquer capa enviada (o botão
+ * "Salvar" é que grava o capaId).
  */
 export async function gerarCapaComFundoAction(entrada: {
   tipo: string;
   titulo: string;
-  fotoUrl?: string | null;
+  resumo?: string | null;
+  corpo?: string | null;
   /** Midia da capa gerada anteriormente (se houver) — apagada se não estiver salva em nenhum post. */
   capaAnteriorId?: string | null;
 }): Promise<GerarCapaResultado> {
@@ -350,23 +376,11 @@ export async function gerarCapaComFundoAction(entrada: {
   if (!tipoArte) return { ok: false, message: "Tipo de post inválido." };
 
   try {
-    const arte = await comporArte({
+    const midia = await gerarESalvarCapaDoPost({
       tipo: tipoArte,
-      formato: "capa",
-      semente: `${entrada.tipo}:${titulo}:${Date.now()}`,
       titulo,
-      fotoUrl: entrada.fotoUrl ?? null,
-    });
-    if (!arte) {
-      return {
-        ok: false,
-        message: `Ainda não há fundo cadastrado em public/fundos-posts/capa/${tipoArte}/. Adicione os PNGs (1600×900, arquivos 1.png/2.png/3.png) e tente de novo.`,
-      };
-    }
-
-    const midia = await salvarArteComoCapa(arte.buffer, {
-      nomeBase: slugify(titulo).slice(0, 60) || "capa",
-      alt: titulo,
+      resumo: entrada.resumo,
+      corpo: entrada.corpo,
     });
 
     // Regenerar troca a capa em tela — a anterior só some de vez se nenhum
@@ -385,7 +399,7 @@ export async function gerarCapaComFundoAction(entrada: {
       }
     }
 
-    return { ok: true, midia: { id: midia.id, url: midia.url, alt: midia.alt } };
+    return { ok: true, midia };
   } catch (erro) {
     return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao gerar a capa." };
   }

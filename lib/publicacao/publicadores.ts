@@ -7,6 +7,7 @@ import {
   type ErroGraphMeta,
 } from "@/lib/meta/credentials";
 import { getWhatsAppSocket } from "@/lib/whatsapp/session";
+import { legendaInstagram, urlJpegPublicaParaInstagram } from "./instagram-imagem";
 
 const VERSAO_GRAPH = process.env.META_GRAPH_VERSION ?? "v21.0";
 const GRAPH = `https://graph.facebook.com/${VERSAO_GRAPH}`;
@@ -62,6 +63,48 @@ async function chamarGraph<T>(caminho: string, corpo: Record<string, string>): P
   }
 
   return json as T;
+}
+
+async function consultarGraph<T>(caminho: string, params: Record<string, string>): Promise<T> {
+  const url = new URL(`${GRAPH}/${caminho}`);
+  for (const [chave, valor] of Object.entries(params)) url.searchParams.set(chave, valor);
+
+  const resposta = await fetch(url);
+  const json = await resposta.json();
+
+  if (!resposta.ok || json.error) {
+    const detalhe = mensagemErroMeta(json?.error as ErroGraphMeta | undefined, resposta.statusText);
+    throw new Error(`Meta Graph ${caminho}: ${detalhe}`);
+  }
+
+  return json as T;
+}
+
+function esperar(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const POLL_CONTAINER_MS = 2_000;
+const POLL_CONTAINER_MAX = 15;
+
+/**
+ * A Meta processa o JPEG depois de criar o container. Publicar antes de
+ * FINISHED devolve 9007/2207027 ("media is not ready").
+ */
+async function esperarContainerPronto(containerId: string, token: string): Promise<void> {
+  for (let i = 0; i < POLL_CONTAINER_MAX; i++) {
+    const json = await consultarGraph<{ status_code?: string }>(containerId, {
+      fields: "status_code",
+      access_token: token,
+    });
+    const status = json.status_code;
+    if (status === "FINISHED" || status === "PUBLISHED") return;
+    if (status === "ERROR" || status === "EXPIRED") {
+      throw new Error(`Instagram: container ${status === "EXPIRED" ? "expirou" : "falhou no processamento"}.`);
+    }
+    await esperar(POLL_CONTAINER_MS);
+  }
+  throw new Error("Instagram: a imagem ainda não ficou pronta para publicar.");
 }
 
 /**
@@ -129,13 +172,16 @@ class PublicadorInstagram implements Publicador {
     }
 
     const token = await obterTokenPorContaInstagram(this.igUserId);
+    const imageUrl = await urlJpegPublicaParaInstagram(conteudo.imagemUrl);
 
     // O link não é clicável na legenda do Instagram; o texto já traz "link na bio".
     const container = await chamarGraph<{ id: string }>(`${this.igUserId}/media`, {
-      image_url: conteudo.imagemUrl,
-      caption: conteudo.texto,
+      image_url: imageUrl,
+      caption: legendaInstagram(conteudo.texto),
       access_token: token,
     });
+
+    await esperarContainerPronto(container.id, token);
 
     const publicado = await chamarGraph<{ id: string }>(`${this.igUserId}/media_publish`, {
       creation_id: container.id,

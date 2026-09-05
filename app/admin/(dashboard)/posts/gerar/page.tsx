@@ -3,7 +3,7 @@ import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { GerarArtigoWizard } from "@/components/admin/gerar-artigo-wizard";
 
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export default async function GerarArtigoPage() {
   const produtos = await prisma.produto.findMany({

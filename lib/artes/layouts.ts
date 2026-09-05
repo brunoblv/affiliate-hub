@@ -332,6 +332,21 @@ export const LAYOUTS_RETANGULARES: Record<TipoArte, VarianteLayout[]> = {
 
 /** Foto em tela cheia (o mesmo pra toda variante de capa) + título no canto inferior esquerdo, sobre véu escuro pra legibilidade. */
 const FOTO_CHEIA: ZonaFoto = { formato: "retangulo", xPct: 0, yPct: 0, larguraPct: 100, alturaPct: 100 };
+
+/**
+ * Capa gerada com IA: a cena fotográfica fica recuada pra o PNG de
+ * public/fundos-posts/capa/ aparecer como moldura (cor/textura da marca).
+ * Sem título na imagem — o site já escreve o título ao lado/abaixo da capa.
+ */
+export const ZONA_FOTO_CAPA_IA: ZonaFoto = {
+  formato: "retangulo",
+  xPct: 4,
+  yPct: 4,
+  larguraPct: 92,
+  alturaPct: 92,
+  raioPct: 1.2,
+};
+
 const TEXTO_CAPA: ZonaTexto = {
   xPct: 6,
   yPct: 64,

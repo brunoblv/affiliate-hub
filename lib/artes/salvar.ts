@@ -15,9 +15,11 @@ function pastaDoMes(agora = new Date()): string {
  * biblioteca de mídia do CMS) e devolve a URL pública servida por /midia.
  */
 export async function salvarArteDePublicacao(buffer: Buffer, tipo: TipoArte): Promise<string> {
-  const conteudo = await sharp(buffer).webp({ quality: 88 }).toBuffer();
+  // JPEG: a Content Publishing API do Instagram recusa WebP (erro 36001/2207005).
+  // Facebook, Telegram e WhatsApp aceitam JPEG sem problema.
+  const conteudo = await sharp(buffer).flatten({ background: "#ffffff" }).jpeg({ quality: 88, mozjpeg: true }).toBuffer();
   const pasta = path.join("artes", tipo, pastaDoMes());
-  const nomeArquivo = `${randomBytes(6).toString("hex")}.webp`;
+  const nomeArquivo = `${randomBytes(6).toString("hex")}.jpg`;
   const caminhoRelativo = path.join(pasta, nomeArquivo);
   const caminhoAbsoluto = path.join(RAIZ_MIDIA, caminhoRelativo);
 

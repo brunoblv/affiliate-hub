@@ -3,6 +3,7 @@ import { prisma, StatusPost, TipoPost, CategoriaEditorial } from "@/lib/database
 import { gerarTemasEditoriais } from "@/lib/conteudo/pauta-editorial";
 import { gerarArtigoEditorial } from "@/lib/conteudo/gerar-artigo-editorial";
 import { slugDePostLivre } from "@/lib/conteudo/slug";
+import { gerarESalvarCapaDoPost } from "@/lib/artes";
 
 const CATEGORIA_POR_ARGUMENTO: Record<string, CategoriaEditorial> = {
   "dicas-casa": CategoriaEditorial.DICAS_CASA,
@@ -64,7 +65,20 @@ async function main() {
         select: { id: true, slug: true },
       });
 
-      console.log(`  ✓ rascunho criado — /admin/posts/${post.id}`);
+      try {
+        const capa = await gerarESalvarCapaDoPost({
+          tipo: "jornada",
+          titulo: artigo.titulo,
+          resumo: artigo.resumo,
+          corpo: artigo.corpo,
+          fallbackComposicao: true,
+        });
+        await prisma.post.update({ where: { id: post.id }, data: { capaId: capa.id } });
+        console.log(`  ✓ rascunho criado — /admin/posts/${post.id} (com capa)`);
+      } catch (erroCapa) {
+        console.log(`  ✓ rascunho criado — /admin/posts/${post.id}`);
+        console.warn(`  capa: ${erroCapa instanceof Error ? erroCapa.message : erroCapa}`);
+      }
     } catch (erro) {
       console.error(`  ✗ falhou: ${erro instanceof Error ? erro.message : erro}`);
     }

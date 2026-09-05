@@ -67,6 +67,7 @@ export function PostForm({
   const editorRef = useRef<MDXEditorMethods>(null);
   const produtoSelectRef = useRef<HTMLSelectElement>(null);
   const tituloRef = useRef<HTMLInputElement>(null);
+  const resumoRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleUploadCapa(event: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = event.target.files?.[0];
@@ -94,12 +95,12 @@ export function PostForm({
 
     setGerandoCapa(true);
     try {
-      // Sem fotoUrl: a capa em tela pode ser um placeholder gerado antes, não
-      // uma foto real — reusá-la como "foto" faria a nova capa sair idêntica
-      // (a zona de foto cobre 100% do quadro), sem trocar de variante.
+      const corpoAtual = editorRef.current?.getMarkdown() ?? corpo;
       const resultado = await gerarCapaComFundoAction({
         tipo,
         titulo,
+        resumo: resumoRef.current?.value ?? "",
+        corpo: corpoAtual,
         capaAnteriorId: capa?.id ?? null,
       });
       if (!resultado.ok) {
@@ -107,7 +108,7 @@ export function PostForm({
         return;
       }
       setCapa(resultado.midia);
-      toast.success("Capa gerada a partir do fundo da identidade visual.");
+      toast.success("Capa gerada com o tema do post.");
     } catch (erro) {
       toast.error(erro instanceof Error ? erro.message : "Falha ao gerar a capa.");
     } finally {
@@ -234,7 +235,7 @@ export function PostForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="resumo">Resumo (opcional — gerado automaticamente se vazio)</Label>
-        <Textarea id="resumo" name="resumo" defaultValue={post?.resumo ?? defaults?.resumo ?? ""} rows={2} />
+        <Textarea id="resumo" name="resumo" ref={resumoRef} defaultValue={post?.resumo ?? defaults?.resumo ?? ""} rows={2} />
       </div>
 
       <div className="space-y-1.5">
@@ -255,7 +256,7 @@ export function PostForm({
             <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleUploadCapa} />
           </Button>
           <Button type="button" size="sm" variant="outline" disabled={gerandoCapa} onClick={handleGerarCapa}>
-            {gerandoCapa ? "Gerando..." : "Gerar capa com fundo"}
+            {gerandoCapa ? "Gerando capa..." : "Gerar capa"}
           </Button>
           {capa && (
             <Button type="button" size="sm" variant="ghost" onClick={() => setCapa(null)}>
@@ -265,7 +266,8 @@ export function PostForm({
         </div>
         <p className="text-xs text-muted-foreground">
           JPEG, PNG, WebP ou AVIF, até 25 MB. Ideal: 1600×900 (16:9). O arquivo é salvo no servidor.
-          &quot;Gerar capa com fundo&quot; usa os fundos da identidade visual (public/fundos-posts) + o título atual.
+          &quot;Gerar capa&quot; pede uma cena do tema à API do ChatGPT e cola no fundo da identidade visual.
+          Em post de lista, as fotos dos produtos entram numa montagem do cômodo.
         </p>
       </div>
 

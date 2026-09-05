@@ -7,6 +7,7 @@ import { enfileirarPost } from "@/lib/agenda/enfileirar";
 import { pautaListaPorId } from "@/lib/conteudo/pauta-listas-casa";
 import { escolherProdutosDaPauta } from "@/lib/conteudo/escolher-produtos-lista";
 import { gerarArtigoListaCasa } from "@/lib/conteudo/gerar-lista-casa";
+import { gerarESalvarCapaDoPost } from "@/lib/artes";
 import type { GerarListaResultado, SalvarListaResultado } from "./tipos";
 
 async function sincronizarItens(postId: string, corpo: string): Promise<void> {
@@ -75,6 +76,22 @@ export async function gerarESalvarLista(pautaId: string, distribuir: boolean): P
     });
 
     await sincronizarItens(post.id, gerado.artigo.corpo);
+
+    const pauta = pautaListaPorId(pautaId);
+    try {
+      const capa = await gerarESalvarCapaDoPost({
+        tipo: "lista",
+        titulo: gerado.artigo.titulo,
+        resumo: gerado.artigo.resumo,
+        corpo: gerado.artigo.corpo,
+        slugsProduto: gerado.artigo.produtos.map((p) => p.slug),
+        dicaTema: pauta?.comodoId ?? pauta?.titulo,
+        fallbackComposicao: true,
+      });
+      await prisma.post.update({ where: { id: post.id }, data: { capaId: capa.id } });
+    } catch {
+      // Post já está publicado — capa fica pra gerar depois no editor.
+    }
 
     revalidatePath("/admin/posts");
     revalidatePath("/");

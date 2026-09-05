@@ -9,7 +9,7 @@ import { GerarFichaProdutoButton } from "@/components/admin/gerar-ficha-produto-
 import { fichaProdutoVazia } from "@/lib/conteudo/corpo";
 import { updatePostAction } from "../actions";
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 export default async function EditarPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

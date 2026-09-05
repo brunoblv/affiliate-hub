@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/admin/page-header";
 import { PostForm } from "@/components/admin/post-form";
 import { createPostAction } from "../actions";
 
+export const maxDuration = 180;
+
 export default async function NovoPostPage() {
   const produtos = await prisma.produto.findMany({
     where: { ativo: true },

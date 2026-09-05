@@ -6,6 +6,8 @@ import { prisma, Destino, Rede } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
 import { gerarHorariosDaJanela, INTERVALO_PADRAO_MIN, TETO_PADRAO } from "@/lib/agenda/janela";
 import { formatarLocal } from "@/lib/agenda/fuso";
+import { urlPublica } from "@/lib/site-url";
+import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
 
 export interface CanalFormState {
   status: "idle" | "error" | "success";
@@ -102,6 +104,7 @@ export async function testarConexaoAction(id: string): Promise<ResultadoTeste> {
     const resultado = await publicador.publicar({
       texto: `Teste de conexão do Affiliate Hub — ${formatarLocal(new Date())}`,
       link: "",
+      imagemUrl: canal.rede === Rede.INSTAGRAM ? urlPublica(CAPA_EDITORIAL.src) : undefined,
     });
     return { ok: true, mensagem: `Publicado com sucesso (id externo: ${resultado.idExterno}).` };
   } catch (erro) {

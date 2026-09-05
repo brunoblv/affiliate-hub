@@ -4,7 +4,7 @@ import { GerarListaWizard } from "@/components/admin/gerar-lista-wizard";
 import { PAUTAS_LISTA_CASA } from "@/lib/conteudo/pauta-listas-casa";
 import { contarProdutosDaPauta, produtosElegiveisParaLista } from "@/lib/conteudo/escolher-produtos-lista";
 
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export default async function GerarListaPage() {
   const [produtos, pool] = await Promise.all([

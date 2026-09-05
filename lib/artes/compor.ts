@@ -8,7 +8,7 @@ import {
 } from "./constantes";
 import { caminhoDoFundo, fundoDisponivel } from "./fundos";
 import { resolverBufferDeImagem } from "./foto";
-import { escolherVariante, type Formato, type TipoArte, type ZonaFoto } from "./layouts";
+import { escolherVariante, ZONA_FOTO_CAPA_IA, type Formato, type TipoArte, type ZonaFoto } from "./layouts";
 import { montarSvgSelo, montarSvgTexto, montarSvgVeu, type CanvasArte } from "./texto-svg";
 
 export interface EntradaArte {
@@ -94,40 +94,67 @@ export async function comporArte(entrada: EntradaArte): Promise<ArteComposta | n
   return { buffer, variante: layout.arquivo };
 }
 
-async function comporFoto(zona: ZonaFoto, fotoUrl: string, canvas: CanvasArte): Promise<OverlayOptions | null> {
-  try {
-    const original = await resolverBufferDeImagem(fotoUrl);
-    const { largura: larguraCanvas, altura: alturaCanvas } = canvas;
+/**
+ * Capa do site: cena gerada (IA) recortada na moldura do fundo de marca.
+ * Sem título — o blog já mostra o título fora da imagem.
+ */
+export async function comporCapaComCena(entrada: {
+  tipo: TipoArte;
+  semente: string;
+  cena: Buffer;
+}): Promise<ArteComposta | null> {
+  const formato: Formato = "capa";
+  const canvas = canvasDoFormato(formato);
+  const layout = escolherVariante(entrada.tipo, entrada.semente, formato);
+  if (!fundoDisponivel(entrada.tipo, layout.arquivo, formato)) return null;
 
-    if (zona.formato === "circulo") {
-      const diametro = Math.round((zona.raioPct * 2 * larguraCanvas) / 100);
-      const left = Math.round((zona.cxPct * larguraCanvas) / 100 - diametro / 2);
-      const top = Math.round((zona.cyPct * alturaCanvas) / 100 - diametro / 2);
-      const mascara = Buffer.from(
-        `<svg width="${diametro}" height="${diametro}"><circle cx="${diametro / 2}" cy="${diametro / 2}" r="${diametro / 2}" fill="#fff"/></svg>`,
-      );
-      const foto = await sharp(original)
-        .resize(diametro, diametro, { fit: "cover" })
-        .composite([{ input: mascara, blend: "dest-in" }])
-        .png()
-        .toBuffer();
-      return { input: foto, left, top };
-    }
+  const fundoBuffer = await sharp(caminhoDoFundo(entrada.tipo, layout.arquivo, formato))
+    .resize(canvas.largura, canvas.altura, { fit: "cover" })
+    .toBuffer();
 
-    const largura = Math.round((zona.larguraPct / 100) * larguraCanvas);
-    const altura = Math.round((zona.alturaPct / 100) * alturaCanvas);
-    const left = Math.round((zona.xPct / 100) * larguraCanvas);
-    const top = Math.round((zona.yPct / 100) * alturaCanvas);
-    const raio = Math.round(((zona.raioPct ?? 0) / 100) * larguraCanvas);
+  const foto = await recortarFoto(ZONA_FOTO_CAPA_IA, entrada.cena, canvas);
+  const buffer = await sharp(fundoBuffer).composite(foto ? [foto] : []).png().toBuffer();
+  return { buffer, variante: layout.arquivo };
+}
+
+async function recortarFoto(zona: ZonaFoto, original: Buffer, canvas: CanvasArte): Promise<OverlayOptions> {
+  const { largura: larguraCanvas, altura: alturaCanvas } = canvas;
+
+  if (zona.formato === "circulo") {
+    const diametro = Math.round((zona.raioPct * 2 * larguraCanvas) / 100);
+    const left = Math.round((zona.cxPct * larguraCanvas) / 100 - diametro / 2);
+    const top = Math.round((zona.cyPct * alturaCanvas) / 100 - diametro / 2);
     const mascara = Buffer.from(
-      `<svg width="${largura}" height="${altura}"><rect width="${largura}" height="${altura}" rx="${raio}" ry="${raio}" fill="#fff"/></svg>`,
+      `<svg width="${diametro}" height="${diametro}"><circle cx="${diametro / 2}" cy="${diametro / 2}" r="${diametro / 2}" fill="#fff"/></svg>`,
     );
     const foto = await sharp(original)
-      .resize(largura, altura, { fit: "cover" })
+      .resize(diametro, diametro, { fit: "cover" })
       .composite([{ input: mascara, blend: "dest-in" }])
       .png()
       .toBuffer();
     return { input: foto, left, top };
+  }
+
+  const largura = Math.round((zona.larguraPct / 100) * larguraCanvas);
+  const altura = Math.round((zona.alturaPct / 100) * alturaCanvas);
+  const left = Math.round((zona.xPct / 100) * larguraCanvas);
+  const top = Math.round((zona.yPct / 100) * alturaCanvas);
+  const raio = Math.round(((zona.raioPct ?? 0) / 100) * larguraCanvas);
+  const mascara = Buffer.from(
+    `<svg width="${largura}" height="${altura}"><rect width="${largura}" height="${altura}" rx="${raio}" ry="${raio}" fill="#fff"/></svg>`,
+  );
+  const foto = await sharp(original)
+    .resize(largura, altura, { fit: "cover" })
+    .composite([{ input: mascara, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+  return { input: foto, left, top };
+}
+
+async function comporFoto(zona: ZonaFoto, fotoUrl: string, canvas: CanvasArte): Promise<OverlayOptions | null> {
+  try {
+    const original = await resolverBufferDeImagem(fotoUrl);
+    return await recortarFoto(zona, original, canvas);
   } catch {
     // Foto indisponível (CDN fora do ar, URL quebrada) — a arte sai só com fundo + texto.
     return null;

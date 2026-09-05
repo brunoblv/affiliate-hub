@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { pautaListaPorId } from "@/lib/conteudo/pauta-listas-casa";
 import { gerarESalvarLista, gerarLista } from "@/app/admin/(dashboard)/posts/gerar-lista/servico";
 
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export async function POST(requisicao: Request) {
   const sessao = await auth();

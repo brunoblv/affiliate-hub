@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/database";
+import { prisma, Rede } from "@/lib/database";
 import { obterPublicador } from "./publicadores";
+import { urlJpegPublicaParaInstagram } from "./instagram-imagem";
 import { registrar } from "@/lib/log";
 import { proximoHorarioLivre } from "@/lib/agenda/proximo-horario";
 
@@ -25,9 +26,18 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
   try {
     const publicador = obterPublicador(publicacao.canal);
 
+    let imagemUrl = publicacao.imagemUrl ?? undefined;
+    if (publicacao.canal.rede === Rede.INSTAGRAM && imagemUrl) {
+      const jpeg = await urlJpegPublicaParaInstagram(imagemUrl);
+      if (jpeg !== imagemUrl) {
+        imagemUrl = jpeg;
+        await prisma.publicacao.update({ where: { id: publicacaoId }, data: { imagemUrl: jpeg } });
+      }
+    }
+
     const resultado = await publicador.publicar({
       texto: publicacao.texto,
-      imagemUrl: publicacao.imagemUrl ?? undefined,
+      imagemUrl,
       link: publicacao.linkDestino,
       previewDeLink: publicacao.post?.tipo === "JORNADA",
     });
