@@ -1,23 +1,33 @@
+-- Idempotente de propósito: contém ALTER TYPE ... ADD VALUE, então o Prisma
+-- roda este arquivo SEM transação (cada comando comita isolado). Se uma
+-- tentativa anterior falhou no meio, os comandos já executados não podem dar
+-- erro de "já existe" na re-execução — por isso todo CREATE/ALTER abaixo é
+-- guardado.
+
 -- AlterEnum
-ALTER TYPE "NivelLog" ADD VALUE 'ALERTA';
+ALTER TYPE "NivelLog" ADD VALUE IF NOT EXISTS 'ALERTA';
 
 -- CreateEnum
-CREATE TYPE "ContentType" AS ENUM ('OFERTA_INDIVIDUAL', 'SELECAO', 'CONTEUDO_BLOG', 'NARRATIVA_PESSOAL');
+DO $$ BEGIN
+    CREATE TYPE "ContentType" AS ENUM ('OFERTA_INDIVIDUAL', 'SELECAO', 'CONTEUDO_BLOG', 'NARRATIVA_PESSOAL');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 -- AlterTable: novos limites/flag do canal (regras 1 e 4 de docs/hub/regras-postagem-facebook.md)
-ALTER TABLE "canais" ADD COLUMN "tetoOfertaIndividualDiario" INTEGER NOT NULL DEFAULT 3;
-ALTER TABLE "canais" ADD COLUMN "linkEmComentario" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "canais" ADD COLUMN IF NOT EXISTS "tetoOfertaIndividualDiario" INTEGER NOT NULL DEFAULT 3;
+ALTER TABLE "canais" ADD COLUMN IF NOT EXISTS "linkEmComentario" BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable: contentType nasce nullable pra dar tempo do backfill abaixo
-ALTER TABLE "publicacoes" ADD COLUMN "contentType" "ContentType";
+ALTER TABLE "publicacoes" ADD COLUMN IF NOT EXISTS "contentType" "ContentType";
 
 -- AlterTable: campos de Insights (regra 5), preenchidos depois por job de sincronização
-ALTER TABLE "publicacoes" ADD COLUMN "visualizacoes" INTEGER;
-ALTER TABLE "publicacoes" ADD COLUMN "visualizadoresUnicos" INTEGER;
-ALTER TABLE "publicacoes" ADD COLUMN "engajamentos" INTEGER;
-ALTER TABLE "publicacoes" ADD COLUMN "insightsSincronizadoEm" TIMESTAMP(3);
+ALTER TABLE "publicacoes" ADD COLUMN IF NOT EXISTS "visualizacoes" INTEGER;
+ALTER TABLE "publicacoes" ADD COLUMN IF NOT EXISTS "visualizadoresUnicos" INTEGER;
+ALTER TABLE "publicacoes" ADD COLUMN IF NOT EXISTS "engajamentos" INTEGER;
+ALTER TABLE "publicacoes" ADD COLUMN IF NOT EXISTS "insightsSincronizadoEm" TIMESTAMP(3);
 
--- Backfill a partir da origem de cada Publicacao já existente
+-- Backfill a partir da origem de cada Publicacao já existente (idempotente: só reafirma valores)
 UPDATE "publicacoes"
 SET "contentType" = 'OFERTA_INDIVIDUAL'
 WHERE "produtoId" IS NOT NULL;
@@ -47,9 +57,9 @@ UPDATE "publicacoes"
 SET "contentType" = 'OFERTA_INDIVIDUAL'
 WHERE "contentType" IS NULL;
 
--- AlterTable: agora sim, obrigatório
+-- AlterTable: agora sim, obrigatório (no-op se já estiver NOT NULL)
 ALTER TABLE "publicacoes" ALTER COLUMN "contentType" SET NOT NULL;
 
 -- CreateIndex
-CREATE INDEX "publicacoes_canalId_contentType_agendadaPara_idx" ON "publicacoes"("canalId", "contentType", "agendadaPara");
-CREATE INDEX "publicacoes_contentType_publicadaEm_idx" ON "publicacoes"("contentType", "publicadaEm");
+CREATE INDEX IF NOT EXISTS "publicacoes_canalId_contentType_agendadaPara_idx" ON "publicacoes"("canalId", "contentType", "agendadaPara");
+CREATE INDEX IF NOT EXISTS "publicacoes_contentType_publicadaEm_idx" ON "publicacoes"("contentType", "publicadaEm");
