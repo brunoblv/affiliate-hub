@@ -22,9 +22,12 @@ function readForm(formData: FormData) {
   const intervaloMinimoMin = Number(formData.get("intervaloMinimoMin") ?? INTERVALO_PADRAO_MIN);
   const tetoDiario = Number(formData.get("tetoDiario") ?? TETO_PADRAO);
   const cooldownDias = Number(formData.get("cooldownDias") ?? 30);
+  const tetoOfertaIndividualDiario = Number(formData.get("tetoOfertaIndividualDiario") ?? 3);
+  const linkEmComentario = formData.get("linkEmComentario") === "on";
   const ativo = formData.get("ativo") === "on";
   const intervalo = Number.isFinite(intervaloMinimoMin) && intervaloMinimoMin >= 1 ? intervaloMinimoMin : INTERVALO_PADRAO_MIN;
   const teto = Number.isFinite(tetoDiario) && tetoDiario >= 1 ? tetoDiario : TETO_PADRAO;
+  const tetoOfertaIndividual = Number.isFinite(tetoOfertaIndividualDiario) && tetoOfertaIndividualDiario >= 0 ? tetoOfertaIndividualDiario : 3;
 
   return {
     nome,
@@ -35,6 +38,8 @@ function readForm(formData: FormData) {
     intervaloMinimoMin: intervalo,
     tetoDiario: teto,
     cooldownDias,
+    tetoOfertaIndividualDiario: tetoOfertaIndividual,
+    linkEmComentario,
     ativo,
   };
 }
@@ -55,6 +60,8 @@ export async function createCanalAction(_prev: CanalFormState, formData: FormDat
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
+      tetoOfertaIndividualDiario: dados.tetoOfertaIndividualDiario,
+      linkEmComentario: dados.linkEmComentario,
       ativo: dados.ativo,
     },
   });
@@ -80,6 +87,8 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
       intervaloMinimoMin: dados.intervaloMinimoMin,
       tetoDiario: dados.tetoDiario,
       cooldownDias: dados.cooldownDias,
+      tetoOfertaIndividualDiario: dados.tetoOfertaIndividualDiario,
+      linkEmComentario: dados.linkEmComentario,
       ativo: dados.ativo,
     },
   });

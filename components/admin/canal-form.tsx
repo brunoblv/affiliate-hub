@@ -123,6 +123,43 @@ export function CanalForm({
         </div>
       </div>
 
+      {(canal?.rede ?? "FACEBOOK_PAGE") === "FACEBOOK_PAGE" && (
+        <div className="space-y-4 rounded-lg border border-border p-4">
+          <p className="text-sm font-medium">Regras de postagem do Facebook</p>
+          <div className="space-y-1.5">
+            <Label htmlFor="tetoOfertaIndividualDiario">Teto de oferta individual por dia</Label>
+            <Input
+              id="tetoOfertaIndividualDiario"
+              name="tetoOfertaIndividualDiario"
+              type="number"
+              min="0"
+              className="max-w-32"
+              defaultValue={canal?.tetoOfertaIndividualDiario ?? 3}
+            />
+            <p className="text-xs text-muted-foreground">
+              Máximo de posts de um produto só por dia — independente do teto diário geral do canal. Lista, blog e
+              jornada não entram nesse teto.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="linkEmComentario"
+              name="linkEmComentario"
+              type="checkbox"
+              defaultChecked={canal?.linkEmComentario ?? false}
+              className="size-4 rounded border-input"
+            />
+            <Label htmlFor="linkEmComentario" className="font-normal">
+              Publicar sem link na legenda (link vai como primeiro comentário)
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Teste A/B de alcance — liga e desliga pra comparar nos Insights o post com link na legenda contra o post
+            com link em comentário.
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <input id="ativo" name="ativo" type="checkbox" defaultChecked={canal?.ativo ?? true} className="size-4 rounded border-input" />
         <Label htmlFor="ativo" className="font-normal">

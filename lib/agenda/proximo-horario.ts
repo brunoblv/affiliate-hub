@@ -1,4 +1,4 @@
-import { prisma, type Canal } from "@/lib/database";
+import { ContentType, Rede, prisma, type Canal } from "@/lib/database";
 import { FUSO_APP, inicioDoDia, lerHorario, paraUtc, partesNoFuso } from "./fuso";
 import {
   estaNaJanelaDePublicacao,
@@ -44,11 +44,17 @@ export function horariosDoCanal(canal: Canal): string[] {
  *
  * A regra de cooldown do produto é checada à parte, em `produtoEmCooldown`,
  * porque ela decide se vale agendar — não qual horário usar.
+ *
+ * Quando `contentType` é OFERTA_INDIVIDUAL e o canal é FACEBOOK_PAGE, soma-se
+ * mais uma condição: `tetoOfertaIndividualDiario` daquele content_type no dia
+ * (regra 1 de docs/hub/regras-postagem-facebook.md) — independente do
+ * `tetoDiario` geral do canal, que continua valendo para os demais tipos.
  */
 export async function proximoHorarioLivre(
   canal: Canal,
   apartirDe: Date = new Date(),
   excluirPublicacaoId?: string,
+  contentType?: ContentType,
 ): Promise<ResultadoAgenda | null> {
   await aplicarJanelaPadraoNosCanais();
 
@@ -81,11 +87,17 @@ export async function proximoHorarioLivre(
       agendadaPara: { gte: new Date(apartirDe.getTime() - MS_POR_DIA), lte: limite },
       ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
     },
-    select: { agendadaPara: true },
+    select: { agendadaPara: true, contentType: true },
     orderBy: { agendadaPara: "asc" },
   });
 
   const instantesOcupados = ocupadas.map((p) => p.agendadaPara.getTime());
+
+  const limitarOfertaIndividual = contentType === ContentType.OFERTA_INDIVIDUAL && canal.rede === Rede.FACEBOOK_PAGE;
+  const instantesOfertaIndividual = limitarOfertaIndividual
+    ? ocupadas.filter((p) => p.contentType === ContentType.OFERTA_INDIVIDUAL).map((p) => p.agendadaPara.getTime())
+    : [];
+  const tetoOfertaIndividual = Math.max(0, canal.tetoOfertaIndividualDiario);
 
   let cursor = inicioDoDia(apartirDe);
 
@@ -95,8 +107,12 @@ export async function proximoHorarioLivre(
     const fimDoDia = paraUtc(ano, mes, dia + 1, 0, 0, FUSO_APP).getTime();
 
     const jaAgendadasNoDia = instantesOcupados.filter((t) => t >= comecoDoDia && t < fimDoDia).length;
+    const ofertaIndividualNoDia = limitarOfertaIndividual
+      ? instantesOfertaIndividual.filter((t) => t >= comecoDoDia && t < fimDoDia).length
+      : 0;
+    const tetoOfertaAtingido = limitarOfertaIndividual && ofertaIndividualNoDia >= tetoOfertaIndividual;
 
-    if (jaAgendadasNoDia < teto) {
+    if (jaAgendadasNoDia < teto && !tetoOfertaAtingido) {
       let vagasRestantes = teto - jaAgendadasNoDia;
 
       for (const { hora, minuto } of horariosOrdenados) {

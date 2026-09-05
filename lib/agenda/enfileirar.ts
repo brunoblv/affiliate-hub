@@ -1,6 +1,9 @@
-import { prisma, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
+import { prisma, ContentType, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { proximoMeioDiaLivre } from "./meio-dia";
+import { contentTypeDoProduto, contentTypeDaLista, contentTypeDaJornada } from "./content-type";
+import { LIMIAR_SIMILARIDADE_PRODUTO, similaridadeJaccard, tokenizarTitulo } from "./similaridade";
+import { alertarMixSemanalSeNecessario } from "./mix-semanal";
 import { gerarLegendaDaLista, gerarLegendaDoProduto, gerarLegendaDaJornada } from "@/lib/conteudo/gerar-legenda";
 import { montarTextoDaJornada } from "@/lib/conteudo/texto-do-post";
 import { executarPublicacao } from "@/lib/publicacao/executar";
@@ -133,6 +136,53 @@ function pulado(canalId: string, canal: string, motivoPulado: string): Resultado
   return { canalId, canal, motivoPulado };
 }
 
+const DIAS_JANELA_DEDUP = 7;
+const MS_POR_DIA_DEDUP = 24 * 60 * 60 * 1000;
+
+/**
+ * Regra 2 de docs/hub/regras-postagem-facebook.md: bloqueia oferta_individual
+ * cujo título é muito parecido com o de outro produto já postado (agendado ou
+ * publicado) no mesmo canal nos últimos 7 dias. Evita o padrão observado de
+ * 4 variações do mesmo kit no mesmo dia. Só se aplica ao Facebook Page.
+ */
+async function produtoMuitoSimilarNoCanal(
+  canal: Canal,
+  produto: Produto,
+): Promise<{ similar: boolean; tituloMaisParecido?: string; similaridade?: number }> {
+  if (canal.rede !== Rede.FACEBOOK_PAGE) return { similar: false };
+
+  const desde = new Date(Date.now() - DIAS_JANELA_DEDUP * MS_POR_DIA_DEDUP);
+
+  const recentes = await prisma.publicacao.findMany({
+    where: {
+      canalId: canal.id,
+      contentType: ContentType.OFERTA_INDIVIDUAL,
+      produtoId: { not: produto.id },
+      OR: [
+        { status: "PUBLICADA", publicadaEm: { gte: desde } },
+        { status: { in: ["PENDENTE", "PUBLICANDO"] } },
+      ],
+    },
+    select: { produto: { select: { nome: true } } },
+  });
+
+  const titulos = recentes.map((r) => r.produto?.nome).filter((nome): nome is string => Boolean(nome));
+  if (titulos.length === 0) return { similar: false };
+
+  const tokensDoProduto = tokenizarTitulo(produto.nome);
+  let maior = 0;
+  let maisParecido: string | undefined;
+  for (const titulo of titulos) {
+    const similaridade = similaridadeJaccard(tokensDoProduto, tokenizarTitulo(titulo));
+    if (similaridade > maior) {
+      maior = similaridade;
+      maisParecido = titulo;
+    }
+  }
+
+  return { similar: maior >= LIMIAR_SIMILARIDADE_PRODUTO, tituloMaisParecido: maisParecido, similaridade: maior };
+}
+
 /** Achadinhos do TikTok Shop são one-shot: um post e não volta. */
 function ehProdutoTikTok(produto: Produto): boolean {
   return produto.destino === Destino.TIKTOK_SHOP || produto.plataforma === Plataforma.TIKTOK_SHOP;
@@ -249,9 +299,21 @@ async function enfileirarNoCanal(
   imagemUrl: string | undefined,
 ): Promise<ResultadoEnfileiramento> {
   const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
+  const contentType = contentTypeDoProduto();
 
   if (await produtoEmCooldown(canal, produto.id)) {
     return { ...base, motivoPulado: `Já publicado neste canal nos últimos ${canal.cooldownDias} dias` };
+  }
+
+  const dedup = await produtoMuitoSimilarNoCanal(canal, produto);
+  if (dedup.similar) {
+    const motivoPulado = `Título muito parecido (${Math.round((dedup.similaridade ?? 0) * 100)}%) com "${dedup.tituloMaisParecido}", postado nos últimos ${DIAS_JANELA_DEDUP} dias neste canal.`;
+    await registrar("ALERTA", "AGENDA", `Oferta individual bloqueada por similaridade em ${canal.nome}`, {
+      produto: produto.slug,
+      tituloMaisParecido: dedup.tituloMaisParecido,
+      similaridade: dedup.similaridade,
+    });
+    return { ...base, motivoPulado };
   }
 
   let link: string;
@@ -263,7 +325,7 @@ async function enfileirarNoCanal(
 
   let vaga;
   try {
-    vaga = await proximoHorarioLivre(canal);
+    vaga = await proximoHorarioLivre(canal, new Date(), undefined, contentType);
   } catch (erro) {
     return { ...base, motivoPulado: mensagemErro(erro) };
   }
@@ -272,9 +334,11 @@ async function enfileirarNoCanal(
     const pendentes = await prisma.publicacao.count({
       where: { canalId: canal.id, status: { in: ["PENDENTE", "PUBLICANDO"] } },
     });
+    const limiteOferta =
+      canal.rede === Rede.FACEBOOK_PAGE ? `, teto de oferta_individual ${canal.tetoOfertaIndividualDiario}/dia` : "";
     return {
       ...base,
-      motivoPulado: `Sem horário livre (teto ${canal.tetoDiario}/dia, intervalo ${canal.intervaloMinimoMin} min, ${pendentes} na fila). Aumente o teto do canal.`,
+      motivoPulado: `Sem horário livre (teto ${canal.tetoDiario}/dia, intervalo ${canal.intervaloMinimoMin} min${limiteOferta}, ${pendentes} na fila). Aumente o teto do canal.`,
     };
   }
 
@@ -291,6 +355,7 @@ async function enfileirarNoCanal(
         texto,
         imagemUrl,
         linkDestino: link,
+        contentType,
         chaveIdempotencia,
       },
     });
@@ -299,6 +364,10 @@ async function enfileirarNoCanal(
       produto: produto.slug,
       agendadaPara: vaga.agendadaPara.toISOString(),
     });
+
+    if (canal.rede === Rede.FACEBOOK_PAGE) {
+      await alertarMixSemanalSeNecessario(canal);
+    }
 
     return { ...base, agendadaPara: vaga.agendadaPara.toISOString(), publicacaoId: publicacao.id };
   } catch (erro) {
@@ -428,6 +497,7 @@ async function enfileirarPostNoCanal(
         agendadaPara: vaga.agendadaPara,
         texto,
         imagemUrl,
+        contentType: contentTypeDaLista(),
         linkDestino: link,
         chaveIdempotencia,
       },
@@ -586,6 +656,7 @@ async function enfileirarJornadaNoCanal(
         // Instagram: arte composta (ou capa/hero crua) — a API exige imagem.
         imagemUrl: imagemUrl ?? null,
         linkDestino: link,
+        contentType: contentTypeDaJornada(post),
         chaveIdempotencia,
       },
     });
@@ -696,6 +767,7 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
         texto,
         imagemUrl,
         linkDestino: link,
+        contentType: contentTypeDoProduto(),
         chaveIdempotencia,
       },
     });

@@ -3,12 +3,14 @@ import "dotenv/config";
 import { prisma } from "@/lib/database";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
-import { formatarLocal, partesNoFuso } from "@/lib/agenda/fuso";
+import { formatarLocal, partesNoFuso, FUSO_APP } from "@/lib/agenda/fuso";
 import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
+import { sincronizarInsightsFacebook } from "@/lib/publicacao/insights";
+import { executarRelatorioSemanalFacebook } from "@/lib/relatorios/relatorio-semanal-facebook";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
@@ -20,6 +22,12 @@ const INTERVALO_DESCOBERTA_SHOPEE_MS = 24 * 60 * 60 * 1000;
 /** Landing da vitrine: confere a cada 15 min; gera a partir das 6h (TZ_APP). */
 const INTERVALO_VITRINE_MS = 15 * 60 * 1000;
 const HORA_VITRINE = 6;
+/** Insights do Facebook (regra 5): não precisa de tempo real, refaz a cada 3h. */
+const INTERVALO_INSIGHTS_MS = 3 * 60 * 60 * 1000;
+/** Relatório semanal do Facebook (regra 6): confere a cada hora; roda na segunda-feira a partir das 8h. */
+const INTERVALO_RELATORIO_SEMANAL_MS = 60 * 60 * 1000;
+const DIA_RELATORIO_SEMANAL = "Monday";
+const HORA_RELATORIO_SEMANAL = 8;
 
 let rodando = false;
 let encerrando = false;
@@ -166,6 +174,53 @@ async function loopLandingDiaria(): Promise<void> {
   }
 }
 
+/** Loop independente: sincroniza Insights (visualizações/engajamento) dos posts publicados no Facebook. */
+async function loopInsightsFacebook(): Promise<void> {
+  while (!encerrando) {
+    try {
+      await sincronizarInsightsFacebook();
+    } catch (erro) {
+      await registrar("ERRO", "INSIGHTS", "Sincronização de Insights do Facebook falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_INSIGHTS_MS));
+  }
+}
+
+/**
+ * true se o relatório semanal já rodou nos últimos 6 dias — evita repetir em
+ * cada tick de segunda-feira. Como o job só dispara às segundas, uma janela
+ * de 6 dias (< 7) já garante uma execução por semana sem precisar calcular o
+ * início exato da semana.
+ */
+async function relatorioSemanalJaRodouNestaSemana(): Promise<boolean> {
+  const seisDiasAtras = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+  const existente = await prisma.log.findFirst({
+    where: { area: "RELATORIO_SEMANAL", criadoEm: { gte: seisDiasAtras } },
+    select: { id: true },
+  });
+  return existente !== null;
+}
+
+/** Job semanal (regra 6): roda uma vez por semana, na segunda-feira a partir das 8h (TZ_APP). */
+async function loopRelatorioSemanalFacebook(): Promise<void> {
+  while (!encerrando) {
+    try {
+      const agoraNoFuso = partesNoFuso(new Date(), FUSO_APP);
+      const ehDiaDoRelatorio = new Intl.DateTimeFormat("en-US", { timeZone: FUSO_APP, weekday: "long" }).format(new Date()) === DIA_RELATORIO_SEMANAL;
+      if (ehDiaDoRelatorio && agoraNoFuso.hora >= HORA_RELATORIO_SEMANAL && !(await relatorioSemanalJaRodouNestaSemana())) {
+        await executarRelatorioSemanalFacebook();
+      }
+    } catch (erro) {
+      await registrar("ERRO", "RELATORIO_SEMANAL", "Relatório semanal do Facebook falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_RELATORIO_SEMANAL_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -180,3 +235,5 @@ void loopSincronizacaoPrecos();
 void loopSincronizacaoPrecosShopee();
 void loopDescobertaShopee();
 void loopLandingDiaria();
+void loopInsightsFacebook();
+void loopRelatorioSemanalFacebook();

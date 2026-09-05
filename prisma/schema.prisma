@@ -383,6 +383,16 @@ model Canal {
   /// Dias antes de o mesmo produto poder repetir neste canal.
   cooldownDias       Int @default(30)
 
+  /// Máximo de posts OFERTA_INDIVIDUAL por dia — só vale para FACEBOOK_PAGE
+  /// (ver docs/hub/regras-postagem-facebook.md, regra 1). Independente do
+  /// tetoDiario geral, que segue valendo para os demais content types.
+  tetoOfertaIndividualDiario Int @default(3)
+
+  /// Teste A/B (regra 4): true publica sem o link na legenda/preview e cria
+  /// um comentário automático com o link logo após a publicação. Vale só
+  /// para FACEBOOK_PAGE.
+  linkEmComentario Boolean @default(false)
+
   publicacoes Publicacao[]
 
   criadoEm     DateTime @default(now())
@@ -402,6 +412,18 @@ enum StatusPublicacao {
   CANCELADA
 }
 
+/// Classificação do post pra regras de cadência/mix do Facebook — ver
+/// docs/hub/regras-postagem-facebook.md. Calculada uma vez no agendamento
+/// (não muda depois) a partir da origem da Publicacao:
+/// Produto -> OFERTA_INDIVIDUAL; Post LISTA / LandingDiaria -> SELECAO;
+/// Post JORNADA/DICAS_CASA -> CONTEUDO_BLOG; Post JORNADA/JORNADA_APARTAMENTO -> NARRATIVA_PESSOAL.
+enum ContentType {
+  OFERTA_INDIVIDUAL
+  SELECAO
+  CONTEUDO_BLOG
+  NARRATIVA_PESSOAL
+}
+
 /// Amarrada a um Produto, a um Post (LISTA ou JORNADA) OU a uma LandingDiaria —
 /// exatamente um dos três (CHECK constraint na migration garante isso).
 model Publicacao {
@@ -413,6 +435,7 @@ model Publicacao {
 
   agendadaPara DateTime
   status       StatusPublicacao @default(PENDENTE)
+  contentType  ContentType
 
   /// Texto já renderizado no agendamento — auditável e editável antes de sair.
   texto       String  @db.Text
@@ -424,6 +447,14 @@ model Publicacao {
   idPostExterno String?
   erro          String?   @db.Text
   publicadaEm   DateTime?
+
+  /// Insights da Graph API (regra 5) — só preenchido para FACEBOOK_PAGE, quando
+  /// o post já tem idPostExterno e o job de sincronização já rodou. Nulo até lá.
+  /// visualizacoes = post_impressions (Meta Business Suite chama de "Visualizações").
+  visualizacoes          Int?
+  visualizadoresUnicos   Int?
+  engajamentos           Int?
+  insightsSincronizadoEm DateTime?
 
   /// produtoId|postId:canalId:instante — barra duplicata mesmo com dois workers.
   chaveIdempotencia String @unique
@@ -438,6 +469,8 @@ model Publicacao {
 
   @@index([status, agendadaPara])
   @@index([canalId, agendadaPara])
+  @@index([canalId, contentType, agendadaPara])
+  @@index([contentType, publicadaEm])
   @@index([produtoId, canalId, publicadaEm])
   @@index([postId, canalId, publicadaEm])
   @@index([landingDiariaId, canalId, publicadaEm])
@@ -493,6 +526,7 @@ model Assinante {
 
 enum NivelLog {
   INFO
+  ALERTA
   ERRO
 }
 

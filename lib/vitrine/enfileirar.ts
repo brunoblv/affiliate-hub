@@ -1,5 +1,6 @@
 import { prisma, Rede, type Canal, type LandingDiaria } from "@/lib/database";
 import { proximoHorarioLivre } from "@/lib/agenda/proximo-horario";
+import { contentTypeDaLanding } from "@/lib/agenda/content-type";
 import { gerarLegendaDaLanding } from "@/lib/conteudo/gerar-legenda";
 import { registrar } from "@/lib/log";
 import { getSiteUrl, urlPublica } from "@/lib/site-url";
@@ -227,6 +228,7 @@ async function enfileirarNoCanal(
         texto,
         imagemUrl,
         linkDestino: link,
+        contentType: contentTypeDaLanding(),
         chaveIdempotencia,
       },
     });

@@ -57,7 +57,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
       idExterno: resultado.idExterno,
     });
   } catch (erro) {
-    await tratarFalha(publicacaoId, publicacao.canal, publicacao.tentativas, erro);
+    await tratarFalha(publicacaoId, publicacao.canal, publicacao.contentType, publicacao.tentativas, erro);
   }
 }
 
@@ -74,6 +74,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
 async function tratarFalha(
   publicacaoId: string,
   canal: Parameters<typeof proximoHorarioLivre>[0],
+  contentType: Parameters<typeof proximoHorarioLivre>[3],
   tentativas: number,
   erro: unknown,
 ): Promise<void> {
@@ -87,7 +88,7 @@ async function tratarFalha(
     });
   } else {
     const apartirDe = new Date(Date.now() + ESPERA_MINIMA_ENTRE_TENTATIVAS_MIN * 60_000);
-    const vaga = await proximoHorarioLivre(canal, apartirDe, publicacaoId);
+    const vaga = await proximoHorarioLivre(canal, apartirDe, publicacaoId, contentType);
 
     if (!vaga) {
       await prisma.publicacao.update({

@@ -34,7 +34,7 @@ export interface Publicador {
 export function obterPublicador(canal: Canal): Publicador {
   switch (canal.rede) {
     case Rede.FACEBOOK_PAGE:
-      return new PublicadorFacebook(canal.idExterno);
+      return new PublicadorFacebook(canal.idExterno, canal.linkEmComentario);
     case Rede.FACEBOOK_GROUP:
       return new PublicadorFacebookGrupo(canal.idExterno);
     case Rede.INSTAGRAM:
@@ -107,33 +107,59 @@ async function esperarContainerPronto(containerId: string, token: string): Promi
   throw new Error("Instagram: a imagem ainda não ficou pronta para publicar.");
 }
 
+/** Remove a linha que contém o link cru da legenda — usado quando o link vai pro comentário. */
+function removerLinhaDoLink(texto: string, link: string): string {
+  return texto
+    .split("\n")
+    .filter((linha) => !linha.includes(link))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /**
  * Página do Facebook. Publica foto com a legenda já montada quando há imagem;
  * senão, post de link (preview via `link`). Token da Página, nunca do usuário.
+ *
+ * Teste A/B da regra 4 (docs/hub/regras-postagem-facebook.md): quando
+ * `linkEmComentario` está ligado no canal, publica sem o link na legenda/preview
+ * e cria, na sequência, um comentário só com o link — pra comparar alcance
+ * contra o formato padrão (link na legenda) usando os Insights já coletados.
  */
 class PublicadorFacebook implements Publicador {
-  constructor(private readonly pageId: string) {}
+  constructor(
+    private readonly pageId: string,
+    private readonly linkEmComentario: boolean,
+  ) {}
 
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
     const token = await obterTokenDePagina(this.pageId);
+    const linkNaLegenda = !this.linkEmComentario;
+    const texto = linkNaLegenda ? conteudo.texto : removerLinhaDoLink(conteudo.texto, conteudo.link);
+
+    let idExterno: string;
 
     if (conteudo.previewDeLink || !conteudo.imagemUrl) {
       const resposta = await chamarGraph<{ id: string }>(`${this.pageId}/feed`, {
-        message: conteudo.texto,
-        link: conteudo.link,
+        message: texto,
+        ...(linkNaLegenda ? { link: conteudo.link } : {}),
         access_token: token,
       });
-
-      return { idExterno: resposta.id };
+      idExterno = resposta.id;
+    } else {
+      const resposta = await chamarGraph<{ id?: string; post_id?: string }>(`${this.pageId}/photos`, {
+        url: conteudo.imagemUrl,
+        caption: texto,
+        access_token: token,
+      });
+      idExterno = resposta.post_id ?? resposta.id ?? "";
     }
 
-    const resposta = await chamarGraph<{ id?: string; post_id?: string }>(`${this.pageId}/photos`, {
-      url: conteudo.imagemUrl,
-      caption: conteudo.texto,
-      access_token: token,
-    });
+    if (!linkNaLegenda && idExterno) {
+      await chamarGraph(`${idExterno}/comments`, { message: conteudo.link, access_token: token });
+    }
 
-    return { idExterno: resposta.post_id ?? resposta.id ?? "" };
+    return { idExterno };
   }
 }
 
