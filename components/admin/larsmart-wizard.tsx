@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Check, Loader2, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { PautaListaCasa } from "@/lib/conteudo/pauta-listas-casa";
 import type {
   GerarTemaLarSmartResultado,
   GerarArtigoLarSmartResultado,
