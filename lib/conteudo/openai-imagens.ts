@@ -126,9 +126,12 @@ export async function editarImagemOpenAi(prompt: string, imagens: ImagemDeEntrad
       form.append("quality", qualidadeDeImagem());
       form.append("input_fidelity", "high");
       form.append("output_format", "png");
+      // Várias fotos: o endpoint recusa `image` repetido e pede a sintaxe de
+      // lista (`image[]`). Uma foto só continua no campo `image`.
+      const campo = usadas.length > 1 ? "image[]" : "image";
       for (const img of usadas) {
         const mime = img.mime ?? "image/jpeg";
-        form.append("image", new Blob([new Uint8Array(img.buffer)], { type: mime }), img.nome);
+        form.append(campo, new Blob([new Uint8Array(img.buffer)], { type: mime }), img.nome);
       }
 
       let res: Response;
