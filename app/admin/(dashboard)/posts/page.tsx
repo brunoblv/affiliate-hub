@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Newspaper, Plus } from "lucide-react";
+import { Newspaper, Plus, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -53,6 +53,10 @@ export default async function PostsAdminPage({
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button variant="outline" render={<Link href="/admin/posts/gerar-lista" />}>
             Gerar lista
+          </Button>
+          <Button variant="outline" render={<Link href="/admin/posts/larsmart" />}>
+            <Sparkles />
+            LarSmart
           </Button>
           <GerarFichasVaziasButton />
           <Button render={<Link href="/admin/posts/novo" />}>

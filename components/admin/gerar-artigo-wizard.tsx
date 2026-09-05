@@ -34,7 +34,7 @@ async function chamarApi<T>(url: string, body: unknown): Promise<T> {
   }
 }
 
-export function GerarArtigoWizard({ produtos }: { produtos: Array<{ slug: string; nome: string }> }) {
+export function GerarArtigoWizard({ produtos }: { produtos: Array<{ slug: string; nome: string; imagem: string | null }> }) {
   const [categoria, setCategoria] = useState<CategoriaEditorial>("DICAS_CASA");
   const [tema, setTema] = useState<TemaEditorial | null>(null);
   const [defaults, setDefaults] = useState<PostFormDefaults | null>(null);

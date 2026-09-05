@@ -42,7 +42,8 @@ function temImagem(produto: Pick<ProdutoCandidatoLista, "imagens">): boolean {
   return Array.isArray(produto.imagens) && produto.imagens.length > 0;
 }
 
-function familia(nome: string): string {
+/** Primeiros 2 tokens do slug — usado pra detectar produtos quase idênticos. */
+export function familia(nome: string): string {
   return slugify(nome).split("-").slice(0, 2).join("-") || slugify(nome);
 }
 

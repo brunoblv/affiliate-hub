@@ -28,6 +28,7 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "archiver": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -56,6 +57,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.20",
+    "@types/archiver": "^8.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.21.0",
     "@types/qrcode-terminal": "^0.12.2",

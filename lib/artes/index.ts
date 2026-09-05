@@ -5,8 +5,10 @@ export type { EntradaArte, ArteComposta } from "./compor";
 export type { TipoArte, Formato } from "./layouts";
 export { salvarArteComoCapa } from "./salvar";
 export { comporArte, comporCapaComCena } from "./compor";
-export { gerarCapaComIa, gerarESalvarCapaDoPost } from "./gerar-capa-ia";
-export type { EntradaCapaIa, MidiaCapaGerada } from "./gerar-capa-ia";
+export { gerarCapaComIa, gerarESalvarCapaDoPost, fotosDosProdutos } from "./gerar-capa-ia";
+export type { EntradaCapaIa, MidiaCapaGerada, FotoDeProduto } from "./gerar-capa-ia";
+export { gerarHeroDeProduto } from "./gerar-hero-produto";
+export type { HeroDeProdutoGerado } from "./gerar-hero-produto";
 
 /**
  * Compõe e salva a arte de uma publicação, devolvendo a URL pública

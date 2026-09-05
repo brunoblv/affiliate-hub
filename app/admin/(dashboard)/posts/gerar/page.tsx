@@ -2,15 +2,17 @@ import Link from "next/link";
 import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { GerarArtigoWizard } from "@/components/admin/gerar-artigo-wizard";
+import { primeiraImagem } from "@/lib/produtos";
 
 export const maxDuration = 180;
 
 export default async function GerarArtigoPage() {
-  const produtos = await prisma.produto.findMany({
+  const produtosBrutos = await prisma.produto.findMany({
     where: { ativo: true },
     orderBy: { nome: "asc" },
-    select: { slug: true, nome: true },
+    select: { slug: true, nome: true, imagens: true },
   });
+  const produtos = produtosBrutos.map((p) => ({ slug: p.slug, nome: p.nome, imagem: primeiraImagem(p) }));
 
   return (
     <div className="space-y-6">

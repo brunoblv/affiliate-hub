@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EditorDoCorpo } from "@/components/admin/editor-do-corpo-dinamico";
+import { ProdutosDragSidebar, TIPO_DRAG_PRODUTO, type ProdutoParaInserir } from "@/components/admin/produtos-drag-sidebar";
 import { useFeedbackFormulario } from "@/components/admin/use-feedback-formulario";
 import type { Post } from "@/lib/database";
 import { enviarArquivoDeMidia } from "@/lib/midia/enviar-cliente";
@@ -52,7 +53,7 @@ export function PostForm({
   defaults,
 }: {
   post?: Post & { capa?: CapaPreview | null };
-  produtos: Array<{ slug: string; nome: string }>;
+  produtos: ProdutoParaInserir[];
   action: (prev: PostFormState, formData: FormData) => Promise<PostFormState>;
   /** Preenche o formulário de post novo com conteúdo pré-gerado (ver /admin/posts/gerar). Ignorado em modo edição. */
   defaults?: PostFormDefaults;
@@ -65,7 +66,8 @@ export function PostForm({
   const [gerandoCapa, setGerandoCapa] = useState(false);
   const [tipo, setTipo] = useState(post?.tipo ?? defaults?.tipo ?? "JORNADA");
   const editorRef = useRef<MDXEditorMethods>(null);
-  const produtoSelectRef = useRef<HTMLSelectElement>(null);
+  const corpoWrapperRef = useRef<HTMLDivElement>(null);
+  const [linhaDeInsercao, setLinhaDeInsercao] = useState<number | null>(null);
   const tituloRef = useRef<HTMLInputElement>(null);
   const resumoRef = useRef<HTMLTextAreaElement>(null);
 
@@ -116,20 +118,75 @@ export function PostForm({
     }
   }
 
-  function handleInserirProduto() {
-    const slug = produtoSelectRef.current?.value;
-    if (!slug) return;
+  // insertMarkdown insere no ponto do cursor, mas mescla o texto importado
+  // dentro do parágrafo atual em vez de criar um parágrafo novo (e ainda
+  // escapa o "[" já que sem quebra de linha ele parece início de link) — o
+  // shortcode acaba grudado no texto anterior e o [produto:slug] deixa de
+  // ficar sozinho na linha, quebrando a detecção em separarBlocos. Por isso
+  // toda inserção passa por aqui: reparte o markdown em blocos de topo
+  // (separados por linha em branco, o mesmo critério de separarBlocos),
+  // encaixa o shortcode como bloco próprio no índice desejado e reaplica
+  // tudo via setMarkdown (reparse completo) — o shortcode sempre nasce
+  // isolado, não importa onde o produto foi solto.
+  function inserirBlocoEmIndice(markdown: string, indice: number, blocoNovo: string): string {
+    const blocos = markdown
+      .trim()
+      .split(/\n{2,}/)
+      .filter((bloco) => bloco.trim().length > 0);
+    const posicao = Math.max(0, Math.min(indice, blocos.length));
+    blocos.splice(posicao, 0, blocoNovo);
+    return `${blocos.join("\n\n")}\n`;
+  }
 
-    // insertMarkdown insere no ponto do cursor, mas mescla o texto importado
-    // dentro do parágrafo atual em vez de criar um parágrafo novo (e ainda
-    // escapa o "[" já que sem quebra de linha ele parece início de link) —
-    // o shortcode acaba grudado no texto anterior e o [produto:slug] deixa
-    // de ficar sozinho na linha, quebrando a detecção em separarBlocos.
-    // Anexar sempre no fim via setMarkdown (reparse completo do documento)
-    // garante que o shortcode nasce como parágrafo próprio.
+  /** Elemento de bloco (parágrafo/lista/imagem/etc.) sob o cursor, 1 por bloco de topo do markdown. */
+  function blocosDoEditor(): HTMLElement[] {
+    const raiz = corpoWrapperRef.current?.querySelector('[contenteditable="true"]');
+    return raiz ? (Array.from(raiz.children) as HTMLElement[]) : [];
+  }
+
+  /** Índice do bloco de topo antes do qual inserir, e a posição em px (relativa ao wrapper) da linha guia. */
+  function calcularPontoDeInsercao(clientY: number): { indice: number; y: number } {
+    const wrapper = corpoWrapperRef.current;
+    const blocos = blocosDoEditor();
+    if (!wrapper || blocos.length === 0) return { indice: 0, y: 0 };
+
+    const wrapperTop = wrapper.getBoundingClientRect().top;
+    for (let i = 0; i < blocos.length; i++) {
+      const rect = blocos[i]!.getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) return { indice: i, y: rect.top - wrapperTop };
+    }
+    const ultimoRect = blocos.at(-1)!.getBoundingClientRect();
+    return { indice: blocos.length, y: ultimoRect.bottom - wrapperTop };
+  }
+
+  function handleInserirProdutoNoFim(slug: string) {
     const atual = (editorRef.current?.getMarkdown() ?? corpo).trim();
-    const novoCorpo = atual ? `${atual}\n\n[produto:${slug}]` : `[produto:${slug}]`;
+    const novoCorpo = atual ? `${atual}\n\n[produto:${slug}]\n` : `[produto:${slug}]\n`;
+    editorRef.current?.setMarkdown(novoCorpo);
+    setCorpo(novoCorpo);
+  }
 
+  function handleDragOverCorpo(event: React.DragEvent<HTMLDivElement>) {
+    if (!event.dataTransfer.types.includes(TIPO_DRAG_PRODUTO)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setLinhaDeInsercao(calcularPontoDeInsercao(event.clientY).y);
+  }
+
+  function handleDragLeaveCorpo(event: React.DragEvent<HTMLDivElement>) {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    setLinhaDeInsercao(null);
+  }
+
+  function handleDropCorpo(event: React.DragEvent<HTMLDivElement>) {
+    const slug = event.dataTransfer.getData(TIPO_DRAG_PRODUTO);
+    setLinhaDeInsercao(null);
+    if (!slug) return;
+    event.preventDefault();
+
+    const { indice } = calcularPontoDeInsercao(event.clientY);
+    const atual = editorRef.current?.getMarkdown() ?? corpo;
+    const novoCorpo = inserirBlocoEmIndice(atual, indice, `[produto:${slug}]`);
     editorRef.current?.setMarkdown(novoCorpo);
     setCorpo(novoCorpo);
   }
@@ -143,7 +200,7 @@ export function PostForm({
   }
 
   return (
-    <form action={formAction} onSubmit={handleSubmit} className="max-w-4xl space-y-5">
+    <form action={formAction} onSubmit={handleSubmit} className="max-w-5xl space-y-5">
       <input type="hidden" name="capaId" value={capa?.id ?? ""} />
       <input type="hidden" name="corpo" value={corpo} />
 
@@ -272,31 +329,34 @@ export function PostForm({
       </div>
 
       <div className="space-y-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label>Corpo</Label>
+        <Label>Corpo</Label>
+        <div className="flex items-start gap-3">
+          <div
+            ref={corpoWrapperRef}
+            onDragOver={handleDragOverCorpo}
+            onDragLeave={handleDragLeaveCorpo}
+            onDrop={handleDropCorpo}
+            className="relative min-w-0 flex-1"
+          >
+            <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? defaults?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
+            {linhaDeInsercao !== null && (
+              <div
+                className="pointer-events-none absolute inset-x-2 z-20 h-0.5 rounded bg-ring"
+                style={{ top: linhaDeInsercao - 1 }}
+              />
+            )}
+          </div>
           {produtos.length > 0 && (
-            <div className="flex items-center gap-2">
-              <select
-                ref={produtoSelectRef}
-                className="h-8 rounded-lg border border-input bg-transparent px-2 text-xs outline-none"
-              >
-                {produtos.map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    {p.nome}
-                  </option>
-                ))}
-              </select>
-              <Button type="button" size="sm" variant="outline" onClick={handleInserirProduto}>
-                Inserir produto
-              </Button>
+            <div className="w-56 shrink-0">
+              <ProdutosDragSidebar produtos={produtos} onInserirNoFim={handleInserirProdutoNoFim} />
             </div>
           )}
         </div>
-        <EditorDoCorpo ref={editorRef} markdown={post?.corpo ?? defaults?.corpo ?? ""} onChange={(markdown) => setCorpo(markdown)} />
         <p className="text-xs text-muted-foreground">
           Editor visual: títulos, listas, links e imagens (arraste ou use o ícone). O conteúdo continua sendo
-          markdown. Cards de produto entram pelo botão acima. Lista de afiliado do Mercado Livre:{" "}
-          <code className="text-[0.7rem]">[cta:https://meli.la/codigo]</code> em linha própria.
+          markdown. Arraste um produto da lista ao lado pro ponto do texto onde ele deve virar card. Lista de
+          afiliado do Mercado Livre: <code className="text-[0.7rem]">[cta:https://meli.la/codigo]</code> em linha
+          própria.
         </p>
       </div>
 

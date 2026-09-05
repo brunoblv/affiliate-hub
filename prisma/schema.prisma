@@ -129,12 +129,18 @@ model Post {
   /// vai só para Facebook (página) e Instagram do destino, às 12h nos dias vazios.
   destino Destino @default(MEU_NOVO_LAR)
 
+  /// Pauta sintética (PautaListaCasa) usada pelo LarSmart pra gerar este post —
+  /// null em posts que não vieram do LarSmart. Guardada pra permitir regenerar
+  /// o artigo ou trocar um produto sem precisar reinterpretar o tema.
+  larsmartPauta Json?
+
   autorId String?
   autor   User?   @relation(fields: [autorId], references: [id], onDelete: SetNull)
 
-  produtos    ItemDePost[]
-  midias      MidiaEmPost[]
-  publicacoes Publicacao[]
+  produtos        ItemDePost[]
+  midias          MidiaEmPost[]
+  imagensLarSmart ImagemLarSmart[]
+  publicacoes     Publicacao[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -180,9 +186,9 @@ model ItemDePost {
 // ---------------------------------------------------------------------------
 
 model Midia {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   /// URL pública servida pelo site (ex.: /midia/2026/08/sofa-abc123.webp)
-  url          String @unique
+  url          String  @unique
   /// Caminho no disco/bucket, relativo a MEDIA_ROOT.
   caminho      String
   nomeOriginal String
@@ -193,9 +199,10 @@ model Midia {
   /// Texto alternativo — obrigatório para acessibilidade e SEO.
   alt          String?
 
-  capaDe      Post[]        @relation("CapaDoPost")
-  audioDe     Post[]        @relation("AudioDoPost")
-  usosEmPosts MidiaEmPost[]
+  capaDe          Post[]           @relation("CapaDoPost")
+  audioDe         Post[]           @relation("AudioDoPost")
+  usosEmPosts     MidiaEmPost[]
+  imagensLarSmart ImagemLarSmart[]
 
   criadoEm DateTime @default(now())
 
@@ -214,6 +221,39 @@ model MidiaEmPost {
 
   @@id([postId, midiaId])
   @@map("midias_em_posts")
+}
+
+/// Imagem gerada pelo LarSmart (capa ou ambiente por produto) — guarda o
+/// vínculo produto↔imagem, o prompt usado (permite depurar/regenerar) e as
+/// legendas prontas para exportação manual ao Pinterest. `Midia.alt` segue
+/// sendo o texto alternativo; esta tabela não duplica isso.
+enum TipoImagemLarSmart {
+  CAPA
+  PRODUTO
+}
+
+model ImagemLarSmart {
+  id        String             @id @default(cuid())
+  postId    String
+  midiaId   String
+  /// null para a capa; preenchido para a imagem de ambiente de um produto.
+  produtoId String?
+  tipo      TipoImagemLarSmart
+
+  /// Prompt de imagem enviado à API — guardado para depuração/regeneração.
+  prompt String @db.Text
+
+  pinterestTitulo    String?
+  pinterestDescricao String? @db.Text
+
+  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  midia   Midia    @relation(fields: [midiaId], references: [id], onDelete: Cascade)
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
+  criadoEm DateTime @default(now())
+
+  @@unique([postId, produtoId, tipo])
+  @@map("imagens_larsmart")
 }
 
 // ---------------------------------------------------------------------------
@@ -276,10 +316,10 @@ model Produto {
   /// Nicho/tema do produto — ver enum Categoria.
   categoria  Categoria  @default(OUTRA)
 
-  nome      String
-  descricao String? @db.Text
+  nome          String
+  descricao     String? @db.Text
   /// string[] — até 6 URLs de imagem vindas da API da plataforma.
-  imagens   Json    @default("[]")
+  imagens       Json    @default("[]")
   /// Texto curto opcional de curadoria ("por que selecionamos este produto"),
   /// preenchido manualmente pelo editor — exibido no catálogo quando presente.
   notaEditorial String? @db.Text
@@ -309,6 +349,7 @@ model Produto {
   precos           HistoricoPreco[]
   itensLanding     LandingProduto[]
   landingsHero     LandingDiaria[]          @relation("HeroDaLanding")
+  imagensLarSmart  ImagemLarSmart[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -576,15 +617,15 @@ model ConfiguracaoVitrine {
   modo    ModoProjeto @default(NORMAL)
 
   /// Produto entra na curadoria com desconto ≥ este % OU marcado como destaque.
-  descontoMinimoPct Int @default(20)
+  descontoMinimoPct Int     @default(20)
   /// Faixa ACESSIVEL: preço atual até este valor (R$).
   tetoAcessivel     Decimal @default(50) @db.Decimal(12, 2)
   /// Faixa INTERMEDIARIO: acima de tetoAcessivel até este valor; acima é PREMIUM.
   tetoIntermediario Decimal @default(150) @db.Decimal(12, 2)
   /// Mínimo de itens da landing na faixa ACESSIVEL (ex.: 40).
-  cotaAcessivelPct  Int @default(40)
-  quantidadeItens  Int @default(16)
-  maxPorCategoria   Int @default(3)
+  cotaAcessivelPct  Int     @default(40)
+  quantidadeItens   Int     @default(16)
+  maxPorCategoria   Int     @default(3)
 
   /// Convites para os grupos — não são links de afiliado.
   linkGrupoWhatsapp String?
@@ -596,20 +637,20 @@ model ConfiguracaoVitrine {
 }
 
 model LandingDiaria {
-  id            String        @id @default(cuid())
-  destino       Destino
+  id              String        @id @default(cuid())
+  destino         Destino
   /// Dia civil no fuso TZ_APP, gravado como DATE (uma landing por destino/dia).
-  data          DateTime     @db.Date
-  slug          String        @unique
-  heroProdutoId String?
-  heroProduto   Produto?     @relation("HeroDaLanding", fields: [heroProdutoId], references: [id], onDelete: SetNull)
-  headline      String?
-  metaTitulo    String
-  metaDescricao String
-  status        StatusLanding @default(RASCUNHO)
+  data            DateTime      @db.Date
+  slug            String        @unique
+  heroProdutoId   String?
+  heroProduto     Produto?      @relation("HeroDaLanding", fields: [heroProdutoId], references: [id], onDelete: SetNull)
+  headline        String?
+  metaTitulo      String
+  metaDescricao   String
+  status          StatusLanding @default(RASCUNHO)
   /// false quando o Gemini falhou e os textos vieram do template.
-  textosViaGemini Boolean     @default(false)
-  geradaEm      DateTime      @default(now())
+  textosViaGemini Boolean       @default(false)
+  geradaEm        DateTime      @default(now())
 
   itens       LandingProduto[]
   publicacoes Publicacao[]
@@ -624,12 +665,12 @@ model LandingProduto {
   landingDiariaId String
   landingDiaria   LandingDiaria @relation(fields: [landingDiariaId], references: [id], onDelete: Cascade)
   produtoId       String
-  produto         Produto      @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produto         Produto       @relation(fields: [produtoId], references: [id], onDelete: Cascade)
   posicao         Int
   faixaPreco      FaixaPreco
   selo            SeloLanding?
   tituloCurto     String?
-  descricao       String?      @db.Text
+  descricao       String?       @db.Text
 
   @@unique([landingDiariaId, produtoId])
   @@index([landingDiariaId, posicao])

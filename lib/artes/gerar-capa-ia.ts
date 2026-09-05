@@ -34,9 +34,15 @@ export interface MidiaCapaGerada {
   alt: string | null;
 }
 
-async function fotosDosProdutos(
-  slugs: string[],
-): Promise<{ arquivo: string; rotulo: string; url: string; buffer: Buffer }[]> {
+export interface FotoDeProduto {
+  arquivo: string;
+  rotulo: string;
+  url: string;
+  buffer: Buffer;
+}
+
+/** Busca e redimensiona as fotos de referência de 1+ produtos (por slug). */
+export async function fotosDosProdutos(slugs: string[]): Promise<FotoDeProduto[]> {
   if (slugs.length === 0) return [];
   const produtos = await prisma.produto.findMany({
     where: { slug: { in: slugs } },

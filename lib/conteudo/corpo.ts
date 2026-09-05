@@ -128,6 +128,68 @@ export function garantirShortcodesNoCorpo(corpo: string, slugs: string[]): strin
   return `${texto.replace(/\n{3,}/g, "\n\n").trim()}\n`;
 }
 
+const LINHA_IMAGEM = /^!\[[^\]]*\]\([^)]+\)\s*$/;
+
+/**
+ * Insere uma imagem (markdown) logo antes do card do produto indicado, se
+ * ainda não houver uma ali. Usado pelo LarSmart pra colocar a imagem de
+ * ambiente gerada junto da seção daquele produto, sem mexer no resto do
+ * corpo escrito pelo Gemini.
+ */
+export function inserirImagemAntesDoProduto(corpo: string, slug: string, imagemMarkdown: string): string {
+  const casaLinha = (linha: string) => new RegExp(`^\\\\?\\[produto:${slug}\\]\\s*$`).test(linha.trim());
+  const linhas = corpo.split("\n");
+  const indice = linhas.findIndex(casaLinha);
+  if (indice === -1) return corpo;
+
+  let cursor = indice - 1;
+  while (cursor >= 0 && linhas[cursor]!.trim() === "") cursor--;
+  if (cursor >= 0 && LINHA_IMAGEM.test(linhas[cursor]!.trim())) return corpo;
+
+  linhas.splice(indice, 0, imagemMarkdown, "");
+  return linhas.join("\n");
+}
+
+/**
+ * Troca o produto de uma seção existente: substitui a imagem de ambiente
+ * (se houver, logo antes do card) e o card `[produto:slugAntigo]` por
+ * `[produto:slugNovo]`, e o título do `##` imediatamente anterior por
+ * `tituloNovo`. Não reescreve a prosa da seção — troca de produto não passa
+ * pelo Gemini de novo, só pela imagem/card/título.
+ */
+export function substituirSecaoDeProduto(
+  corpo: string,
+  slugAntigo: string,
+  slugNovo: string,
+  tituloNovo: string,
+  imagemMarkdownNova: string | null,
+): string {
+  const casaLinhaAntiga = (linha: string) => new RegExp(`^\\\\?\\[produto:${slugAntigo}\\]\\s*$`).test(linha.trim());
+  const linhas = corpo.split("\n");
+  const indiceCard = linhas.findIndex(casaLinhaAntiga);
+  if (indiceCard === -1) return corpo;
+
+  linhas[indiceCard] = `[produto:${slugNovo}]`;
+
+  let cursorImagem = indiceCard - 1;
+  while (cursorImagem >= 0 && linhas[cursorImagem]!.trim() === "") cursorImagem--;
+  if (cursorImagem >= 0 && LINHA_IMAGEM.test(linhas[cursorImagem]!.trim())) {
+    if (imagemMarkdownNova) linhas[cursorImagem] = imagemMarkdownNova;
+    else linhas.splice(cursorImagem, 1);
+  } else if (imagemMarkdownNova) {
+    linhas.splice(indiceCard, 0, imagemMarkdownNova, "");
+  }
+
+  for (let i = indiceCard; i >= 0; i--) {
+    if (/^##\s+/.test(linhas[i]!.trim())) {
+      linhas[i] = `## ${tituloNovo}`;
+      break;
+    }
+  }
+
+  return linhas.join("\n");
+}
+
 /** Corpo só com o card (ou texto irrelevante) — a página pública da ficha fica vazia. */
 export function fichaProdutoVazia(corpo: string): boolean {
   return resumoAutomatico(corpo, 10_000).length < 80;

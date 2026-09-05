@@ -75,7 +75,7 @@ export function GerarListaWizard({
   produtos,
   contagemPorPauta,
 }: {
-  produtos: Array<{ slug: string; nome: string }>;
+  produtos: Array<{ slug: string; nome: string; imagem: string | null }>;
   contagemPorPauta: Record<string, number>;
 }) {
   const [defaults, setDefaults] = useState<PostFormDefaults | null>(null);
