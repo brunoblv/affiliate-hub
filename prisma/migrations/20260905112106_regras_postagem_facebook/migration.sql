@@ -7,12 +7,19 @@
 -- AlterEnum
 ALTER TYPE "NivelLog" ADD VALUE IF NOT EXISTS 'ALERTA';
 
--- CreateEnum
+-- CreateEnum: nasce vazio de propósito — os labels entram logo abaixo via
+-- ADD VALUE IF NOT EXISTS, pra garantir que existem mesmo se uma tentativa
+-- anterior já tiver criado o tipo (com ou sem os labels certos).
 DO $$ BEGIN
-    CREATE TYPE "ContentType" AS ENUM ('OFERTA_INDIVIDUAL', 'SELECAO', 'CONTEUDO_BLOG', 'NARRATIVA_PESSOAL');
+    CREATE TYPE "ContentType" AS ENUM ();
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
+
+ALTER TYPE "ContentType" ADD VALUE IF NOT EXISTS 'OFERTA_INDIVIDUAL';
+ALTER TYPE "ContentType" ADD VALUE IF NOT EXISTS 'SELECAO';
+ALTER TYPE "ContentType" ADD VALUE IF NOT EXISTS 'CONTEUDO_BLOG';
+ALTER TYPE "ContentType" ADD VALUE IF NOT EXISTS 'NARRATIVA_PESSOAL';
 
 -- AlterTable: novos limites/flag do canal (regras 1 e 4 de docs/hub/regras-postagem-facebook.md)
 ALTER TABLE "canais" ADD COLUMN IF NOT EXISTS "tetoOfertaIndividualDiario" INTEGER NOT NULL DEFAULT 3;
