@@ -1,9 +1,13 @@
 import { ContentType, Rede, prisma, type Canal } from "@/lib/database";
 import { FUSO_APP, inicioDoDia, lerHorario, paraUtc, partesNoFuso } from "./fuso";
 import {
+  avancarParaJanela,
+  ehCanalDeGrupo,
   estaNaJanelaDePublicacao,
   gerarHorariosDaJanela,
+  INTERVALO_GRUPO_MIN,
   INTERVALO_PADRAO_MIN,
+  minutosAleatoriosDoGrupo,
   TETO_PADRAO,
 } from "./janela";
 
@@ -36,9 +40,10 @@ export function horariosDoCanal(canal: Canal): string[] {
 /**
  * Encontra o próximo horário livre de um canal, obedecendo, nesta ordem:
  *
- * 1. só horários da janela 09:00–21:00 (Brasília), a cada `intervaloMinimoMin`;
+ * 1. só horários da janela 09:00–21:00 (Brasília);
  * 2. no futuro (nunca reagenda para trás);
- * 3. `intervaloMinimoMin` desde a publicação vizinha mais próxima;
+ * 3. intervalo desde a vizinha: 10–20 min aleatórios em WhatsApp/Telegram,
+ *    `intervaloMinimoMin` (grade) nas demais redes;
  * 4. `tetoDiario` de publicações naquele dia;
  * 5. slot ainda não ocupado por outra publicação.
  *
@@ -58,18 +63,26 @@ export async function proximoHorarioLivre(
 ): Promise<ResultadoAgenda | null> {
   await aplicarJanelaPadraoNosCanais();
 
-  const horariosOrdenados = horariosDoCanal(canal)
+  const atual = await prisma.canal.findUnique({ where: { id: canal.id } });
+  const canalEfetivo = atual ?? canal;
+
+  if (ehCanalDeGrupo(canalEfetivo.rede)) {
+    return proximoHorarioGrupo(canalEfetivo, apartirDe, excluirPublicacaoId);
+  }
+
+  const horariosOrdenados = horariosDoCanal(canalEfetivo)
     .map((texto) => lerHorario(texto))
     .sort((a, b) => a.hora - b.hora || a.minuto - b.minuto);
 
-  const tetoBruto = canal.tetoDiario === 6 ? TETO_PADRAO : canal.tetoDiario;
+  const tetoBruto = canalEfetivo.tetoDiario === 6 ? TETO_PADRAO : canalEfetivo.tetoDiario;
   const teto = Math.max(1, tetoBruto);
-  const intervaloMin = canal.intervaloMinimoMin === 90 ? INTERVALO_PADRAO_MIN : canal.intervaloMinimoMin;
+  const intervaloMin =
+    canalEfetivo.intervaloMinimoMin === 90 ? INTERVALO_PADRAO_MIN : canalEfetivo.intervaloMinimoMin;
   const intervaloMs = Math.max(0, intervaloMin) * 60 * 1000;
 
   const ultima = await prisma.publicacao.findFirst({
     where: {
-      canalId: canal.id,
+      canalId: canalEfetivo.id,
       status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
       ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
     },
@@ -82,7 +95,7 @@ export async function proximoHorarioLivre(
 
   const ocupadas = await prisma.publicacao.findMany({
     where: {
-      canalId: canal.id,
+      canalId: canalEfetivo.id,
       status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
       agendadaPara: { gte: new Date(apartirDe.getTime() - MS_POR_DIA), lte: limite },
       ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
@@ -93,11 +106,12 @@ export async function proximoHorarioLivre(
 
   const instantesOcupados = ocupadas.map((p) => p.agendadaPara.getTime());
 
-  const limitarOfertaIndividual = contentType === ContentType.OFERTA_INDIVIDUAL && canal.rede === Rede.FACEBOOK_PAGE;
+  const limitarOfertaIndividual =
+    contentType === ContentType.OFERTA_INDIVIDUAL && canalEfetivo.rede === Rede.FACEBOOK_PAGE;
   const instantesOfertaIndividual = limitarOfertaIndividual
     ? ocupadas.filter((p) => p.contentType === ContentType.OFERTA_INDIVIDUAL).map((p) => p.agendadaPara.getTime())
     : [];
-  const tetoOfertaIndividual = Math.max(0, canal.tetoOfertaIndividualDiario);
+  const tetoOfertaIndividual = Math.max(0, canalEfetivo.tetoOfertaIndividualDiario);
 
   let cursor = inicioDoDia(apartirDe);
 
@@ -139,20 +153,113 @@ export async function proximoHorarioLivre(
   return null;
 }
 
+const INTERVALO_GRUPO_MS = INTERVALO_GRUPO_MIN * 60 * 1000;
+
+/**
+ * Próximo horário livre de WhatsApp/Telegram: 09:00–21:00 (Brasília),
+ * 10–20 min depois da publicação anterior (não grade fixa de 10 em 10).
+ */
+async function proximoHorarioGrupo(
+  canal: Canal,
+  apartirDe: Date,
+  excluirPublicacaoId?: string,
+): Promise<ResultadoAgenda | null> {
+  const teto = Math.max(1, canal.tetoDiario === 6 ? TETO_PADRAO : canal.tetoDiario || TETO_PADRAO);
+
+  const ultima = await prisma.publicacao.findFirst({
+    where: {
+      canalId: canal.id,
+      status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+      ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
+    },
+    orderBy: { agendadaPara: "desc" },
+    select: { agendadaPara: true },
+  });
+
+  const ancora = Math.max(apartirDe.getTime(), ultima?.agendadaPara.getTime() ?? 0);
+  const limite = new Date(ancora + DIAS_MAXIMOS_DE_BUSCA * MS_POR_DIA);
+
+  const ocupadas = await prisma.publicacao.findMany({
+    where: {
+      canalId: canal.id,
+      status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+      agendadaPara: { gte: new Date(apartirDe.getTime() - MS_POR_DIA), lte: limite },
+      ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
+    },
+    select: { agendadaPara: true },
+    orderBy: { agendadaPara: "asc" },
+  });
+
+  const instantesOcupados = ocupadas.map((p) => p.agendadaPara.getTime());
+  const ultimaOcupada = ultima?.agendadaPara.getTime() ?? 0;
+  const piso = Math.max(apartirDe.getTime(), ultimaOcupada > 0 ? ultimaOcupada + INTERVALO_GRUPO_MS : 0);
+  const extraMin = minutosAleatoriosDoGrupo() - INTERVALO_GRUPO_MIN;
+
+  let candidato = avancarParaJanela(new Date(piso + extraMin * 60 * 1000));
+
+  for (let i = 0; i < MAX_ITERACOES; i++) {
+    if (candidato.getTime() > limite.getTime()) return null;
+
+    candidato = avancarParaJanela(candidato);
+    const { ano, mes, dia } = partesNoFuso(candidato, FUSO_APP);
+    const comecoDoDia = inicioDoDia(candidato).getTime();
+    const fimDoDia = paraUtc(ano, mes, dia + 1, 0, 0, FUSO_APP).getTime();
+    const jaAgendadasNoDia = instantesOcupados.filter((t) => t >= comecoDoDia && t < fimDoDia).length;
+
+    if (jaAgendadasNoDia >= teto) {
+      candidato = paraUtc(ano, mes, dia + 1, 9, 0, FUSO_APP);
+      continue;
+    }
+
+    const candidatoMs = candidato.getTime();
+    if (candidatoMs <= apartirDe.getTime()) {
+      candidato = new Date(apartirDe.getTime() + 60_000);
+      continue;
+    }
+    if (!estaNaJanelaDePublicacao(candidato)) {
+      candidato = avancarParaJanela(new Date(candidatoMs + 60_000));
+      continue;
+    }
+
+    const conflita = instantesOcupados.some((t) => Math.abs(t - candidatoMs) < INTERVALO_GRUPO_MS);
+    if (conflita) {
+      candidato = new Date(candidatoMs + 60_000);
+      continue;
+    }
+
+    return { agendadaPara: candidato };
+  }
+
+  return null;
+}
+
 let janelaPadraoAplicada = false;
 
 /**
  * Garante a janela 09:00–21:00 a cada 10 min nos canais que ainda estão no
- * padrão antigo (90 min / teto 6), mesmo se a migration ainda não rodou.
+ * padrão antigo (90 min / teto 6). WhatsApp e Telegram ficam sempre em 10 min
+ * / teto da janela — a cadência real (10–20 min) é aplicada em `proximoHorarioGrupo`.
  */
 export async function aplicarJanelaPadraoNosCanais(): Promise<number> {
-  if (janelaPadraoAplicada) return 0;
-  const { count } = await prisma.canal.updateMany({
-    where: { OR: [{ intervaloMinimoMin: 90 }, { tetoDiario: 6 }] },
-    data: { intervaloMinimoMin: INTERVALO_PADRAO_MIN, tetoDiario: TETO_PADRAO },
+  let total = 0;
+
+  if (!janelaPadraoAplicada) {
+    const legado = await prisma.canal.updateMany({
+      where: { OR: [{ intervaloMinimoMin: 90 }, { tetoDiario: 6 }] },
+      data: { intervaloMinimoMin: INTERVALO_PADRAO_MIN, tetoDiario: TETO_PADRAO },
+    });
+    total += legado.count;
+    janelaPadraoAplicada = true;
+  }
+
+  const grupos = await prisma.canal.updateMany({
+    where: {
+      rede: { in: [Rede.TELEGRAM, Rede.WHATSAPP] },
+      NOT: { intervaloMinimoMin: INTERVALO_GRUPO_MIN, tetoDiario: TETO_PADRAO },
+    },
+    data: { intervaloMinimoMin: INTERVALO_GRUPO_MIN, tetoDiario: TETO_PADRAO },
   });
-  janelaPadraoAplicada = true;
-  return count;
+  return total + grupos.count;
 }
 
 /**

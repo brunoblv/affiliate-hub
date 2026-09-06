@@ -11,6 +11,7 @@ import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
 import { sincronizarInsightsFacebook } from "@/lib/publicacao/insights";
 import { executarRelatorioSemanalFacebook } from "@/lib/relatorios/relatorio-semanal-facebook";
+import { enfileirarHorariosVaziosGrupos } from "@/lib/agenda/enfileirar";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
@@ -28,6 +29,8 @@ const INTERVALO_INSIGHTS_MS = 3 * 60 * 60 * 1000;
 const INTERVALO_RELATORIO_SEMANAL_MS = 60 * 60 * 1000;
 const DIA_RELATORIO_SEMANAL = "Monday";
 const HORA_RELATORIO_SEMANAL = 8;
+/** Preenche horários vazios de WhatsApp/Telegram (9h–21h, 10–20 min). */
+const INTERVALO_FILA_GRUPOS_MS = 15 * 60 * 1000;
 
 let rodando = false;
 let encerrando = false;
@@ -90,7 +93,9 @@ async function tick(): Promise<void> {
 }
 
 async function loop(): Promise<void> {
-  console.log(`[worker] ativo — tick a cada ${INTERVALO_TICK_MS / 1000}s (agora: ${formatarLocal(new Date())})`);
+  console.log(
+    `[worker] ativo — fuso ${FUSO_APP} — agora ${formatarLocal(new Date())} / UTC ${new Date().toISOString()} — tick a cada ${INTERVALO_TICK_MS / 1000}s`,
+  );
   try {
     await aplicarJanelaPadraoNosCanais();
     const movidas = await reagendarPublicacoesForaDaJanela();
@@ -221,6 +226,23 @@ async function loopRelatorioSemanalFacebook(): Promise<void> {
   }
 }
 
+/** Preenche a fila dos grupos (WhatsApp/Telegram) para a janela 09:00–21:00. */
+async function loopFilaGrupos(): Promise<void> {
+  while (!encerrando) {
+    try {
+      const agendados = await enfileirarHorariosVaziosGrupos();
+      if (agendados > 0) {
+        console.log(`[worker] ${agendados} produto(s) enfileirado(s) nos grupos WhatsApp/Telegram`);
+      }
+    } catch (erro) {
+      await registrar("ERRO", "AGENDA", "Preenchimento da fila de grupos falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_FILA_GRUPOS_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -237,3 +259,4 @@ void loopDescobertaShopee();
 void loopLandingDiaria();
 void loopInsightsFacebook();
 void loopRelatorioSemanalFacebook();
+void loopFilaGrupos();

@@ -1,4 +1,6 @@
 import { prisma, ContentType, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
+import { produtoVisivelNoSite } from "@/lib/produtos";
+import { ehCanalDeGrupo } from "./janela";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { proximoMeioDiaLivre } from "./meio-dia";
 import { contentTypeDoProduto, contentTypeDaLista, contentTypeDaJornada } from "./content-type";
@@ -245,36 +247,36 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     ];
   }
 
+  let agendadoTikTokEmMidia: string | null = null;
+
   if (ehProdutoTikTok(produto)) {
-    const jaPostou = await prisma.publicacao.findFirst({
+    const jaPostouNaMidia = await prisma.publicacao.findFirst({
       where: {
         produtoId: produto.id,
         status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+        canal: { rede: { notIn: [Rede.TELEGRAM, Rede.WHATSAPP] } },
       },
       include: { canal: { select: { nome: true } } },
       orderBy: { agendadaPara: "asc" },
     });
 
-    if (jaPostou) {
-      return [
-        pulado(
-          jaPostou.canalId,
-          jaPostou.canal.nome,
-          `Produto TikTok Shop já foi agendado em ${jaPostou.canal.nome} — publica só uma vez.`,
-        ),
-      ];
+    if (jaPostouNaMidia) {
+      agendadoTikTokEmMidia = jaPostouNaMidia.canal.nome;
     }
   }
 
   const imagens = await imagensDoProduto(produto);
 
   const resultados: ResultadoEnfileiramento[] = [];
-  let agendadoTikTokEm: string | null = null;
 
   for (const canal of canais) {
-    if (agendadoTikTokEm) {
+    if (agendadoTikTokEmMidia && !ehCanalDeGrupo(canal.rede)) {
       resultados.push(
-        pulado(canal.id, canal.nome, `Produto TikTok Shop publica só uma vez — já agendado em ${agendadoTikTokEm}.`),
+        pulado(
+          canal.id,
+          canal.nome,
+          `Produto TikTok Shop publica só uma vez nas páginas — já agendado em ${agendadoTikTokEmMidia}.`,
+        ),
       );
       continue;
     }
@@ -282,8 +284,8 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     try {
       const resultado = await enfileirarNoCanal(canal, produto, imagemParaRede(canal.rede, imagens));
       resultados.push(resultado);
-      if (ehProdutoTikTok(produto) && resultado.agendadaPara) {
-        agendadoTikTokEm = canal.nome;
+      if (ehProdutoTikTok(produto) && resultado.agendadaPara && !ehCanalDeGrupo(canal.rede)) {
+        agendadoTikTokEmMidia = canal.nome;
       }
     } catch (erro) {
       resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
@@ -791,4 +793,51 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
     publicada: resultado.status === "PUBLICADA",
     motivoPulado: resultado.status === "PUBLICADA" ? undefined : (resultado.erro ?? "Falha ao publicar."),
   };
+}
+
+const LOTE_GRUPOS_POR_TICK = 20;
+const HORIZONTE_COBERTURA_GRUPOS_MS = 36 * 60 * 60 * 1000;
+
+/**
+ * Mantém a fila de WhatsApp e Telegram coberta na janela 09:00–21:00
+ * (intervalo 10–20 min). Sem canal cadastrado, não faz nada.
+ */
+export async function enfileirarHorariosVaziosGrupos(): Promise<number> {
+  const canais = await prisma.canal.findMany({
+    where: { ativo: true, rede: { in: [Rede.TELEGRAM, Rede.WHATSAPP] } },
+  });
+  if (canais.length === 0) return 0;
+
+  let precisaPreencher = false;
+  for (const canal of canais) {
+    const vaga = await proximoHorarioLivre(canal);
+    if (!vaga) continue;
+    if (vaga.agendadaPara.getTime() <= Date.now() + HORIZONTE_COBERTURA_GRUPOS_MS) {
+      precisaPreencher = true;
+      break;
+    }
+  }
+  if (!precisaPreencher) return 0;
+
+  const canalIds = canais.map((canal) => canal.id);
+  const produtos = await prisma.produto.findMany({
+    where: {
+      ativo: true,
+      publicacoes: { none: { status: { in: ["PENDENTE", "PUBLICANDO"] } } },
+    },
+    select: { id: true, nome: true, destino: true, categoria: true, ativo: true },
+    orderBy: [{ publicacoes: { _count: "asc" } }, { criadoEm: "asc" }],
+    take: LOTE_GRUPOS_POR_TICK * 4,
+  });
+
+  let agendados = 0;
+  for (const produto of produtos) {
+    if (agendados >= LOTE_GRUPOS_POR_TICK) break;
+    if (produto.destino === Destino.MEU_NOVO_LAR && !produtoVisivelNoSite(produto)) continue;
+
+    const resultados = await enfileirarProduto(produto.id, canalIds);
+    if (resultados.some((resultado) => resultado.agendadaPara)) agendados++;
+  }
+
+  return agendados;
 }

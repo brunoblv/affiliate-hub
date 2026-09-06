@@ -101,9 +101,10 @@ export function CanalForm({
 
       <div className="space-y-1.5">
         <p className="text-sm font-medium">Janela de publicação</p>
-        <p className="text-sm text-muted-foreground">{rotuloJanela(canal?.intervaloMinimoMin ?? INTERVALO_PADRAO_MIN)}</p>
+        <p className="text-sm text-muted-foreground">{rotuloJanela(canal?.intervaloMinimoMin ?? INTERVALO_PADRAO_MIN, canal?.rede)}</p>
         <p className="text-xs text-muted-foreground">
-          Os horários são gerados automaticamente no fuso de Brasília. Nada é agendado antes das 9h nem depois das 21h.
+          WhatsApp e Telegram publicam das 9h às 21h, a cada 10–20 min (Brasília). Nas outras redes, nada é agendado
+          antes das 9h nem depois das 21h.
         </p>
       </div>
 

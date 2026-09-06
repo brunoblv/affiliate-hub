@@ -474,7 +474,9 @@ model Publicacao {
   landingDiariaId String?
   canalId         String
 
-  agendadaPara DateTime
+  /// Instante absoluto (timestamptz). TIMESTAMP sem fuso fazia 09h Brasília
+  /// (12:00 UTC) sair às 12h se o Postgres estivesse em America/Sao_Paulo.
+  agendadaPara DateTime @db.Timestamptz(3)
   status       StatusPublicacao @default(PENDENTE)
   contentType  ContentType
 
@@ -487,7 +489,7 @@ model Publicacao {
   tentativas    Int       @default(0)
   idPostExterno String?
   erro          String?   @db.Text
-  publicadaEm   DateTime?
+  publicadaEm   DateTime? @db.Timestamptz(3)
 
   /// Insights da Graph API (regra 5) — só preenchido para FACEBOOK_PAGE, quando
   /// o post já tem idPostExterno e o job de sincronização já rodou. Nulo até lá.

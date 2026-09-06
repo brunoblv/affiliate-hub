@@ -7,7 +7,7 @@ module.exports = {
       cwd: __dirname,
       autorestart: true,
       max_restarts: 10,
-      env: { NODE_ENV: "production" },
+      env: { NODE_ENV: "production", TZ_APP: "America/Sao_Paulo" },
     },
     {
       name: "affiliate-hub-workers",
@@ -16,7 +16,7 @@ module.exports = {
       cwd: __dirname,
       autorestart: true,
       max_restarts: 10,
-      env: { NODE_ENV: "production" },
+      env: { NODE_ENV: "production", TZ_APP: "America/Sao_Paulo" },
     },
   ],
 };

@@ -69,7 +69,7 @@ export default async function CanaisAdminPage({
                 <TableCell className="font-mono text-xs">{etiquetaDoCanal(canal)}</TableCell>
                 <TableCell>{canal.rede}</TableCell>
                 <TableCell>{LABEL_DESTINO[canal.destino] ?? canal.destino}</TableCell>
-                <TableCell>{rotuloJanela(canal.intervaloMinimoMin)}</TableCell>
+                <TableCell>{rotuloJanela(canal.intervaloMinimoMin, canal.rede)}</TableCell>
                 <TableCell>
                   <Badge variant={canal.ativo ? "default" : "secondary"}>{canal.ativo ? "Ativo" : "Inativo"}</Badge>
                 </TableCell>
