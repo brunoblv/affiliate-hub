@@ -74,6 +74,11 @@ const nextConfig: NextConfig = {
         destination: "/produtos",
         permanent: true,
       },
+      {
+        source: "/achadinhos",
+        destination: "/grupo",
+        permanent: false,
+      },
     ];
   },
 };
