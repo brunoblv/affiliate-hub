@@ -104,22 +104,14 @@ export default async function LandingGrupoPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-[#E24B1B] text-white">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 12% 18%, #fff 0 2px, transparent 3px), radial-gradient(circle at 88% 72%, #fff 0 2px, transparent 3px)",
-            backgroundSize: "72px 72px",
-          }}
-        />
-        <div className="relative mx-auto grid max-w-5xl items-center gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
+      <section className="bg-background">
+        <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
           <div>
-            <p className="text-[11px] font-bold tracking-[0.16em]">GRUPO DE OFERTAS PARA CASA</p>
-            <h1 className="mt-3 max-w-xl font-heading text-4xl leading-[1.12] font-semibold sm:text-5xl">
+            <p className="text-[11px] font-bold tracking-[0.16em] text-primary">GRUPO DE OFERTAS PARA CASA</p>
+            <h1 className="mt-3 max-w-xl font-heading text-4xl leading-[1.12] font-semibold text-foreground sm:text-5xl">
               Achadinhos da Shopee, TikTok e Mercado Livre no WhatsApp
             </h1>
-            <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-white/90">
+            <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-muted-foreground">
               Promoções e cupons de item de casa — organização, cozinha, banheiro, limpeza, decoração —
               direto no seu celular. Sem app extra: é o grupo do WhatsApp.
             </p>
@@ -128,7 +120,7 @@ export default async function LandingGrupoPage() {
               {LOJAS.map((loja) => (
                 <span
                   key={loja}
-                  className="rounded-full border border-white/35 bg-white/10 px-3 py-1 text-xs font-bold tracking-wide"
+                  className="rounded-full border border-border bg-card px-3 py-1 text-xs font-bold tracking-wide text-foreground"
                 >
                   {loja}
                 </span>
@@ -152,7 +144,7 @@ export default async function LandingGrupoPage() {
           </div>
         </div>
 
-        <div className="relative border-t border-white/15 bg-black/10 px-5 py-3 text-center text-[11px] font-bold tracking-[0.12em] text-white/85 sm:px-8">
+        <div className="border-t border-border bg-secondary px-5 py-3 text-center text-[11px] font-bold tracking-[0.12em] text-muted-foreground sm:px-8">
           {CATEGORIAS_RODAPE.join("  ·  ")}
         </div>
       </section>
@@ -166,7 +158,7 @@ export default async function LandingGrupoPage() {
             { n: "3", t: "Você decide", d: "Abre o link, confere na loja e compra só se fizer sentido pra você." },
           ].map((passo) => (
             <li key={passo.n} className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex size-8 items-center justify-center rounded-full bg-[#E24B1B] text-sm font-bold text-white">
+              <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                 {passo.n}
               </div>
               <h3 className="mt-3 font-heading text-lg font-semibold text-foreground">{passo.t}</h3>

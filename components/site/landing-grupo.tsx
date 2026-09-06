@@ -59,41 +59,41 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
   return (
     <div className="relative mx-auto w-[min(100%,320px)]">
       <div
-        className="absolute -top-6 -right-2 z-10 max-w-44 rotate-3 rounded-2xl bg-[#F5C84C] px-3 py-2 text-center text-[13px] font-extrabold leading-tight text-[#292824] shadow-md sm:-right-8"
+        className="absolute -top-6 -right-2 z-10 max-w-44 rotate-3 rounded-2xl bg-olive px-3 py-2 text-center text-[13px] font-bold leading-tight text-white shadow-md sm:-right-8"
         aria-hidden="true"
       >
         Ofertas de casa na palma da mão
       </div>
-      <div className="rounded-[2.4rem] border-10 border-[#1a1a1a] bg-white p-3 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
-        <div className="mx-auto mb-3 h-5 w-24 rounded-full bg-[#1a1a1a]" />
-        <div className="rounded-2xl bg-[#F8F6F1] px-3 py-2 text-center">
-          <div className="text-[10px] font-bold tracking-[0.14em] text-[#77736B]">ACHADINHOS</div>
-          <div className="text-sm font-bold text-[#292824]">Ofertas pra casa</div>
+      <div className="rounded-[2.4rem] border-10 border-foreground bg-card p-3 shadow-[0_24px_60px_rgba(41,40,36,0.18)]">
+        <div className="mx-auto mb-3 h-5 w-24 rounded-full bg-foreground" />
+        <div className="rounded-2xl bg-secondary px-3 py-2 text-center">
+          <div className="text-[10px] font-bold tracking-[0.14em] text-muted-foreground">ACHADINHOS</div>
+          <div className="text-sm font-bold text-foreground">Ofertas pra casa</div>
         </div>
         {itens.length > 0 ? (
           <ul className="mt-3 space-y-2.5">
             {itens.map((item) => {
               const imagem = primeiraImagem({ imagens: item.imagens as never });
               return (
-                <li key={item.id} className="flex items-center gap-2.5 rounded-xl bg-[#F8F6F1] p-2">
-                  <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+                <li key={item.id} className="flex items-center gap-2.5 rounded-xl bg-secondary p-2">
+                  <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-card">
                     {imagem ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={imagem} alt="" className="max-h-full max-w-full object-contain" />
                     ) : (
-                      <span className="size-6 rounded bg-[#EDE6DA]" />
+                      <span className="size-6 rounded bg-sand" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="line-clamp-1 text-[12px] font-semibold text-[#292824]">{item.nome}</div>
+                    <div className="line-clamp-1 text-[12px] font-semibold text-foreground">{item.nome}</div>
                     <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
                       {item.precoOriginal != null && (
-                        <span className="text-[10px] text-[#77736B] line-through">{reais(item.precoOriginal)}</span>
+                        <span className="text-[10px] text-muted-foreground line-through">{reais(item.precoOriginal)}</span>
                       )}
-                      <span className="text-[13px] font-extrabold text-[#C23A2B]">{reais(item.precoAtual)}</span>
+                      <span className="text-[13px] font-extrabold text-foreground">{reais(item.precoAtual)}</span>
                     </div>
                   </div>
-                  <span className="shrink-0 rounded-full bg-[#C23A2B] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  <span className="shrink-0 rounded-full bg-olive px-1.5 py-0.5 text-[10px] font-bold text-white">
                     -{item.desconto}%
                   </span>
                 </li>
@@ -103,9 +103,9 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
         ) : (
           <ul className="mt-3 space-y-2.5">
             {MENSAGENS_EXEMPLO.map((msg) => (
-              <li key={msg.loja} className="rounded-xl bg-[#E7FFDB] px-3 py-2.5 text-left">
-                <div className="text-[10px] font-bold tracking-wide text-[#1f7a46]">{msg.loja}</div>
-                <div className="mt-0.5 text-[13px] font-semibold text-[#292824]">{msg.texto}</div>
+              <li key={msg.loja} className="rounded-xl border border-sage/40 bg-secondary px-3 py-2.5 text-left">
+                <div className="text-[10px] font-bold tracking-wide text-olive">{msg.loja}</div>
+                <div className="mt-0.5 text-[13px] font-semibold text-foreground">{msg.texto}</div>
               </li>
             ))}
           </ul>
@@ -128,10 +128,10 @@ export function ListaBeneficiosGrupo() {
       {BENEFICIOS.map(({ icon: Icone, texto }) => (
         <li
           key={texto}
-          className="flex items-center gap-3 rounded-2xl bg-white/15 px-3.5 py-3 text-left text-sm font-semibold text-white backdrop-blur-sm"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 text-left text-sm font-semibold text-foreground"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
-            <Icone className="size-4" />
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
+            <Icone className="size-4 text-sage" />
           </span>
           {texto}
         </li>
@@ -148,7 +148,7 @@ const SELOS = [
 
 export function SelosConfiancaGrupo() {
   return (
-    <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-wide text-white/90">
+    <ul className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {SELOS.map(({ icon: Icone, texto }) => (
         <li key={texto} className="flex items-center gap-1.5">
           <Icone className="size-3.5" />
