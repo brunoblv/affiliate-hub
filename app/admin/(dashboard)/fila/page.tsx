@@ -73,10 +73,11 @@ function tituloDaPublicacao(publicacao: {
 export default async function FilaAdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; dia?: string; canal?: string; rede?: string }>;
+  searchParams: Promise<{ page?: string; dia?: string; canal?: string; rede?: string; q?: string }>;
 }) {
-  const { page: pageParam, dia: diaParam, canal: canalParam, rede: redeParam } = await searchParams;
+  const { page: pageParam, dia: diaParam, canal: canalParam, rede: redeParam, q: qParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
+  const busca = (qParam ?? "").trim();
   const hoje = chaveDoDia(new Date());
   const verTodos = diaParam === "todos";
   const dia = verTodos ? hoje : intervaloDoDia(diaParam ?? "") ? diaParam! : hoje;
@@ -100,8 +101,19 @@ export default async function FilaAdminPage({
     : rede === "todas"
       ? {}
       : { canal: { rede } };
+  const whereBusca = busca
+    ? {
+        OR: [
+          { produto: { nome: { contains: busca, mode: "insensitive" as const } } },
+          { post: { titulo: { contains: busca, mode: "insensitive" as const } } },
+          { listaOferta: { titulo: { contains: busca, mode: "insensitive" as const } } },
+          { landingDiaria: { headline: { contains: busca, mode: "insensitive" as const } } },
+        ],
+      }
+    : {};
   const where = {
     ...whereRedeOuCanal,
+    ...whereBusca,
     ...(intervalo ? { agendadaPara: { gte: intervalo.gte, lt: intervalo.lt } } : {}),
   };
 
@@ -188,6 +200,7 @@ export default async function FilaAdminPage({
         verTodos={verTodos}
         rede={rede}
         canalId={canalId}
+        busca={busca}
         canais={canais}
         dias={dias}
         redes={redes}
@@ -201,7 +214,9 @@ export default async function FilaAdminPage({
           description={
             semPublicacaoAlguma
               ? "Distribua um produto na tela de Produtos para começar."
-              : rede === REDE_PADRAO_FILA
+              : busca
+                ? `Nenhuma publicação com “${busca}”. Troque a busca, o grupo ou abra Todas.`
+                : rede === REDE_PADRAO_FILA
                 ? "Não há posts de WhatsApp neste dia. Troque o dia, o grupo, ou abra outra rede."
                 : "Não há publicações neste dia ou canal. Troque o filtro ou escolha Todos os dias."
           }
@@ -261,6 +276,7 @@ export default async function FilaAdminPage({
           dia: verTodos ? "todos" : dia,
           rede: rede === REDE_PADRAO_FILA ? undefined : rede,
           canal: canalId ?? undefined,
+          q: busca || undefined,
         }}
       />
     </div>

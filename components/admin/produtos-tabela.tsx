@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteProdutosAction, distribuirProdutosAction, type ResultadoDistribuicaoEmLote } from "@/app/admin/(dashboard)/produtos/actions";
 import { BarraExclusaoEmLote, CheckboxLote, useSelecaoEmLote } from "@/components/admin/selecao-em-lote";
+import { hrefFilaDoAgendamento } from "@/lib/agenda/fila-admin";
 
 export interface ProdutoLinha {
   id: string;
@@ -34,9 +35,13 @@ function avisarDistribuicao(
   const pulado = lote.flatMap((item) => item.resultados).find((r) => !r.agendadaPara)?.motivoPulado;
 
   if (agendados > 0) {
+    const primeiro = lote.flatMap((item) => item.resultados).find((r) => r.agendadaPara);
     toast.success(agendados === 1 ? "1 publicação entrou na fila." : `${agendados} publicações entraram na fila.`, {
       id: toastId,
-      action: { label: "Ver fila", onClick: () => router.push("/admin/fila") },
+      action: {
+        label: "Ver fila",
+        onClick: () => router.push(primeiro ? hrefFilaDoAgendamento(primeiro) : "/admin/fila"),
+      },
     });
     return;
   }

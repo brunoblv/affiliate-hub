@@ -14,6 +14,7 @@ export function FilaFiltros({
   verTodos,
   rede,
   canalId,
+  busca,
   canais,
   dias,
   redes,
@@ -23,6 +24,7 @@ export function FilaFiltros({
   verTodos: boolean;
   rede: RedeFila;
   canalId: string | null;
+  busca: string;
   canais: { id: string; nome: string; ativo: boolean; rede: Rede }[];
   dias: { chave: string; rotulo: string; count: number }[];
   redes: { id: Rede; label: string; count: number }[];
@@ -34,12 +36,13 @@ export function FilaFiltros({
   const canaisDaRede = rede === "todas" ? canais : canais.filter((canal) => canal.rede === rede);
   const totalRedes = redes.reduce((soma, item) => soma + item.count, 0);
 
-  function irPara(proximo: { dia?: string | null; rede?: RedeFila; canalId?: string | null }) {
+  function irPara(proximo: { dia?: string | null; rede?: RedeFila; canalId?: string | null; q?: string | null }) {
     router.push(
       hrefFila({
         dia: proximo.dia === undefined ? diaNaUrl : proximo.dia,
         rede: proximo.rede ?? rede,
         canalId: proximo.canalId === undefined ? canalId : proximo.canalId,
+        q: proximo.q === undefined ? (busca || null) : proximo.q,
       }),
     );
   }
@@ -52,7 +55,7 @@ export function FilaFiltros({
           return (
             <Link
               key={item.id}
-              href={hrefFila({ dia: diaNaUrl, rede: item.id })}
+              href={hrefFila({ dia: diaNaUrl, rede: item.id, q: busca || null })}
               className={cn(
                 "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 text-sm font-medium transition-colors",
                 ativo ? "bg-background text-foreground shadow-sm" : "text-foreground/60 hover:text-foreground",
@@ -64,7 +67,7 @@ export function FilaFiltros({
           );
         })}
         <Link
-          href={hrefFila({ dia: diaNaUrl, rede: "todas" })}
+          href={hrefFila({ dia: diaNaUrl, rede: "todas", q: busca || null })}
           className={cn(
             "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 text-sm font-medium transition-colors",
             rede === "todas" ? "bg-background text-foreground shadow-sm" : "text-foreground/60 hover:text-foreground",
@@ -81,7 +84,7 @@ export function FilaFiltros({
           return (
             <Link
               key={item.chave}
-              href={hrefFila({ dia: item.chave, rede, canalId })}
+              href={hrefFila({ dia: item.chave, rede, canalId, q: busca || null })}
               className={cn(
                 "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 text-sm font-medium transition-colors",
                 ativo ? "bg-background text-foreground shadow-sm" : "text-foreground/60 hover:text-foreground",
@@ -93,7 +96,7 @@ export function FilaFiltros({
           );
         })}
         <Link
-          href={hrefFila({ dia: "todos", rede, canalId })}
+          href={hrefFila({ dia: "todos", rede, canalId, q: busca || null })}
           className={cn(
             "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 text-sm font-medium transition-colors",
             verTodos ? "bg-background text-foreground shadow-sm" : "text-foreground/60 hover:text-foreground",
@@ -139,6 +142,24 @@ export function FilaFiltros({
             </Select>
           </div>
         )}
+        <form
+          className="space-y-1.5"
+          action="/admin/fila"
+          onSubmit={(evento) => {
+            evento.preventDefault();
+            const valor = String(new FormData(evento.currentTarget).get("q") ?? "").trim();
+            irPara({ dia: valor ? "todos" : diaNaUrl, q: valor || null });
+          }}
+        >
+          <Label htmlFor="fila-busca">Buscar produto</Label>
+          <Input
+            id="fila-busca"
+            name="q"
+            defaultValue={busca}
+            placeholder="Nome do produto na fila"
+            className="w-64"
+          />
+        </form>
       </div>
     </div>
   );

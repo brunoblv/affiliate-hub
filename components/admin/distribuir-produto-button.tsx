@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { distribuirProdutoAction } from "@/app/admin/(dashboard)/produtos/actions";
 import type { ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { formatarIsoLocal } from "@/lib/agenda/fuso";
+import { hrefFilaDoAgendamento } from "@/lib/agenda/fila-admin";
 
 export function DistribuirProdutoButton({ produtoId }: { produtoId: string }) {
   const router = useRouter();
@@ -21,15 +22,15 @@ export function DistribuirProdutoButton({ produtoId }: { produtoId: string }) {
         const lista = await distribuirProdutoAction(produtoId);
         setResultados(lista);
 
-        const agendados = lista.filter((r) => r.agendadaPara).length;
-        if (agendados > 0) {
+        const agendados = lista.filter((r) => r.agendadaPara);
+        if (agendados.length > 0) {
           toast.success(
-            agendados === 1 ? "1 publicação entrou na fila." : `${agendados} publicações entraram na fila.`,
+            agendados.length === 1 ? "1 publicação entrou na fila." : `${agendados.length} publicações entraram na fila.`,
             {
               id: toastId,
               action: {
                 label: "Ver fila",
-                onClick: () => router.push("/admin/fila"),
+                onClick: () => router.push(hrefFilaDoAgendamento(agendados[0]!)),
               },
             },
           );
