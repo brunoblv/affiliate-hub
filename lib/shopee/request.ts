@@ -55,11 +55,14 @@ export async function shopeeRequest<T>(query: string, variables?: Record<string,
     const mensagens = json.errors?.map((e) => e.message).join("; ") ?? response.statusText;
     const ehParametro = /11001|invalid sub id/i.test(mensagens);
 
-    await registrar(ehParametro ? "ALERTA" : "ERRO", "PRODUTO_SYNC", "Shopee: chamada à API falhou", {
-      status: response.status,
-      erros: json.errors,
-      variaveis: variables,
-    });
+    // 11001 é recusa de subId — quem chama tenta de novo sem etiqueta.
+    if (!ehParametro) {
+      await registrar("ERRO", "PRODUTO_SYNC", "Shopee: chamada à API falhou", {
+        status: response.status,
+        erros: json.errors,
+        variaveis: variables,
+      });
+    }
 
     // "got null for non-null" acontece de forma intermitente do lado da
     // Shopee (mesma query, mesmo item, funciona minutos depois) — não é erro

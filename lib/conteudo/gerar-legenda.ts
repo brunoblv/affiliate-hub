@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Destino, Rede, type Produto } from "@/lib/database";
+import { Destino, Rede, type NivelLog, type Produto } from "@/lib/database";
 import { gerarJson } from "@/lib/conteudo/gemini";
 import {
   montarTextoDaLanding,
@@ -25,8 +25,9 @@ const OPCOES_LEGENDA = {
   temperature: 0.8,
   tarefa: "curto" as const,
   maxModelos: 1,
-  timeoutMs: 5_000,
+  timeoutMs: 12_000,
   maxAttempts: 1,
+  maxOutputTokens: 1024,
 };
 
 /**
@@ -195,6 +196,10 @@ function mensagemErro(erro: unknown): string {
   return erro instanceof Error ? erro.message : String(erro);
 }
 
+function nivelFalhaGemini(erro: unknown): NivelLog {
+  return /não respondeu em/i.test(mensagemErro(erro)) ? "ALERTA" : "ERRO";
+}
+
 function preencher(base: string, campos: Record<string, string>): string {
   let texto = base;
   for (const [chave, valor] of Object.entries(campos)) {
@@ -212,7 +217,7 @@ export async function gerarLegendaDoProduto(entrada: EntradaTexto): Promise<stri
     return montarLegendaProduto(entrada, partes);
   } catch (erro) {
     pausarGeminiSeTimeout(erro);
-    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda do produto, usando template. ${mensagemErro(erro)}`, {
+    await registrar(nivelFalhaGemini(erro), "CONTEUDO", `Gemini falhou na legenda do produto, usando template. ${mensagemErro(erro)}`, {
       produto: entrada.produto.slug,
       rede: entrada.rede,
     });
@@ -229,7 +234,7 @@ export async function gerarLegendaDaLista(entrada: EntradaTextoDaLista): Promise
     return montarLegendaLista(entrada, partes);
   } catch (erro) {
     pausarGeminiSeTimeout(erro);
-    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da lista, usando template. ${mensagemErro(erro)}`, {
+    await registrar(nivelFalhaGemini(erro), "CONTEUDO", `Gemini falhou na legenda da lista, usando template. ${mensagemErro(erro)}`, {
       post: entrada.post.slug,
       rede: entrada.rede,
     });
@@ -246,7 +251,7 @@ export async function gerarLegendaDaJornada(entrada: EntradaTextoDaJornada): Pro
     return montarLegendaJornada(entrada, partes);
   } catch (erro) {
     pausarGeminiSeTimeout(erro);
-    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da jornada, usando template. ${mensagemErro(erro)}`, {
+    await registrar(nivelFalhaGemini(erro), "CONTEUDO", `Gemini falhou na legenda da jornada, usando template. ${mensagemErro(erro)}`, {
       post: entrada.post.slug,
       rede: entrada.rede,
     });
@@ -409,7 +414,7 @@ export async function gerarLegendaDaLanding(entrada: EntradaTextoDaLanding): Pro
     return linhas.join("\n").trim();
   } catch (erro) {
     pausarGeminiSeTimeout(erro);
-    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da vitrine, usando template. ${mensagemErro(erro)}`, {
+    await registrar(nivelFalhaGemini(erro), "CONTEUDO", `Gemini falhou na legenda da vitrine, usando template. ${mensagemErro(erro)}`, {
       destino: entrada.destino,
       rede: entrada.rede,
     });
@@ -462,7 +467,7 @@ export async function gerarLegendaDaListaOferta(entrada: EntradaTextoDaListaOfer
     return linhas.join("\n").trim();
   } catch (erro) {
     pausarGeminiSeTimeout(erro);
-    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da lista da loja, usando template. ${mensagemErro(erro)}`, {
+    await registrar(nivelFalhaGemini(erro), "CONTEUDO", `Gemini falhou na legenda da lista da loja, usando template. ${mensagemErro(erro)}`, {
       titulo: entrada.titulo,
       rede: entrada.rede,
     });

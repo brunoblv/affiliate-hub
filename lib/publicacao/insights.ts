@@ -18,9 +18,18 @@ const JANELA_MAXIMA_DIAS = 60;
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 const LOTE = 25;
 
+/**
+ * Graph API v25+ (e, a partir de jun/2026, todas as versões) recusou
+ * `post_impressions` / `post_impressions_unique` / `post_engaged_users`
+ * com "(#100) The value must be a valid insights metric".
+ * Substitutos: media view + cliques.
+ */
+const METRICAS =
+  "post_media_view,post_total_media_view_unique,post_clicks";
+
 interface ValorMetrica {
   name: string;
-  values: Array<{ value: number }>;
+  values: Array<{ value: number | Record<string, unknown> }>;
 }
 
 interface RespostaInsights {
@@ -32,14 +41,30 @@ function mensagemErro(erro: unknown): string {
   return erro instanceof Error ? erro.message : String(erro);
 }
 
+function numeroDoValor(valor: unknown): number | undefined {
+  if (typeof valor === "number" && Number.isFinite(valor)) return Math.round(valor);
+  if (valor && typeof valor === "object" && !Array.isArray(valor)) {
+    let soma = 0;
+    let achou = false;
+    for (const item of Object.values(valor as Record<string, unknown>)) {
+      const n = numeroDoValor(item);
+      if (n !== undefined) {
+        soma += n;
+        achou = true;
+      }
+    }
+    return achou ? soma : undefined;
+  }
+  return undefined;
+}
+
 function valorDaMetrica(dados: ValorMetrica[], nome: string): number | undefined {
-  const metrica = dados.find((item) => item.name === nome);
-  return metrica?.values?.[0]?.value;
+  return numeroDoValor(dados.find((item) => item.name === nome)?.values?.[0]?.value);
 }
 
 async function buscarInsightsDoPost(postId: string, token: string): Promise<RespostaInsights> {
   const url = new URL(`${GRAPH}/${postId}/insights`);
-  url.searchParams.set("metric", "post_impressions,post_impressions_unique,post_engaged_users");
+  url.searchParams.set("metric", METRICAS);
   url.searchParams.set("access_token", token);
 
   const resposta = await fetch(url);
@@ -80,9 +105,9 @@ async function sincronizarInsightsDoCanal(canalId: string, pageId: string): Prom
       await prisma.publicacao.update({
         where: { id: publicacao.id },
         data: {
-          visualizacoes: valorDaMetrica(dados, "post_impressions") ?? null,
-          visualizadoresUnicos: valorDaMetrica(dados, "post_impressions_unique") ?? null,
-          engajamentos: valorDaMetrica(dados, "post_engaged_users") ?? null,
+          visualizacoes: valorDaMetrica(dados, "post_media_view") ?? null,
+          visualizadoresUnicos: valorDaMetrica(dados, "post_total_media_view_unique") ?? null,
+          engajamentos: valorDaMetrica(dados, "post_clicks") ?? null,
           insightsSincronizadoEm: new Date(),
         },
       });
