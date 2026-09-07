@@ -13,6 +13,7 @@ import {
   Store,
   ListChecks,
   ClipboardList,
+  ScrollText,
 } from "lucide-react";
 
 export interface NavItem {
@@ -52,6 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Listas da loja", href: "/admin/listas-oferta", icon: ClipboardList },
       { title: "Fila", href: "/admin/fila", icon: Send },
+      { title: "Logs", href: "/admin/logs", icon: ScrollText },
       { title: "Canais", href: "/admin/canais", icon: Radio },
       { title: "Integrações", href: "/admin/integracoes", icon: Plug },
     ],

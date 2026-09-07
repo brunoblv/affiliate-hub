@@ -1,8 +1,8 @@
-import path from "node:path";
 import type { WASocket } from "@whiskeysockets/baileys";
 import { registrar } from "@/lib/log";
+import { diretorioAuthWhatsApp } from "./auth-dir";
 
-const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || path.join(process.cwd(), ".whatsapp-auth");
+const AUTH_DIR = diretorioAuthWhatsApp();
 const PAUSA_RECONEXAO_MS = 2_000;
 
 let socketPromise: Promise<WASocket> | null = null;

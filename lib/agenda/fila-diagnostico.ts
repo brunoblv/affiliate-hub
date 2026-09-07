@@ -8,12 +8,13 @@ export interface DiagnosticoFila {
   vencidasWhatsapp: number;
   aguardandoHorarioWhatsapp: number;
   publicandoWhatsapp: number;
+  proximaWhatsapp: Date | null;
   ultimoErro: { mensagem: string; quando: Date; area: string } | null;
 }
 
 export async function diagnosticarFilaWhatsapp(): Promise<DiagnosticoFila> {
   const agora = new Date();
-  const [pulso, vencidasWhatsapp, aguardandoHorarioWhatsapp, publicandoWhatsapp, ultimoErro] =
+  const [pulso, vencidasWhatsapp, aguardandoHorarioWhatsapp, publicandoWhatsapp, proxima, ultimoErro] =
     await Promise.all([
       prisma.log.findFirst({
         where: { area: "WORKER", mensagem: "pulso" },
@@ -40,6 +41,15 @@ export async function diagnosticarFilaWhatsapp(): Promise<DiagnosticoFila> {
           canal: { rede: Rede.WHATSAPP },
         },
       }),
+      prisma.publicacao.findFirst({
+        where: {
+          status: StatusPublicacao.PENDENTE,
+          agendadaPara: { gt: agora },
+          canal: { rede: Rede.WHATSAPP },
+        },
+        orderBy: { agendadaPara: "asc" },
+        select: { agendadaPara: true },
+      }),
       prisma.log.findFirst({
         where: {
           nivel: "ERRO",
@@ -57,6 +67,7 @@ export async function diagnosticarFilaWhatsapp(): Promise<DiagnosticoFila> {
     vencidasWhatsapp,
     aguardandoHorarioWhatsapp,
     publicandoWhatsapp,
+    proximaWhatsapp: proxima?.agendadaPara ?? null,
     ultimoErro: ultimoErro
       ? { mensagem: ultimoErro.mensagem, quando: ultimoErro.criadoEm, area: ultimoErro.area }
       : null,
