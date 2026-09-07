@@ -52,8 +52,8 @@ const nextConfig: NextConfig = {
       // Upload de capa/imagens no CMS (até 25 MB + overhead do multipart).
       bodySizeLimit: "30mb",
     },
-    // middleware.ts ainda está no projeto (Next 16 trata como proxy): o default
-    // é 10 MB e o corpo é truncado — o formData() quebra e o cliente recebe HTML.
+    // proxy.ts intercepta o request: o default é 10 MB e o corpo é truncado —
+    // o formData() quebra e o cliente recebe HTML.
     proxyClientMaxBodySize: "30mb",
   },
   async headers() {

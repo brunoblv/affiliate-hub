@@ -1,9 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 
 /**
- * Config compatível com Edge Runtime — usada pelo middleware.
- * Não pode importar Prisma nem providers que dependem de Node APIs
- * (Credentials/PrismaAdapter ficam apenas em lib/auth/config.ts).
+ * Config leve para o proxy.ts (sem Prisma nem providers Node).
+ * Credentials/PrismaAdapter ficam apenas em lib/auth/config.ts.
  */
 export const edgeAuthConfig: NextAuthConfig = {
   trustHost: true,

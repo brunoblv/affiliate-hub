@@ -799,10 +799,12 @@ export async function publicarProdutoAgora(produtoId: string, canalId: string): 
 
 const LOTE_GRUPOS_POR_TICK = 20;
 const HORIZONTE_COBERTURA_GRUPOS_MS = 36 * 60 * 60 * 1000;
+const MS_POR_DIA_COOLDOWN = 24 * 60 * 60 * 1000;
 
 /**
  * Mantém a fila de WhatsApp e Telegram coberta na janela 09:00–21:00
- * (intervalo 10–20 min). Sem canal cadastrado, não faz nada.
+ * (intervalo 10–20 min). Cada grupo é preenchido sozinho: pendência ou
+ * cooldown em outro canal não impede este.
  */
 export async function enfileirarHorariosVaziosGrupos(): Promise<number> {
   const canais = await prisma.canal.findMany({
@@ -810,22 +812,38 @@ export async function enfileirarHorariosVaziosGrupos(): Promise<number> {
   });
   if (canais.length === 0) return 0;
 
-  let precisaPreencher = false;
+  let agendados = 0;
   for (const canal of canais) {
-    const vaga = await proximoHorarioLivre(canal);
-    if (!vaga) continue;
-    if (vaga.agendadaPara.getTime() <= Date.now() + HORIZONTE_COBERTURA_GRUPOS_MS) {
-      precisaPreencher = true;
-      break;
-    }
+    agendados += await preencherHorariosVaziosDoCanalGrupo(canal);
   }
-  if (!precisaPreencher) return 0;
+  return agendados;
+}
 
-  const canalIds = canais.map((canal) => canal.id);
+async function preencherHorariosVaziosDoCanalGrupo(canal: Canal): Promise<number> {
+  const vaga = await proximoHorarioLivre(canal);
+  if (!vaga) return 0;
+  if (vaga.agendadaPara.getTime() > Date.now() + HORIZONTE_COBERTURA_GRUPOS_MS) return 0;
+
+  const desdeCooldown =
+    canal.cooldownDias > 0
+      ? new Date(Date.now() - canal.cooldownDias * MS_POR_DIA_COOLDOWN)
+      : null;
+
   const produtos = await prisma.produto.findMany({
     where: {
       ativo: true,
-      publicacoes: { none: { status: { in: ["PENDENTE", "PUBLICANDO"] } } },
+      destino: canal.destino,
+      publicacoes: {
+        none: {
+          canalId: canal.id,
+          OR: [
+            { status: { in: ["PENDENTE", "PUBLICANDO"] } },
+            ...(desdeCooldown
+              ? [{ status: "PUBLICADA" as const, publicadaEm: { gte: desdeCooldown } }]
+              : []),
+          ],
+        },
+      },
     },
     select: { id: true, nome: true, destino: true, categoria: true, ativo: true },
     orderBy: [{ publicacoes: { _count: "asc" } }, { criadoEm: "asc" }],
@@ -837,7 +855,7 @@ export async function enfileirarHorariosVaziosGrupos(): Promise<number> {
     if (agendados >= LOTE_GRUPOS_POR_TICK) break;
     if (produto.destino === Destino.MEU_NOVO_LAR && !produtoVisivelNoSite(produto)) continue;
 
-    const resultados = await enfileirarProduto(produto.id, canalIds);
+    const resultados = await enfileirarProduto(produto.id, [canal.id]);
     if (resultados.some((resultado) => resultado.agendadaPara)) agendados++;
   }
 

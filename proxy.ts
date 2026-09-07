@@ -4,7 +4,7 @@ import { edgeAuthConfig } from "@/lib/auth/edge-config";
 
 const { auth } = NextAuth(edgeAuthConfig);
 
-export default auth((req) => {
+export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth;
   const isAdminRoute =
     req.nextUrl.pathname.startsWith("/admin") && req.nextUrl.pathname !== "/admin/login";
