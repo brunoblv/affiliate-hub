@@ -11,6 +11,7 @@ import { chaveDoDia, FUSO_APP, formatarHora, formatarLocal, intervaloDoDia, soma
 import { ehRedeFila, LABEL_REDE_FILA, REDE_PADRAO_FILA, REDES_FILA, type RedeFila } from "@/lib/agenda/fila-admin";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { LimparFilaButton } from "@/components/admin/limpar-fila-button";
+import { ReorganizarFilaGrupoButton } from "@/components/admin/reorganizar-fila-grupo-button";
 
 export const maxDuration = 60;
 
@@ -192,7 +193,10 @@ export default async function FilaAdminPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <PageHeader title={titulo} description={descricao} />
-        <LimparFilaButton total={totalGeral} />
+        <div className="flex flex-wrap items-end justify-end gap-3">
+          <ReorganizarFilaGrupoButton key={canalId ?? "todos"} canais={canais} canalIdAtual={canalId} />
+          <LimparFilaButton total={totalGeral} />
+        </div>
       </div>
 
       <FilaFiltros
