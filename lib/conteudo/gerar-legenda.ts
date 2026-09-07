@@ -7,13 +7,24 @@ import {
   montarTextoDaLista,
   montarTextoDaJornada,
   montarTextoDoPost,
+  montarTextoDaListaOferta,
   type EntradaTexto,
   type EntradaTextoDaLanding,
   type EntradaTextoDaLista,
   type EntradaTextoDaJornada,
+  type EntradaTextoDaListaOferta,
 } from "@/lib/conteudo/texto-do-post";
 import { LABEL_CATEGORIA } from "@/lib/produtos";
 import { registrar } from "@/lib/log";
+
+/** Legenda na fila: no máximo 2 modelos, sem ficar minutos tentando a cadeia inteira. */
+const OPCOES_LEGENDA = {
+  temperature: 0.8,
+  tarefa: "curto" as const,
+  maxModelos: 2,
+  timeoutMs: 12_000,
+  maxAttempts: 1,
+};
 
 /**
  * Legenda de rede social via Gemini: a IA só escreve gancho, descrição e CTA.
@@ -63,12 +74,13 @@ const SCHEMA_LISTA = {
 /** Redes com seção de comentários — só nelas faz sentido puxar comentário. */
 const REDES_COMENTARIO = new Set<Rede>([Rede.INSTAGRAM, Rede.FACEBOOK_PAGE, Rede.FACEBOOK_GROUP]);
 
-const LABEL_REDE: Record<Rede, string> = {
+const LABEL_REDE: Record<Rede | "PINTEREST", string> = {
   [Rede.FACEBOOK_PAGE]: "Facebook (página)",
   [Rede.FACEBOOK_GROUP]: "Facebook (grupo)",
   [Rede.INSTAGRAM]: "Instagram",
   [Rede.TELEGRAM]: "Telegram",
   [Rede.WHATSAPP]: "WhatsApp",
+  PINTEREST: "Pinterest",
 };
 
 const LABEL_DESTINO: Record<Destino, string> = {
@@ -249,7 +261,7 @@ async function pedirPartesProduto({ produto, rede, comentario }: EntradaTexto): 
     notaEditorial: produto.notaEditorial?.trim() || "(sem nota editorial)",
   });
 
-  const bruto = await gerarJson<PartesProduto>({ prompt, schema: SCHEMA_PRODUTO, temperature: 0.8 });
+  const bruto = await gerarJson<PartesProduto>({ prompt, schema: SCHEMA_PRODUTO, ...OPCOES_LEGENDA });
   const beneficios = (Array.isArray(bruto.beneficios) ? bruto.beneficios : [])
     .map((item) => limparCampo(item, 60))
     .filter(Boolean)
@@ -272,7 +284,7 @@ async function pedirPartesLista({ post, rede }: EntradaTextoDaLista): Promise<Pa
     resumo: post.resumo?.trim() || "(sem resumo — não invente detalhes da lista)",
   });
 
-  const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, temperature: 0.8 });
+  const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, ...OPCOES_LEGENDA });
   return {
     abertura: limparCampo(bruto.abertura, 80) || "📋 LISTA",
     chamada: limparCampo(bruto.chamada, 500),
@@ -291,7 +303,7 @@ async function pedirPartesJornada({ post, rede }: EntradaTextoDaJornada): Promis
     resumo: post.resumo?.trim() || "(sem resumo — não invente detalhes da matéria)",
   });
 
-  const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, temperature: 0.8 });
+  const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, ...OPCOES_LEGENDA });
   return {
     abertura: limparCampo(bruto.abertura, 80) || "🏡 NO SITE",
     chamada: limparCampo(bruto.chamada, 500),
@@ -363,7 +375,7 @@ export async function gerarLegendaDaLanding(entrada: EntradaTextoDaLanding): Pro
       resumo: entrada.resumo.trim() || "(sem resumo — não invente detalhes da seleção)",
     });
 
-    const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, temperature: 0.8 });
+    const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, ...OPCOES_LEGENDA });
     const partes: PartesLista = {
       abertura: limparCampo(bruto.abertura, 80) || "🛍️ OFERTAS DO DIA",
       chamada: limparCampo(bruto.chamada, 500),
@@ -388,5 +400,57 @@ export async function gerarLegendaDaLanding(entrada: EntradaTextoDaLanding): Pro
       rede: entrada.rede,
     });
     return montarTextoDaLanding(entrada);
+  }
+}
+
+/** Legenda de lista pré-feita da loja — deixa claro que é uma seleção de ofertas. */
+export async function gerarLegendaDaListaOferta(entrada: EntradaTextoDaListaOferta): Promise<string> {
+  if (!geminiDisponivel()) return montarTextoDaListaOferta(entrada);
+
+  try {
+    const prompt = preencher(await carregarPrompt("legenda-lista-oferta.md"), {
+      rede: LABEL_REDE[entrada.rede],
+      destino: LABEL_DESTINO[Destino.MEU_NOVO_LAR],
+      tomDestino: TOM_DESTINO[Destino.MEU_NOVO_LAR],
+      titulo: entrada.titulo,
+      categoria: entrada.categoria,
+      loja: entrada.loja,
+    });
+
+    const bruto = await gerarJson<PartesLista>({ prompt, schema: SCHEMA_LISTA, ...OPCOES_LEGENDA });
+    const partes: PartesLista = {
+      abertura: limparCampo(bruto.abertura, 80) || `📋 LISTA DE OFERTAS — ${entrada.categoria.toUpperCase()}`,
+      chamada: limparCampo(bruto.chamada, 500),
+      cta: limparCampo(bruto.cta, 80) || "👉 ABRE A LISTA ANTES QUE ACABE",
+      perguntaEngajamento:
+        limparCampo(bruto.perguntaEngajamento, 200) || "💬 Qual item dessa lista você mais precisa aí em casa?",
+    };
+
+    const linhas: string[] = [partes.abertura, "", entrada.titulo];
+    if (partes.chamada) linhas.push("", partes.chamada);
+    if (
+      (entrada.rede === Rede.FACEBOOK_PAGE || entrada.rede === Rede.FACEBOOK_GROUP || entrada.rede === Rede.INSTAGRAM) &&
+      partes.perguntaEngajamento
+    ) {
+      linhas.push("", partes.perguntaEngajamento);
+    }
+    linhas.push(
+      "",
+      partes.cta,
+      linhaDeLink(
+        entrada.rede === "PINTEREST" ? Rede.WHATSAPP : entrada.rede,
+        entrada.link,
+        "Abre a lista agora — esses preços não ficam o dia inteiro.",
+      ),
+      "",
+      DISCLOSURE,
+    );
+    return linhas.join("\n").trim();
+  } catch (erro) {
+    await registrar("ERRO", "CONTEUDO", `Gemini falhou na legenda da lista da loja, usando template. ${mensagemErro(erro)}`, {
+      titulo: entrada.titulo,
+      rede: entrada.rede,
+    });
+    return montarTextoDaListaOferta(entrada);
   }
 }

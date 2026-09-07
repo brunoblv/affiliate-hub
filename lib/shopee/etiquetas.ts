@@ -20,7 +20,10 @@ const TIPO_DO_POST: Record<TipoPost, TipoEtiqueta> = {
   [TipoPost.JORNADA]: "jornada",
 };
 
-/** Slug aceito como sub_id da Shopee: minúsculas, números e hífen. */
+/**
+ * Slug interno (site `?o=`, chave de cache): minúsculas, números e hífen.
+ * Na API da Shopee o hífen vira underscore — ver `subIdsParaApi`.
+ */
 export function slugEtiqueta(texto: string): string {
   return texto
     .normalize("NFD")
@@ -85,7 +88,7 @@ export function origemDoGo(params: {
 const TIPOS: ReadonlySet<string> = new Set(["produto", "lista", "jornada", "vitrine", "blog"]);
 
 function pareceCanal(slug: string): boolean {
-  return /^(facebook|instagram|telegram|whatsapp)(-|$)/.test(slug);
+  return /^(facebook|instagram|telegram|whatsapp|pinterest)(-|$)/.test(slug);
 }
 
 /** Interpreta o `?o=` do /go e devolve os subIds pra gerar o link da Shopee. */
@@ -111,6 +114,23 @@ export function subIdsDaOrigem(origem: string | null | undefined): string[] {
   }
 
   return partes.slice(0, MAX_SUB_IDS);
+}
+
+/**
+ * Charset que a Affiliate Open API aceita no `subIds` (erro 11001
+ * "invalid sub id" com hífen). Site e cache continuam com hífen.
+ */
+export function subIdsParaApi(subIds: string[]): string[] {
+  const saida: string[] = [];
+  const vistos = new Set<string>();
+  for (const bruto of subIds) {
+    const id = bruto.replace(/-/g, "_").replace(/[^a-z0-9_]/g, "").slice(0, MAX_CHARS);
+    if (!id || vistos.has(id)) continue;
+    vistos.add(id);
+    saida.push(id);
+    if (saida.length >= MAX_SUB_IDS) break;
+  }
+  return saida;
 }
 
 /** Acrescenta `?o=` com a etiqueta do canal numa URL absoluta do site. */

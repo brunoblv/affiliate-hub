@@ -11,7 +11,7 @@ import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
 import { sincronizarInsightsFacebook } from "@/lib/publicacao/insights";
 import { executarRelatorioSemanalFacebook } from "@/lib/relatorios/relatorio-semanal-facebook";
-import { enfileirarHorariosVaziosGrupos } from "@/lib/agenda/enfileirar";
+import { enfileirarHorariosVaziosGrupos, enfileirarListasOfertaDoDia } from "@/lib/agenda/enfileirar";
 
 const INTERVALO_TICK_MS = 60_000;
 /** Quantas publicações um tick processa. Baixo de propósito: espaça os posts. */
@@ -243,6 +243,23 @@ async function loopFilaGrupos(): Promise<void> {
   }
 }
 
+/** Listas pré-feitas da loja: uma divulgação por dia nos destinos marcados. */
+async function loopListasOferta(): Promise<void> {
+  while (!encerrando) {
+    try {
+      const agendados = await enfileirarListasOfertaDoDia();
+      if (agendados > 0) {
+        console.log(`[worker] ${agendados} lista(s) da loja enfileirada(s) no dia`);
+      }
+    } catch (erro) {
+      await registrar("ERRO", "AGENDA", "Enfileiramento das listas da loja falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_FILA_GRUPOS_MS));
+  }
+}
+
 /** Termina o item em andamento antes de sair: nunca deixa linha presa em PUBLICANDO. */
 function encerrar(sinal: string): void {
   console.log(`[worker] ${sinal} recebido, encerrando após o item atual...`);
@@ -260,3 +277,4 @@ void loopLandingDiaria();
 void loopInsightsFacebook();
 void loopRelatorioSemanalFacebook();
 void loopFilaGrupos();
+void loopListasOferta();

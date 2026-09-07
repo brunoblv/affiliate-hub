@@ -180,3 +180,52 @@ export function montarTextoDaLanding({ headline, resumo, rede, link }: EntradaTe
 
   return linhas.join("\n").trim();
 }
+
+export interface EntradaTextoDaListaOferta {
+  titulo: string;
+  categoria: string;
+  loja: string;
+  rede: Rede | "PINTEREST";
+  link: string;
+}
+
+/**
+ * Lista pré-feita da loja (Shopee Oferta Shopee, coleção ML…). Sempre deixa
+ * claro que é uma lista de ofertas. CTA de escassez honesta: preço de
+ * campanha/estoque da lista, sem inventar "últimas 3 unidades".
+ */
+export function montarTextoDaListaOferta({
+  titulo,
+  categoria,
+  loja,
+  rede,
+  link,
+}: EntradaTextoDaListaOferta): string {
+  const linhas: string[] = [];
+
+  linhas.push(`📋 Lista de ofertas — ${categoria} na ${loja}`);
+  linhas.push("");
+  linhas.push(titulo);
+  linhas.push("");
+  linhas.push(
+    "Seleção pronta, com preço travado de campanha. Quando acaba o estoque desses itens, o valor não volta.",
+  );
+
+  if (rede === Rede.FACEBOOK_PAGE || rede === Rede.FACEBOOK_GROUP) {
+    linhas.push("", "💬 Qual item dessa lista você mais precisa aí em casa?");
+  }
+
+  linhas.push("");
+  if (rede === "PINTEREST" || rede === Rede.INSTAGRAM) {
+    linhas.push("Abre a lista agora — esses preços não ficam o dia inteiro.");
+    if (rede === "PINTEREST") linhas.push(link);
+  } else {
+    linhas.push("Abre a lista agora, antes que acabe:");
+    linhas.push(link);
+  }
+
+  linhas.push("");
+  linhas.push(AVISO_AFILIADO);
+
+  return linhas.join("\n").trim();
+}

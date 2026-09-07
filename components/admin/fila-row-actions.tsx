@@ -40,15 +40,46 @@ export function FilaRowActions({
     executar("Reagendando...", "Publicação reagendada.", () => reagendarAction(id, valor));
   }
 
+  function publicarAgora() {
+    if (
+      !confirm(
+        "Publicar agora? O post sai neste instante, sem esperar o horário agendado.",
+      )
+    ) {
+      return;
+    }
+
+    startTransition(async () => {
+      const toastId = toast.loading("Publicando agora...");
+      try {
+        const resultado = await publicarAgoraAction(id);
+        if (resultado.publicada) {
+          toast.success("Publicado.", { id: toastId });
+        } else {
+          toast.error(resultado.erro ?? "Não foi possível publicar agora.", { id: toastId, duration: 8000 });
+        }
+      } catch (erro) {
+        toast.error(erro instanceof Error ? erro.message : "Não foi possível publicar agora.", { id: toastId });
+      }
+    });
+  }
+
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
+      {status === "PENDENTE" && (
+        <Button type="button" size="sm" disabled={isPending} onClick={publicarAgora}>
+          Publicar agora
+        </Button>
+      )}
       {status === "FALHOU" && (
         <Button
           type="button"
           size="sm"
           variant="outline"
           disabled={isPending}
-          onClick={() => executar("Republicando...", "Publicação de volta na fila.", () => republicarAction(id))}
+          onClick={() =>
+            executar("Republicando...", "Publicação de volta na fila.", () => republicarAction(id))
+          }
         >
           Republicar
         </Button>

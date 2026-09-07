@@ -2,36 +2,44 @@
  * Modelos da API free (AI Studio) que este projeto realmente usa.
  * IDs conferidos em ListModels. Quota 0/0 (Pro, imagem, Veo, Live) fica de fora.
  *
+ * `gemini-2.5-flash` saiu do ar pra contas novas (404 NOT_FOUND) — a Google
+ * manda usar `gemini-3.6-flash`. 2.5 lite/TTS também ficam de fora pra não
+ * gastar timeout na fila tentando modelo morto.
+ *
  * Texto — volume (RPD alto):
  *   gemini-3.5-flash-lite, gemini-3.1-flash-lite  → 500/dia
- *   gemini-2.5-flash-lite                         → 20/dia
- * Texto — qualidade (melhor pra artigo longo, 20/dia cada):
- *   gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash,
- *   gemini-3-flash-preview, gemini-2.5-flash
- * TTS (10/dia cada — gerar sob demanda, não em lote):
- *   gemini-3.1-flash-tts-preview, gemini-2.5-flash-preview-tts
+ * Texto — qualidade (melhor pra artigo longo):
+ *   gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3-flash-preview
+ * TTS (gerar sob demanda, não em lote):
+ *   gemini-3.1-flash-tts-preview
  */
 
 export type TarefaGemini = "artigo" | "curto" | "tts";
 
 const QUALIDADE_ARTIGO = [
-  "gemini-3.7-flash",
   "gemini-3.6-flash",
+  "gemini-3.7-flash",
   "gemini-3.5-flash",
   "gemini-3-flash-preview",
-  "gemini-2.5-flash",
 ];
 
-const VOLUME_LITE = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"];
+const VOLUME_LITE = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
 
-const TTS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
+const TTS = ["gemini-3.1-flash-tts-preview"];
+
+/** Contas novas recebem 404 nesses IDs — ignorar mesmo se estiver no .env. */
+const MODELOS_FORA_DO_AR = new Set([
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash-preview-tts",
+]);
 
 function unicos(ids: Array<string | undefined>): string[] {
   const vistos = new Set<string>();
   const saida: string[] = [];
   for (const id of ids) {
     const nome = id?.trim();
-    if (!nome || vistos.has(nome)) continue;
+    if (!nome || vistos.has(nome) || MODELOS_FORA_DO_AR.has(nome)) continue;
     vistos.add(nome);
     saida.push(nome);
   }
@@ -45,7 +53,9 @@ export function apiKeyGemini(): string {
 }
 
 export function modeloPadrao(): string {
-  return process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
+  const env = process.env.GEMINI_MODEL?.trim();
+  if (env && !MODELOS_FORA_DO_AR.has(env)) return env;
+  return "gemini-3.5-flash-lite";
 }
 
 export function cadeiaDeModelos(tarefa: TarefaGemini): string[] {

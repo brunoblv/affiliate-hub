@@ -1,12 +1,12 @@
-import { prisma, ContentType, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post } from "@/lib/database";
-import { produtoVisivelNoSite } from "@/lib/produtos";
+import { prisma, ContentType, Destino, Plataforma, Rede, StatusPost, TipoPost, type Canal, type Produto, type Post, type ListaOferta } from "@/lib/database";
+import { produtoVisivelNoSite, LABEL_CATEGORIA, LABEL_PLATAFORMA } from "@/lib/produtos";
 import { ehCanalDeGrupo } from "./janela";
 import { produtoEmCooldown, proximoHorarioLivre } from "./proximo-horario";
 import { proximoMeioDiaLivre } from "./meio-dia";
 import { contentTypeDoProduto, contentTypeDaLista, contentTypeDaJornada } from "./content-type";
 import { LIMIAR_SIMILARIDADE_PRODUTO, similaridadeJaccard, tokenizarTitulo } from "./similaridade";
 import { alertarMixSemanalSeNecessario } from "./mix-semanal";
-import { gerarLegendaDaLista, gerarLegendaDoProduto, gerarLegendaDaJornada } from "@/lib/conteudo/gerar-legenda";
+import { gerarLegendaDaLista, gerarLegendaDoProduto, gerarLegendaDaJornada, gerarLegendaDaListaOferta } from "@/lib/conteudo/gerar-legenda";
 import { montarTextoDaJornada } from "@/lib/conteudo/texto-do-post";
 import { executarPublicacao } from "@/lib/publicacao/executar";
 import { registrar } from "@/lib/log";
@@ -14,8 +14,10 @@ import { getSiteUrl, urlPublica } from "@/lib/site-url";
 import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
 import { gerarImagemDePublicacao, type EntradaArte } from "@/lib/artes";
 import { reais } from "@/lib/vitrine/rotulos";
-import { comEtiquetaCanal, subIdsDe } from "@/lib/shopee/etiquetas";
+import { comEtiquetaCanal, origemDoGo, subIdsDe } from "@/lib/shopee/etiquetas";
 import { resolverLinkAfiliadoEtiquetado } from "@/lib/shopee/link-etiquetado";
+import { chaveDoDia, intervaloDoDia } from "./fuso";
+import { incluiPinterest, parseRedesListaOferta, redesPublicaveis } from "@/lib/listas-oferta/destinos";
 
 const ORIGEM_POR_REDE: Record<Rede, string> = {
   [Rede.FACEBOOK_PAGE]: "facebook",
@@ -839,5 +841,206 @@ export async function enfileirarHorariosVaziosGrupos(): Promise<number> {
     if (resultados.some((resultado) => resultado.agendadaPara)) agendados++;
   }
 
+  return agendados;
+}
+
+function linkGoDaLista(
+  lista: Pick<ListaOferta, "codigoCurto">,
+  canal?: { rede: Rede; nome: string },
+  canalEtiqueta?: string,
+): string {
+  const o = origemDoGo({ tipo: "lista", canal, canalEtiqueta });
+  return `${getSiteUrl()}/go/${lista.codigoCurto}?o=${encodeURIComponent(o)}`;
+}
+
+async function imagensDaListaOferta(lista: Pick<ListaOferta, "id" | "titulo">): Promise<ImagensPorFormato> {
+  return comporImagensPorFormato(
+    { tipo: "lista", semente: lista.id, titulo: lista.titulo, fotoUrl: null },
+    undefined,
+    { listaOferta: lista.id },
+  );
+}
+
+async function jaAgendadaHoje(listaId: string, canalId: string): Promise<boolean> {
+  const faixa = intervaloDoDia(chaveDoDia(new Date()));
+  if (!faixa) return false;
+  const existente = await prisma.publicacao.findFirst({
+    where: {
+      listaOfertaId: listaId,
+      canalId,
+      status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
+      agendadaPara: { gte: faixa.gte, lt: faixa.lt },
+    },
+    select: { id: true },
+  });
+  return Boolean(existente);
+}
+
+/**
+ * Agenda a lista pré-feita da loja nos destinos escolhidos (WhatsApp,
+ * Telegram, página do Facebook). Pinterest só atualiza a legenda para copiar.
+ * Sem cooldown de 30 dias: o preço da lista é fixo, então pode sair todo dia.
+ */
+export async function enfileirarListaOferta(
+  listaId: string,
+  canalIds?: string[],
+): Promise<ResultadoEnfileiramento[]> {
+  const lista = await prisma.listaOferta.findUnique({ where: { id: listaId } });
+  if (!lista) {
+    return [pulado(listaId, "Lista", "Lista não encontrada.")];
+  }
+  if (!lista.ativo) {
+    return [pulado(lista.id, lista.titulo, "Lista está inativa.")];
+  }
+  if (!lista.linkAfiliado.trim()) {
+    return [pulado(lista.id, lista.titulo, "Lista sem link de afiliado — não divulga sem comissão.")];
+  }
+
+  const redes = parseRedesListaOferta(lista.redes);
+  if (redes.length === 0) {
+    return [pulado(lista.id, lista.titulo, "Escolha pelo menos um destino (WhatsApp, Telegram, Pinterest ou página do Facebook).")];
+  }
+
+  const resultados: ResultadoEnfileiramento[] = [];
+
+  if (incluiPinterest(redes)) {
+    const link = linkGoDaLista(lista, undefined, "pinterest");
+    const texto = await gerarLegendaDaListaOferta({
+      titulo: lista.titulo,
+      categoria: LABEL_CATEGORIA[lista.categoria],
+      loja: LABEL_PLATAFORMA[lista.plataforma],
+      rede: "PINTEREST",
+      link,
+    });
+    await prisma.listaOferta.update({ where: { id: lista.id }, data: { textoPinterest: texto } });
+    resultados.push({
+      canalId: "pinterest",
+      canal: "Pinterest",
+      motivoPulado: "Legenda atualizada para copiar — Pinterest não publica sozinho.",
+    });
+  }
+
+  const redesCanal = redesPublicaveis(redes);
+  if (redesCanal.length === 0) return resultados;
+
+  const canais = await prisma.canal.findMany({
+    where: {
+      ativo: true,
+      destino: lista.destino,
+      rede: { in: redesCanal },
+      ...(canalIds?.length ? { id: { in: canalIds } } : {}),
+    },
+  });
+
+  if (canais.length === 0) {
+    const destino = LABEL_DESTINO[lista.destino] ?? lista.destino;
+    resultados.push(
+      pulado(
+        lista.destino,
+        "Nenhum canal",
+        `Nenhum canal ativo de WhatsApp, Telegram ou página do Facebook para ${destino}.`,
+      ),
+    );
+    return resultados;
+  }
+
+  const imagens = await imagensDaListaOferta(lista);
+
+  for (const canal of canais) {
+    try {
+      resultados.push(await enfileirarListaOfertaNoCanal(canal, lista, imagemParaRede(canal.rede, imagens)));
+    } catch (erro) {
+      resultados.push(pulado(canal.id, canal.nome, mensagemErro(erro)));
+    }
+  }
+
+  return resultados;
+}
+
+async function enfileirarListaOfertaNoCanal(
+  canal: Canal,
+  lista: ListaOferta,
+  imagemUrl: string | undefined,
+): Promise<ResultadoEnfileiramento> {
+  const base: ResultadoEnfileiramento = { canalId: canal.id, canal: canal.nome };
+  const contentType = contentTypeDaLista();
+
+  if (await jaAgendadaHoje(lista.id, canal.id)) {
+    return { ...base, motivoPulado: "Essa lista já entra na fila deste canal hoje." };
+  }
+
+  const link = linkGoDaLista(lista, canal);
+
+  let vaga;
+  try {
+    vaga = await proximoHorarioLivre(canal, new Date(), undefined, contentType);
+  } catch (erro) {
+    return { ...base, motivoPulado: mensagemErro(erro) };
+  }
+
+  if (!vaga) {
+    const pendentes = await prisma.publicacao.count({
+      where: { canalId: canal.id, status: { in: ["PENDENTE", "PUBLICANDO"] } },
+    });
+    return {
+      ...base,
+      motivoPulado: `Sem horário livre (teto ${canal.tetoDiario}/dia, intervalo ${canal.intervaloMinimoMin} min, ${pendentes} na fila).`,
+    };
+  }
+
+  const texto = await gerarLegendaDaListaOferta({
+    titulo: lista.titulo,
+    categoria: LABEL_CATEGORIA[lista.categoria],
+    loja: LABEL_PLATAFORMA[lista.plataforma],
+    rede: canal.rede,
+    link,
+  });
+
+  const chaveIdempotencia = `${lista.id}:${canal.id}:${vaga.agendadaPara.toISOString()}`;
+
+  try {
+    const publicacao = await prisma.publicacao.create({
+      data: {
+        listaOfertaId: lista.id,
+        canalId: canal.id,
+        agendadaPara: vaga.agendadaPara,
+        texto,
+        imagemUrl,
+        linkDestino: link,
+        contentType,
+        chaveIdempotencia,
+      },
+    });
+
+    await registrar("INFO", "AGENDA", `Lista da loja agendada em ${canal.nome}`, {
+      lista: lista.titulo,
+      agendadaPara: vaga.agendadaPara.toISOString(),
+    });
+
+    if (canal.rede === Rede.FACEBOOK_PAGE) {
+      await alertarMixSemanalSeNecessario(canal);
+    }
+
+    return { ...base, agendadaPara: vaga.agendadaPara.toISOString(), publicacaoId: publicacao.id };
+  } catch (erro) {
+    if (isViolacaoIdempotencia(erro)) {
+      return { ...base, motivoPulado: "Slot já reservado por outro agendamento" };
+    }
+    throw erro;
+  }
+}
+
+/** Worker: uma publicação por lista ativa/dia, nos destinos marcados. */
+export async function enfileirarListasOfertaDoDia(): Promise<number> {
+  const listas = await prisma.listaOferta.findMany({
+    where: { ativo: true, divulgarDiario: true },
+    select: { id: true },
+  });
+
+  let agendados = 0;
+  for (const lista of listas) {
+    const resultados = await enfileirarListaOferta(lista.id);
+    if (resultados.some((r) => r.agendadaPara)) agendados++;
+  }
   return agendados;
 }

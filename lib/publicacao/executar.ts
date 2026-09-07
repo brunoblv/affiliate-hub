@@ -20,6 +20,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
       produto: { select: { slug: true } },
       post: { select: { slug: true, tipo: true } },
       landingDiaria: { select: { slug: true } },
+      listaOferta: { select: { titulo: true } },
     },
   });
 
@@ -53,7 +54,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     });
 
     await registrar("INFO", "PUBLICACAO", `Publicado em ${publicacao.canal.nome}`, {
-      produto: publicacao.produto?.slug ?? publicacao.post?.slug ?? publicacao.landingDiaria?.slug,
+      produto: publicacao.produto?.slug ?? publicacao.post?.slug ?? publicacao.landingDiaria?.slug ?? publicacao.listaOferta?.titulo,
       idExterno: resultado.idExterno,
     });
   } catch (erro) {

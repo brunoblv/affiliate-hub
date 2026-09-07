@@ -1,5 +1,6 @@
 import { withRetry, type RetryOptions } from "@/lib/integrations/retry";
 import { shopeeRequest } from "./request";
+import { subIdsParaApi } from "./etiquetas";
 
 const RETRY_INSTABILIDADE_SHOPEE: RetryOptions = { maxAttempts: 5, baseDelayMs: 800 };
 
@@ -168,10 +169,22 @@ const MUTATION_GENERATE_SHORT_LINK = /* GraphQL */ `
   }
 `;
 
+function ehErroDeParametroShopee(erro: unknown): boolean {
+  const msg = erro instanceof Error ? erro.message : String(erro);
+  return /11001|Params Error|invalid sub id/i.test(msg);
+}
+
 /** Gera o link curto de afiliado. `subIds` viram etiquetas no relatório (utm_content). */
 export async function gerarLinkAfiliado(originUrl: string, subIds?: string[]): Promise<string> {
-  return withRetry(async () => {
-    const data = await shopeeRequest<RespostaGenerateShortLink>(MUTATION_GENERATE_SHORT_LINK, { originUrl, subIds });
-    return data.generateShortLink.shortLink;
-  });
+  const etiquetas = subIds?.length ? subIdsParaApi(subIds) : undefined;
+  return withRetry(
+    async () => {
+      const data = await shopeeRequest<RespostaGenerateShortLink>(MUTATION_GENERATE_SHORT_LINK, {
+        originUrl,
+        ...(etiquetas && etiquetas.length > 0 ? { subIds: etiquetas } : {}),
+      });
+      return data.generateShortLink.shortLink;
+    },
+    { retryIf: (erro) => !ehErroDeParametroShopee(erro) },
+  );
 }

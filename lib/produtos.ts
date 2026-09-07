@@ -1,4 +1,4 @@
-import { Categoria, Destino } from "@/lib/database/enums";
+import { Categoria, Destino, Plataforma } from "@/lib/database/enums";
 import type { Produto } from "@/lib/database";
 import { ehForaDoTemaCasa } from "@/lib/nicho";
 
@@ -46,6 +46,20 @@ export const LABEL_CATEGORIA: Record<Categoria, string> = {
   PET: "Pet (legado)",
   OUTRA: "Outra",
 };
+
+export const LABEL_PLATAFORMA: Record<Plataforma, string> = {
+  MERCADO_LIVRE: "Mercado Livre",
+  AMAZON: "Amazon",
+  SHOPEE: "Shopee",
+  TIKTOK_SHOP: "TikTok Shop",
+};
+
+export const OPCOES_PLATAFORMA: Array<{ value: Plataforma; label: string }> = [
+  Plataforma.SHOPEE,
+  Plataforma.MERCADO_LIVRE,
+  Plataforma.AMAZON,
+  Plataforma.TIKTOK_SHOP,
+].map((value) => ({ value, label: LABEL_PLATAFORMA[value] }));
 
 /** Opções pros `<select>` de categoria no admin — casa primeiro, legado por último. */
 export const OPCOES_CATEGORIA: Array<{ value: Categoria; label: string }> = [

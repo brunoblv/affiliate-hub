@@ -43,7 +43,11 @@ async function cliquesPorProduto(ids: string[]): Promise<Map<string, number>> {
     _count: { produtoId: true },
   });
 
-  return new Map(grupos.map((g) => [g.produtoId, g._count.produtoId]));
+  return new Map(
+    grupos
+      .filter((g): g is typeof g & { produtoId: string } => g.produtoId !== null)
+      .map((g) => [g.produtoId, g._count.produtoId]),
+  );
 }
 
 function podeEntrar(produto: Produto, descontoMinimoPct: number): boolean {

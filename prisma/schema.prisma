@@ -456,7 +456,7 @@ enum StatusPublicacao {
 /// Classificação do post pra regras de cadência/mix do Facebook — ver
 /// docs/hub/regras-postagem-facebook.md. Calculada uma vez no agendamento
 /// (não muda depois) a partir da origem da Publicacao:
-/// Produto -> OFERTA_INDIVIDUAL; Post LISTA / LandingDiaria -> SELECAO;
+/// Produto -> OFERTA_INDIVIDUAL; Post LISTA / LandingDiaria / ListaOferta -> SELECAO;
 /// Post JORNADA/DICAS_CASA -> CONTEUDO_BLOG; Post JORNADA/JORNADA_APARTAMENTO -> NARRATIVA_PESSOAL.
 enum ContentType {
   OFERTA_INDIVIDUAL
@@ -465,13 +465,14 @@ enum ContentType {
   NARRATIVA_PESSOAL
 }
 
-/// Amarrada a um Produto, a um Post (LISTA ou JORNADA) OU a uma LandingDiaria —
-/// exatamente um dos três (CHECK constraint na migration garante isso).
+/// Amarrada a um Produto, a um Post (LISTA ou JORNADA), a uma LandingDiaria
+/// OU a uma ListaOferta — exatamente um dos quatro (CHECK na migration).
 model Publicacao {
   id              String  @id @default(cuid())
   produtoId       String?
   postId          String?
   landingDiariaId String?
+  listaOfertaId   String?
   canalId         String
 
   /// Instante absoluto (timestamptz). TIMESTAMP sem fuso fazia 09h Brasília
@@ -505,6 +506,7 @@ model Publicacao {
   produto       Produto?       @relation(fields: [produtoId], references: [id], onDelete: Cascade)
   post          Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
   landingDiaria LandingDiaria? @relation(fields: [landingDiariaId], references: [id], onDelete: Cascade)
+  listaOferta   ListaOferta?   @relation(fields: [listaOfertaId], references: [id], onDelete: Cascade)
   canal         Canal          @relation(fields: [canalId], references: [id], onDelete: Cascade)
 
   criadoEm     DateTime @default(now())
@@ -517,7 +519,44 @@ model Publicacao {
   @@index([produtoId, canalId, publicadaEm])
   @@index([postId, canalId, publicadaEm])
   @@index([landingDiariaId, canalId, publicadaEm])
+  @@index([listaOfertaId, canalId, publicadaEm])
   @@map("publicacoes")
+}
+
+/// Lista pré-feita da loja (Shopee Oferta Shopee, coleção ML, etc.) — um
+/// link de afiliado único, sem página no blog. Divulgada nas redes escolhidas.
+model ListaOferta {
+  id         String     @id @default(cuid())
+  titulo     String
+  categoria  Categoria
+  /// Loja de origem do link (Shopee, Mercado Livre, Amazon, TikTok Shop).
+  plataforma Plataforma
+  /// Público/canais deste destino (Meu Novo Lar, Umbanda…).
+  destino    Destino    @default(MEU_NOVO_LAR)
+  /// Destinos de divulgação: ["WHATSAPP","TELEGRAM","FACEBOOK_PAGE","PINTEREST"].
+  redes      Json       @default("[]")
+
+  /// Link de afiliado da lista (ex.: s.shopee.com.br/…), nunca a URL crua da loja.
+  linkAfiliado String
+  /// Código do redirecionador rastreado: /go/:codigoCurto
+  codigoCurto  String @unique
+
+  ativo          Boolean @default(true)
+  /// Worker enfileira de novo todo dia — preço da lista é fixo de campanha.
+  divulgarDiario Boolean @default(true)
+
+  /// Última legenda gerada para copiar no Pinterest (não há publicador automático).
+  textoPinterest String? @db.Text
+
+  publicacoes Publicacao[]
+  cliques     Clique[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([ativo, divulgarDiario])
+  @@index([destino])
+  @@map("listas_oferta")
 }
 
 // ---------------------------------------------------------------------------
@@ -538,19 +577,22 @@ model Credencial {
 }
 
 model Clique {
-  id        String  @id @default(cuid())
-  produtoId String
+  id            String  @id @default(cuid())
+  produtoId     String?
+  listaOfertaId String?
   /// "lista:facebook-achadinhos" | "vitrine:slug" | "produto" — parâmetro ?o= do /go
-  origem    String?
+  origem        String?
   /// Hash do IP + user agent. Nunca o IP em claro (LGPD).
-  visitante String?
-  referer   String?
+  visitante     String?
+  referer       String?
 
   criadoEm DateTime @default(now())
 
-  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produto     Produto?     @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  listaOferta ListaOferta? @relation(fields: [listaOfertaId], references: [id], onDelete: Cascade)
 
   @@index([produtoId, criadoEm])
+  @@index([listaOfertaId, criadoEm])
   @@index([origem, criadoEm])
   @@map("cliques")
 }

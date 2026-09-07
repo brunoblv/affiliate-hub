@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma, StatusPublicacao } from "@/lib/database";
 import { deInputDatetimeLocal } from "@/lib/agenda/fuso";
+import { executarPublicacao } from "@/lib/publicacao/executar";
 
 function falhou(erro: unknown, fallback: string): never {
   throw new Error(erro instanceof Error ? erro.message : fallback);
@@ -18,16 +19,38 @@ export async function cancelarPublicacaoAction(id: string): Promise<void> {
   revalidatePath("/admin/fila");
 }
 
-export async function publicarAgoraAction(id: string): Promise<void> {
+export async function publicarAgoraAction(id: string): Promise<{ publicada: boolean; erro?: string }> {
   try {
-    await prisma.publicacao.update({
-      where: { id, status: "PENDENTE" },
-      data: { agendadaPara: new Date() },
+    const reivindicada = await prisma.publicacao.updateMany({
+      where: { id, status: StatusPublicacao.PENDENTE },
+      data: {
+        status: StatusPublicacao.PUBLICANDO,
+        tentativas: { increment: 1 },
+        agendadaPara: new Date(),
+      },
     });
+
+    if (reivindicada.count === 0) {
+      return { publicada: false, erro: "Só é possível publicar agora uma publicação pendente." };
+    }
+
+    await executarPublicacao(id);
+
+    const resultado = await prisma.publicacao.findUnique({ where: { id }, select: { status: true, erro: true } });
+    revalidatePath("/admin/fila");
+
+    if (resultado?.status === StatusPublicacao.PUBLICADA) {
+      return { publicada: true };
+    }
+
+    return {
+      publicada: false,
+      erro: resultado?.erro ?? "Não foi possível publicar agora.",
+    };
   } catch (erro) {
+    revalidatePath("/admin/fila");
     falhou(erro, "Não foi possível publicar agora.");
   }
-  revalidatePath("/admin/fila");
 }
 
 export async function republicarAction(id: string): Promise<void> {

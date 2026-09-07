@@ -99,6 +99,42 @@ export function inicioDoDia(instante: Date, fuso: string = FUSO_APP): Date {
   return paraUtc(p.ano, p.mes, p.dia, 0, 0, fuso);
 }
 
+const DIA_CIVIL = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Dia civil no fuso da operação, `AAAA-MM-DD`. */
+export function chaveDoDia(instante: Date, fuso: string = FUSO_APP): string {
+  const p = partesNoFuso(instante, fuso);
+  return `${p.ano}-${doisDigitos(p.mes)}-${doisDigitos(p.dia)}`;
+}
+
+/**
+ * Intervalo `[00:00, próximo 00:00)` do dia civil informado.
+ * `null` se a chave não for uma data real (ex.: 31/02).
+ */
+export function intervaloDoDia(chave: string, fuso: string = FUSO_APP): { gte: Date; lt: Date } | null {
+  const casamento = DIA_CIVIL.exec(chave.trim());
+  if (!casamento) return null;
+
+  const ano = Number(casamento[1]);
+  const mes = Number(casamento[2]);
+  const dia = Number(casamento[3]);
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return null;
+
+  const gte = paraUtc(ano, mes, dia, 0, 0, fuso);
+  const partes = partesNoFuso(gte, fuso);
+  if (partes.ano !== ano || partes.mes !== mes || partes.dia !== dia) return null;
+
+  return { gte, lt: paraUtc(ano, mes, dia + 1, 0, 0, fuso) };
+}
+
+/** Soma (ou subtrai) dias civis a uma chave `AAAA-MM-DD`. */
+export function somarDiasCivis(chave: string, delta: number, fuso: string = FUSO_APP): string {
+  const intervalo = intervaloDoDia(chave, fuso);
+  if (!intervalo) throw new Error(`Dia inválido: "${chave}".`);
+  const p = partesNoFuso(intervalo.gte, fuso);
+  return chaveDoDia(paraUtc(p.ano, p.mes, p.dia + delta, 0, 0, fuso), fuso);
+}
+
 function doisDigitos(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -107,6 +143,12 @@ function doisDigitos(n: number): string {
 export function formatarLocal(instante: Date, fuso: string = FUSO_APP): string {
   const p = partesNoFuso(instante, fuso);
   return `${doisDigitos(p.dia)}/${doisDigitos(p.mes)}/${p.ano}, ${doisDigitos(p.hora)}:${doisDigitos(p.minuto)} (Brasília)`;
+}
+
+/** Só a hora em Brasília — útil quando o dia já está no contexto. */
+export function formatarHora(instante: Date, fuso: string = FUSO_APP): string {
+  const p = partesNoFuso(instante, fuso);
+  return `${doisDigitos(p.hora)}:${doisDigitos(p.minuto)}`;
 }
 
 /** ISO 8601 → texto em Brasília. Uso em client components que só têm a string. */
