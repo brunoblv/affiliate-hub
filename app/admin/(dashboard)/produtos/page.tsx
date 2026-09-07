@@ -79,8 +79,8 @@ export default async function ProdutosAdminPage({
       <div className="border-t border-border pt-4">
         <h2 className="text-sm font-medium">Fila de publicação</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Horários livres das 9h às 21h, a cada 10 minutos, no fuso de Brasília. O botão preenche só as vagas vazias — não
-          substitui o que já está agendado.
+          Horários livres das 9h às 21h (Brasília). Preenche os buracos de hoje primeiro; só vai
+          pro dia seguinte se a janela de hoje já estiver cheia.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <EnfileirarHorariosVaziosButton />

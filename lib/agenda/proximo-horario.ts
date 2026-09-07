@@ -157,7 +157,9 @@ const INTERVALO_GRUPO_MS = INTERVALO_GRUPO_MIN * 60 * 1000;
 
 /**
  * Próximo horário livre de WhatsApp/Telegram: 09:00–21:00 (Brasília),
- * 10–20 min depois da publicação anterior (não grade fixa de 10 em 10).
+ * 10–20 min da vizinha. Começa em `apartirDe` e preenche buraco do dia —
+ * não empilha depois do último item futuro (senão o botão de enfileirar
+ * pula o resto de hoje e cai amanhã).
  */
 async function proximoHorarioGrupo(
   canal: Canal,
@@ -165,19 +167,7 @@ async function proximoHorarioGrupo(
   excluirPublicacaoId?: string,
 ): Promise<ResultadoAgenda | null> {
   const teto = Math.max(1, canal.tetoDiario === 6 ? TETO_PADRAO : canal.tetoDiario || TETO_PADRAO);
-
-  const ultima = await prisma.publicacao.findFirst({
-    where: {
-      canalId: canal.id,
-      status: { in: ["PENDENTE", "PUBLICANDO", "PUBLICADA"] },
-      ...(excluirPublicacaoId ? { id: { not: excluirPublicacaoId } } : {}),
-    },
-    orderBy: { agendadaPara: "desc" },
-    select: { agendadaPara: true },
-  });
-
-  const ancora = Math.max(apartirDe.getTime(), ultima?.agendadaPara.getTime() ?? 0);
-  const limite = new Date(ancora + DIAS_MAXIMOS_DE_BUSCA * MS_POR_DIA);
+  const limite = new Date(apartirDe.getTime() + DIAS_MAXIMOS_DE_BUSCA * MS_POR_DIA);
 
   const ocupadas = await prisma.publicacao.findMany({
     where: {
@@ -191,8 +181,8 @@ async function proximoHorarioGrupo(
   });
 
   const instantesOcupados = ocupadas.map((p) => p.agendadaPara.getTime());
-  const ultimaOcupada = ultima?.agendadaPara.getTime() ?? 0;
-  const piso = Math.max(apartirDe.getTime(), ultimaOcupada > 0 ? ultimaOcupada + INTERVALO_GRUPO_MS : 0);
+  const anterior = instantesOcupados.filter((t) => t <= apartirDe.getTime()).at(-1);
+  const piso = Math.max(apartirDe.getTime(), anterior != null ? anterior + INTERVALO_GRUPO_MS : 0);
   const extraMin = minutosAleatoriosDoGrupo() - INTERVALO_GRUPO_MIN;
 
   let candidato = avancarParaJanela(new Date(piso + extraMin * 60 * 1000));
@@ -223,7 +213,7 @@ async function proximoHorarioGrupo(
 
     const conflita = instantesOcupados.some((t) => Math.abs(t - candidatoMs) < INTERVALO_GRUPO_MS);
     if (conflita) {
-      candidato = new Date(candidatoMs + 60_000);
+      candidato = new Date(candidatoMs + INTERVALO_GRUPO_MS);
       continue;
     }
 
