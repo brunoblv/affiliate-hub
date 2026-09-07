@@ -1,4 +1,5 @@
 import { withRetry, type RetryOptions } from "@/lib/integrations/retry";
+import { registrar } from "@/lib/log";
 import { shopeeRequest } from "./request";
 import { subIdsParaApi } from "./etiquetas";
 
@@ -38,12 +39,9 @@ interface RespostaProductOfferV2 {
   } | null;
 }
 
-/** `productOfferV2` pode vir `null` mesmo com `data` presente e sem `errors` — sem isso o `.nodes` explode com "Cannot read properties of null". */
+/** `productOfferV2` (e `nodes`) podem vir `null` com `data` presente e sem `errors` — item fora da vitrine de oferta. */
 function nodesDe(resposta: RespostaProductOfferV2): NodeProductOfferV2[] {
-  if (!resposta.productOfferV2) {
-    throw new Error("Shopee API retornou productOfferV2=null. Verifique a query/variáveis enviadas.");
-  }
-  return resposta.productOfferV2.nodes;
+  return resposta.productOfferV2?.nodes ?? [];
 }
 
 function paraOferta(node: NodeProductOfferV2): OfertaShopee {
@@ -101,8 +99,8 @@ const QUERY_BUSCAR_OFERTAS = /* GraphQL */ `
  * ("got null for non-null") — só funciona obrigatório + string, ver nota acima.
  */
 const QUERY_OFERTA_POR_ITEM = /* GraphQL */ `
-  query ofertaPorItem($shopId: Int64!, $itemId: Int64!, $limit: Int) {
-    productOfferV2(shopId: $shopId, itemId: $itemId, limit: $limit) {
+  query ofertaPorItem($shopId: Int64!, $itemId: Int64!, $limit: Int, $listType: Int) {
+    productOfferV2(shopId: $shopId, itemId: $itemId, limit: $limit, listType: $listType) {
       nodes { ${CAMPOS_NODE} }
     }
   }
@@ -151,6 +149,9 @@ export async function buscarOfertaPorItem(shopId: number, itemId: number): Promi
       shopId: String(shopId),
       itemId: String(itemId),
       limit: 1,
+      // Sem listType o resolver deles devolve productOfferV2=null na busca por item
+      // (o mesmo bug da busca por keyword). 0 = sem filtro de lista.
+      listType: 0,
     });
     const node = nodesDe(data)[0];
     return node ? paraOferta(node) : null;
@@ -161,8 +162,20 @@ interface RespostaGenerateShortLink {
   generateShortLink: { shortLink: string };
 }
 
-const MUTATION_GENERATE_SHORT_LINK = /* GraphQL */ `
-  mutation gerarLink($originUrl: String!, $subIds: [String!]) {
+/**
+ * Duas mutations: declarar `$subIds` e mandar null quebra o resolver deles
+ * (mesmo padrão do `productOfferV2` com shopId/itemId opcionais).
+ */
+const MUTATION_SEM_SUB_IDS = /* GraphQL */ `
+  mutation gerarLink($originUrl: String!) {
+    generateShortLink(input: { originUrl: $originUrl }) {
+      shortLink
+    }
+  }
+`;
+
+const MUTATION_COM_SUB_IDS = /* GraphQL */ `
+  mutation gerarLink($originUrl: String!, $subIds: [String!]!) {
     generateShortLink(input: { originUrl: $originUrl, subIds: $subIds }) {
       shortLink
     }
@@ -174,16 +187,36 @@ function ehErroDeParametroShopee(erro: unknown): boolean {
   return /11001|Params Error|invalid sub id/i.test(msg);
 }
 
+async function pedirShortLink(originUrl: string, subIds?: string[]): Promise<string> {
+  const data = subIds?.length
+    ? await shopeeRequest<RespostaGenerateShortLink>(MUTATION_COM_SUB_IDS, { originUrl, subIds })
+    : await shopeeRequest<RespostaGenerateShortLink>(MUTATION_SEM_SUB_IDS, { originUrl });
+  return data.generateShortLink.shortLink;
+}
+
 /** Gera o link curto de afiliado. `subIds` viram etiquetas no relatório (utm_content). */
 export async function gerarLinkAfiliado(originUrl: string, subIds?: string[]): Promise<string> {
-  const etiquetas = subIds?.length ? subIdsParaApi(subIds) : undefined;
+  const etiquetas = subIds?.length ? subIdsParaApi(subIds) : [];
   return withRetry(
     async () => {
-      const data = await shopeeRequest<RespostaGenerateShortLink>(MUTATION_GENERATE_SHORT_LINK, {
-        originUrl,
-        ...(etiquetas && etiquetas.length > 0 ? { subIds: etiquetas } : {}),
-      });
-      return data.generateShortLink.shortLink;
+      if (etiquetas.length === 0) return pedirShortLink(originUrl);
+      try {
+        return await pedirShortLink(originUrl, etiquetas);
+      } catch (erro) {
+        if (!ehErroDeParametroShopee(erro)) throw erro;
+        if (etiquetas.length > 1) {
+          try {
+            return await pedirShortLink(originUrl, etiquetas.slice(0, 1));
+          } catch (erroTipo) {
+            if (!ehErroDeParametroShopee(erroTipo)) throw erroTipo;
+          }
+        }
+        await registrar("ALERTA", "PRODUTO_SYNC", "Shopee recusou subIds, gerando link sem etiqueta", {
+          originUrl,
+          subIds: etiquetas,
+        });
+        return pedirShortLink(originUrl);
+      }
     },
     { retryIf: (erro) => !ehErroDeParametroShopee(erro) },
   );

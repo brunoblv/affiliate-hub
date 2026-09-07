@@ -9,9 +9,11 @@ import { FilaRowActions } from "@/components/admin/fila-row-actions";
 import { FilaFiltros } from "@/components/admin/fila-filtros";
 import { chaveDoDia, FUSO_APP, formatarHora, formatarLocal, intervaloDoDia, somarDiasCivis } from "@/lib/agenda/fuso";
 import { ehRedeFila, LABEL_REDE_FILA, REDE_PADRAO_FILA, REDES_FILA, type RedeFila } from "@/lib/agenda/fila-admin";
+import { diagnosticarFilaWhatsapp } from "@/lib/agenda/fila-diagnostico";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { LimparFilaButton } from "@/components/admin/limpar-fila-button";
 import { ReorganizarFilaGrupoButton } from "@/components/admin/reorganizar-fila-grupo-button";
+import { FilaDiagnostico } from "@/components/admin/fila-diagnostico";
 
 export const maxDuration = 60;
 
@@ -128,6 +130,7 @@ export default async function FilaAdminPage({
   }
 
   const whereDoDia = intervalo ? { agendadaPara: { gte: intervalo.gte, lt: intervalo.lt } } : {};
+  const diagnosticoP = diagnosticarFilaWhatsapp();
 
   const [publicacoes, total, totalGeral, totalFiltrado, pendentes, ...contagens] = await Promise.all([
     prisma.publicacao.findMany({
@@ -160,6 +163,7 @@ export default async function FilaAdminPage({
       });
     }),
   ]);
+  const diagnostico = await diagnosticoP;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const contagensRedes = contagens.slice(0, REDES_FILA.length);
   const contagensDias = contagens.slice(REDES_FILA.length);
@@ -198,6 +202,8 @@ export default async function FilaAdminPage({
           <LimparFilaButton total={totalGeral} />
         </div>
       </div>
+
+      <FilaDiagnostico diagnostico={diagnostico} />
 
       <FilaFiltros
         dia={dia}

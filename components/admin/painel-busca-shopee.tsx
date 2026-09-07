@@ -225,7 +225,7 @@ export function PainelBuscaShopee() {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          O algoritmo ignora o que não está em promoção ou com preço bom, e o que foge do tema casa.
+          Só entram ofertas novas: já salvos, títulos parecidos e mais de dois do mesmo tipo ficam de fora.
         </p>
       </form>
 

@@ -118,10 +118,15 @@ export function BuscarShopeeForm({
           {isPending ? "Buscando..." : "Buscar"}
         </Button>
       </form>
+      <p className="text-xs text-muted-foreground">
+        Já salvos e títulos quase iguais não aparecem — só oferta nova.
+      </p>
 
       {state.status === "error" && <p className="text-sm text-destructive">{state.message}</p>}
       {state.status === "success" && state.ofertas?.length === 0 && (
-        <p className="text-sm text-muted-foreground">Nenhuma oferta encontrada pra &quot;{ultimaBusca}&quot;.</p>
+        <p className="text-sm text-muted-foreground">
+          {state.message ?? `Nenhuma oferta nova pra “${ultimaBusca}”.`}
+        </p>
       )}
 
       {state.ofertas && state.ofertas.length > 0 && (

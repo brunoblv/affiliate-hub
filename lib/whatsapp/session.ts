@@ -22,6 +22,9 @@ function connect(attempt = 0): Promise<WASocket> {
 
         if (qr) {
           void registrar("ERRO", "PUBLICACAO", "WhatsApp: sessão não autenticada — rode `npm run whatsapp:login` para conectar.");
+          socketPromise = null;
+          reject(new Error("WhatsApp pediu QR — sessão na VPS expirou. Rode `npm run whatsapp:login`."));
+          return;
         }
 
         if (connection === "open") {
@@ -65,6 +68,32 @@ function connect(attempt = 0): Promise<WASocket> {
  * conexões, sem precisar escanear de novo.
  */
 export function getWhatsAppSocket(): Promise<WASocket> {
-  if (!socketPromise) socketPromise = connect();
+  if (!socketPromise) socketPromise = conectarComTimeout();
   return socketPromise;
+}
+
+const TIMEOUT_CONEXAO_MS = 45_000;
+
+function conectarComTimeout(): Promise<WASocket> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      socketPromise = null;
+      reject(
+        new Error(
+          "WhatsApp não conectou em 45s. Na VPS rode `npm run whatsapp:login` (QR) e confira WHATSAPP_AUTH_DIR.",
+        ),
+      );
+    }, TIMEOUT_CONEXAO_MS);
+
+    connect()
+      .then((sock) => {
+        clearTimeout(timer);
+        resolve(sock);
+      })
+      .catch((erro) => {
+        clearTimeout(timer);
+        socketPromise = null;
+        reject(erro);
+      });
+  });
 }

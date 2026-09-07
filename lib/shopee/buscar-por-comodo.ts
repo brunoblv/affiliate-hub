@@ -1,8 +1,9 @@
-import { prisma, Plataforma, Categoria } from "@/lib/database";
+import { Categoria } from "@/lib/database";
 import { registrar } from "@/lib/log";
 import { buscarOfertasShopee, type OfertaShopee } from "./client";
 import { resolverItensBusca, type ItemBusca } from "./catalogo-comodos";
 import { classificarOferta, descontoPercentualOferta, pontuarOferta, type MotivoOferta } from "./qualidade-oferta";
+import { escolherOfertasDiversas, indiceCatalogoShopeeCasa } from "./diversidade-ofertas";
 
 export const LIMITE_RESULTADOS_PAINEL = 48;
 
@@ -57,9 +58,10 @@ function paraCurada(oferta: OfertaShopee, item: ItemBusca, motivo: MotivoOferta,
 }
 
 /**
- * Busca na Shopee pelos tipos escolhidos, filtra promoção/bom preço e
- * devolve ranqueado — não importa nada. sortType 1 = relevância da keyword
- * (sortType 5 = comissão, que era o que puxava produto fora de casa).
+ * Busca na Shopee pelos tipos escolhidos, filtra promoção/bom preço,
+ * tira o que já está no catálogo e limita a dois por tipo — não importa nada.
+ * sortType 1 = relevância da keyword (sortType 5 = comissão, que era o que
+ * puxava produto fora de casa).
  */
 export async function buscarOfertasPorComodo(params: {
   comodoIds: string[];
@@ -76,8 +78,11 @@ export async function buscarOfertasPorComodo(params: {
 
   for (const item of itens) {
     try {
-      const ofertas = await buscarOfertasShopee({ keyword: item.keyword, sortType: 1, limit: 20 });
-      for (const oferta of ofertas) {
+      const [pagina1, pagina2] = await Promise.all([
+        buscarOfertasShopee({ keyword: item.keyword, sortType: 1, limit: 20, page: 1 }),
+        buscarOfertasShopee({ keyword: item.keyword, sortType: 1, limit: 20, page: 2 }),
+      ]);
+      for (const oferta of [...pagina1, ...pagina2]) {
         const chave = `${oferta.shopId}_${oferta.itemId}`;
         if (!encontradas.has(chave)) encontradas.set(chave, { oferta, item });
       }
@@ -98,28 +103,22 @@ export async function buscarOfertasPorComodo(params: {
   }
 
   classificadas.sort((a, b) => pontuarOferta(b.oferta) - pontuarOferta(a.oferta));
-  const top = classificadas.slice(0, LIMITE_RESULTADOS_PAINEL);
 
-  const idsExternos = top.map(({ oferta }) => `${oferta.shopId}_${oferta.itemId}`);
-  const jaNoCatalogo =
-    idsExternos.length === 0
-      ? new Set<string>()
-      : new Set(
-          (
-            await prisma.produto.findMany({
-              where: { plataforma: Plataforma.SHOPEE, idExterno: { in: idsExternos } },
-              select: { idExterno: true },
-            })
-          ).map((p) => p.idExterno),
-        );
+  const indice = await indiceCatalogoShopeeCasa();
+  const diversas = escolherOfertasDiversas(classificadas, {
+    nome: (c) => c.oferta.nome,
+    idExterno: (c) => `${c.oferta.shopId}_${c.oferta.itemId}`,
+    tipo: (c) => c.item.id,
+    score: (c) => pontuarOferta(c.oferta),
+    indice,
+    maxTotal: LIMITE_RESULTADOS_PAINEL,
+  });
 
   return {
-    ofertas: top.map(({ oferta, item, motivo }) =>
-      paraCurada(oferta, item, motivo, jaNoCatalogo.has(`${oferta.shopId}_${oferta.itemId}`)),
-    ),
+    ofertas: diversas.map(({ oferta, item, motivo }) => paraCurada(oferta, item, motivo, false)),
     buscasFeitas: itens.length,
     avaliadas,
-    descartadas: avaliadas - classificadas.length,
+    descartadas: avaliadas - diversas.length,
     falhasBusca,
   };
 }

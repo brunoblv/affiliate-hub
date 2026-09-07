@@ -31,11 +31,12 @@ export function ImportarShopeeForm({
         <Input
           id="identificador"
           name="identificador"
-          placeholder="https://shopee.com.br/produto-i.123456.789 ou https://s.shopee.com.br/..."
+          placeholder="https://shopee.com.br/produto-i.123.456 ou https://s.shopee.com.br/..."
           required
         />
         <p className="text-xs text-muted-foreground">
-          O link de afiliado é gerado automaticamente pela Shopee — não precisa colar.
+          Aceita o link do produto, o curto (shp.ee / s.shopee.com.br) e o de afiliado com origin_link. O
+          link rastreado é gerado pela Shopee — não precisa colar o de afiliado.
         </p>
       </div>
 

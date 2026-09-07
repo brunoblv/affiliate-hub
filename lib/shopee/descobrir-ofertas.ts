@@ -6,8 +6,9 @@ import { enfileirarPost } from "@/lib/agenda/enfileirar";
 import { obterConfiguracao } from "@/lib/configuracao";
 import { buscarOfertasShopee, type OfertaShopee } from "./client";
 import { PALAVRAS_CHAVE_CASA } from "./palavras-chave-casa";
-import { classificarOferta } from "./qualidade-oferta";
+import { classificarOferta, pontuarOferta } from "./qualidade-oferta";
 import { importarOfertaShopee } from "./importar-oferta";
+import { escolherOfertasDiversas, indiceCatalogoShopeeCasa } from "./diversidade-ofertas";
 
 async function slugLivre(base: string): Promise<string> {
   const limpo = slugify(base) || "lista";
@@ -54,9 +55,10 @@ async function criarListaDoDia(produtos: Array<{ id: string; slug: string }>): P
  * Busca ofertas Shopee por palavra-chave de casa (uma busca por termo em
  * PALAVRAS_CHAVE_CASA — a Shopee não tem filtro de categoria funcional nessa
  * API, então "casa" é garantido pelo termo buscado, não por listType/catId),
- * importa as elegíveis (promoção ou bom preço, comissão mínima, até o
- * limite diário) e agrupa tudo num único Post tipo LISTA, distribuído nos
- * canais ativos. Chamada periodicamente pelo worker — ver workers/index.ts.
+ * importa só o que ainda não está no catálogo (promoção ou bom preço,
+ * comissão mínima, até o limite diário; no máximo dois por keyword) e
+ * agrupa num Post tipo LISTA. Já salvos e títulos parecidos não entram
+ * de novo. Chamada periodicamente pelo worker — ver workers/index.ts.
  *
  * sortType 1 = relevância da keyword. O antigo 5 (maior comissão) puxava
  * produto fora de casa mesmo com termo de quarto/cozinha.
@@ -71,15 +73,19 @@ export async function descobrirOfertasShopee(): Promise<void> {
   const limiteDiario = configuracao.shopeeDescobertaLimiteDiario;
   const comissaoMinima = configuracao.shopeeComissaoMinimaPct;
 
-  const encontradas = new Map<string, { oferta: OfertaShopee; categoria: Categoria }>();
+  const encontradas = new Map<string, { oferta: OfertaShopee; categoria: Categoria; keyword: string }>();
   let falhasBusca = 0;
+  const paginaExtra = (Math.floor(Date.now() / 86_400_000) % 2) + 2;
 
   for (const { keyword, categoria } of PALAVRAS_CHAVE_CASA) {
     try {
-      const ofertas = await buscarOfertasShopee({ keyword, sortType: 1, limit: 15 });
-      for (const oferta of ofertas) {
+      const [pagina1, paginaN] = await Promise.all([
+        buscarOfertasShopee({ keyword, sortType: 1, limit: 15, page: 1 }),
+        buscarOfertasShopee({ keyword, sortType: 1, limit: 15, page: paginaExtra }),
+      ]);
+      for (const oferta of [...pagina1, ...paginaN]) {
         const chave = `${oferta.shopId}_${oferta.itemId}`;
-        if (!encontradas.has(chave)) encontradas.set(chave, { oferta, categoria });
+        if (!encontradas.has(chave)) encontradas.set(chave, { oferta, categoria, keyword });
       }
     } catch (erro) {
       falhasBusca++;
@@ -96,12 +102,22 @@ export async function descobrirOfertasShopee(): Promise<void> {
     ({ oferta }) => (oferta.comissaoPercentual ?? 0) >= comissaoMinima && classificarOferta(oferta) !== null,
   );
 
+  const indice = await indiceCatalogoShopeeCasa();
+  const candidatas = escolherOfertasDiversas(elegiveis, {
+    nome: (c) => c.oferta.nome,
+    idExterno: (c) => `${c.oferta.shopId}_${c.oferta.itemId}`,
+    tipo: (c) => c.keyword,
+    score: (c) => pontuarOferta(c.oferta),
+    indice,
+    maxTotal: limiteDiario,
+  });
+
   const importados: Array<{ id: string; slug: string }> = [];
-  let pulados = 0;
+  let pulados = elegiveis.length - candidatas.length;
   let atualizados = 0;
   let comErro = 0;
 
-  for (const { oferta, categoria } of elegiveis) {
+  for (const { oferta, categoria } of candidatas) {
     if (importados.length >= limiteDiario) break;
 
     try {
@@ -111,8 +127,10 @@ export async function descobrirOfertasShopee(): Promise<void> {
         origem: "descoberta_automatica",
       });
       if (resultado.status === "importado") importados.push({ id: resultado.id, slug: resultado.slug });
-      else if (resultado.status === "atualizado") atualizados++;
-      else pulados++;
+      else if (resultado.status === "atualizado") {
+        atualizados++;
+        pulados++;
+      } else pulados++;
     } catch (erro) {
       comErro++;
       await registrar("ERRO", "PRODUTO_DESCOBERTA", "Falha ao importar oferta da Shopee", {

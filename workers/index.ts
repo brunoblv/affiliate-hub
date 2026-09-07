@@ -32,8 +32,16 @@ const HORA_RELATORIO_SEMANAL = 8;
 /** Preenche horários vazios de WhatsApp/Telegram (9h–21h, 10–20 min). */
 const INTERVALO_FILA_GRUPOS_MS = 15 * 60 * 1000;
 
+const INTERVALO_PULSO_MS = 5 * 60 * 1000;
+let ultimoPulsoEm = 0;
 let rodando = false;
 let encerrando = false;
+
+async function registrarPulso(): Promise<void> {
+  if (Date.now() - ultimoPulsoEm < INTERVALO_PULSO_MS) return;
+  ultimoPulsoEm = Date.now();
+  await registrar("INFO", "WORKER", "pulso");
+}
 
 /**
  * Reivindica publicações vencidas de forma atômica.
@@ -77,7 +85,11 @@ async function tick(): Promise<void> {
 
   try {
     await reagendarPublicacoesForaDaJanela();
+    await registrarPulso();
     const ids = await reivindicarPendentes();
+    if (ids.length > 0) {
+      console.log(`[worker] publicando ${ids.length} item(ns)`);
+    }
 
     for (const id of ids) {
       if (encerrando) break;

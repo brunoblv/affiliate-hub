@@ -52,12 +52,14 @@ export async function shopeeRequest<T>(query: string, variables?: Record<string,
   const json = (await response.json()) as GraphQLResposta<T>;
 
   if (!response.ok || json.errors?.length) {
-    await registrar("ERRO", "PRODUTO_SYNC", "Shopee: chamada à API falhou", {
+    const mensagens = json.errors?.map((e) => e.message).join("; ") ?? response.statusText;
+    const ehParametro = /11001|invalid sub id/i.test(mensagens);
+
+    await registrar(ehParametro ? "ALERTA" : "ERRO", "PRODUTO_SYNC", "Shopee: chamada à API falhou", {
       status: response.status,
       erros: json.errors,
+      variaveis: variables,
     });
-
-    const mensagens = json.errors?.map((e) => e.message).join("; ") ?? response.statusText;
 
     // "got null for non-null" acontece de forma intermitente do lado da
     // Shopee (mesma query, mesmo item, funciona minutos depois) — não é erro

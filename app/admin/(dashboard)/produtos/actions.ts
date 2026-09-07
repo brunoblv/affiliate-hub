@@ -10,7 +10,8 @@ import { slugDeProdutoLivre } from "@/lib/conteudo/slug";
 import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
 import { parseIdentificadorMercadoLivre } from "@/lib/mercado-livre/parse-identificador";
 import { buscarOfertasShopee, buscarOfertaPorItem, type OfertaShopee } from "@/lib/shopee/client";
-import { parseIdentificadorShopee } from "@/lib/shopee/parse-identificador";
+import { escolherOfertasDiversas, indiceCatalogoShopeeCasa } from "@/lib/shopee/diversidade-ofertas";
+import { parseIdentificadorShopee, nomeDoSlugShopee } from "@/lib/shopee/parse-identificador";
 import { enfileirarProduto, publicarProdutoAgora, type ResultadoEnfileiramento } from "@/lib/agenda/enfileirar";
 import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "@/lib/agenda/proximo-horario";
 import { garantirPostPublicadoDoProduto } from "@/lib/conteudo/post-do-produto";
@@ -395,11 +396,32 @@ export async function buscarOfertasShopeeAction(_prev: BuscaShopeeState, formDat
   }
 
   try {
-    const ofertas = await buscarOfertasShopee({ keyword });
-    if (ofertas.length === 0) {
-      return { status: "success", message: "Nenhuma oferta encontrada pra essa busca.", ofertas: [] };
+    const [pagina1, pagina2] = await Promise.all([
+      buscarOfertasShopee({ keyword, page: 1 }),
+      buscarOfertasShopee({ keyword, page: 2 }),
+    ]);
+    const porId = new Map<string, OfertaShopee>();
+    for (const oferta of [...pagina1, ...pagina2]) {
+      porId.set(`${oferta.shopId}_${oferta.itemId}`, oferta);
     }
-    return { status: "success", ofertas };
+    const indice = await indiceCatalogoShopeeCasa();
+    const ofertas = escolherOfertasDiversas([...porId.values()], {
+      nome: (o) => o.nome,
+      idExterno: (o) => `${o.shopId}_${o.itemId}`,
+      indice,
+      maxTotal: 24,
+    });
+    if (ofertas.length === 0) {
+      return {
+        status: "success",
+        message:
+          porId.size === 0
+            ? "Nenhuma oferta encontrada pra essa busca."
+            : "Achei produtos, mas todos já estavam no catálogo ou eram quase iguais. Tente outra palavra-chave.",
+        ofertas: [],
+      };
+    }
+    return { status: "success", message: `${ofertas.length} ofertas novas (já salvos e repetidos ficaram de fora).`, ofertas };
   } catch (erro) {
     return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao buscar ofertas na Shopee." };
   }
@@ -431,13 +453,21 @@ export async function importarShopeeAction(_prev: ProdutoFormState, formData: Fo
   if (!shopId || !itemId) {
     return {
       status: "error",
-      message: "Não deu pra identificar o produto nesse link. Cole a URL do produto na Shopee.",
+      message:
+        "Não deu pra identificar o produto nesse link. Cole a URL do produto (shopee.com.br/...-i.loja.item), o link curto shp.ee / s.shopee.com.br, ou o an_redir com origin_link.",
     };
   }
 
   let oferta: OfertaShopee | null;
   try {
     oferta = await buscarOfertaPorItem(shopId, itemId);
+    if (!oferta && identificadorBruto) {
+      const nomeSlug = nomeDoSlugShopee(identificadorBruto);
+      if (nomeSlug) {
+        const ofertas = await buscarOfertasShopee({ keyword: nomeSlug, limit: 20 });
+        oferta = ofertas.find((o) => o.shopId === shopId && o.itemId === itemId) ?? null;
+      }
+    }
   } catch (erro) {
     return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao consultar a Shopee." };
   }
@@ -471,7 +501,7 @@ export async function importarShopeeAction(_prev: ProdutoFormState, formData: Fo
     return { status: "error", message: "Falha ao salvar o produto." };
   }
 
-  const publicado = await garantirPostPublicadoDoProduto(produto);
+  const publicado = await garantirPostPublicadoDoProduto(produto, { gerarFichaComIa: false });
 
   revalidatePath("/admin/produtos");
   revalidarSitePublico(produto.slug);
@@ -735,7 +765,7 @@ export async function buscarOfertasPorComodoAction(
       const message =
         resultado.avaliadas === 0
           ? "Nenhuma oferta encontrada pra essa busca."
-          : `Achei ${resultado.avaliadas} produtos, mas nenhum estava em promoção ou com preço bom o bastante. Tente outro cômodo ou tipo.`;
+          : `Achei ${resultado.avaliadas} produtos, mas todos já estavam no catálogo, eram do mesmo tipo ou não estavam em promoção. Tente outro cômodo ou tipo.`;
       return {
         status: "success",
         message,
@@ -747,7 +777,7 @@ export async function buscarOfertasPorComodoAction(
     }
     return {
       status: "success",
-      message: `${resultado.ofertas.length} ofertas em promoção ou com bom preço.`,
+      message: `${resultado.ofertas.length} ofertas novas — já salvos e repetidos do mesmo tipo ficaram de fora.`,
       ofertas: resultado.ofertas,
       buscasFeitas: resultado.buscasFeitas,
       avaliadas: resultado.avaliadas,

@@ -22,7 +22,7 @@ const TIPO_DO_POST: Record<TipoPost, TipoEtiqueta> = {
 
 /**
  * Slug interno (site `?o=`, chave de cache): minúsculas, números e hífen.
- * Na API da Shopee o hífen vira underscore — ver `subIdsParaApi`.
+ * Na API da Shopee só entra alfanumérico — ver `subIdsParaApi`.
  */
 export function slugEtiqueta(texto: string): string {
   return texto
@@ -117,14 +117,14 @@ export function subIdsDaOrigem(origem: string | null | undefined): string[] {
 }
 
 /**
- * Charset que a Affiliate Open API aceita no `subIds` (erro 11001
- * "invalid sub id" com hífen). Site e cache continuam com hífen.
+ * Charset da Affiliate Open API no `subIds`: só a-z e 0-9 (erro 11001
+ * "invalid sub id" com hífen ou underscore). Site e cache continuam com hífen.
  */
 export function subIdsParaApi(subIds: string[]): string[] {
   const saida: string[] = [];
   const vistos = new Set<string>();
   for (const bruto of subIds) {
-    const id = bruto.replace(/-/g, "_").replace(/[^a-z0-9_]/g, "").slice(0, MAX_CHARS);
+    const id = bruto.replace(/[^a-z0-9]/g, "").slice(0, MAX_CHARS);
     if (!id || vistos.has(id)) continue;
     vistos.add(id);
     saida.push(id);

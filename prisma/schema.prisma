@@ -494,7 +494,7 @@ model Publicacao {
 
   /// Insights da Graph API (regra 5) — só preenchido para FACEBOOK_PAGE, quando
   /// o post já tem idPostExterno e o job de sincronização já rodou. Nulo até lá.
-  /// visualizacoes = post_impressions (Meta Business Suite chama de "Visualizações").
+  /// visualizacoes = post_media_view (substitui post_impressions, depreciado na Graph API v25+).
   visualizacoes          Int?
   visualizadoresUnicos   Int?
   engajamentos           Int?
