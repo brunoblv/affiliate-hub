@@ -7,6 +7,7 @@ declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
+    fbq?: (...args: unknown[]) => void;
   }
 }
 
@@ -23,6 +24,10 @@ export function aplicarConsentimento(valor: ValorConsentimento) {
     ad_user_data: valor === "accepted" ? "granted" : "denied",
     ad_personalization: valor === "accepted" ? "granted" : "denied",
   });
+  // Meta Pixel não tem consent mode granular como o Google — é revoke/grant
+  // geral. Nasce revogado (ver fb-pixel-consent-default em app/layout.tsx) e
+  // só passa a mandar evento depois do 'grant' aqui.
+  window.fbq?.("consent", valor === "accepted" ? "grant" : "revoke");
 }
 
 export function gravarConsentimento(valor: ValorConsentimento) {
