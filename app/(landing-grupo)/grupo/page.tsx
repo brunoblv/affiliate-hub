@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import { prisma, Destino } from "@/lib/database";
 import { GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
 import { getSiteUrl } from "@/lib/site-url";
-import {
-  HOME_CATEGORIAS,
-  deduplicarCatalogo,
-  descontoPercentual,
-  produtoVisivelNoSite,
-} from "@/lib/produtos";
+import { deduplicarCatalogo, descontoPercentual } from "@/lib/produtos";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
 import {
   BotaoGrupoWhatsapp,
@@ -19,9 +14,9 @@ import {
 
 export const revalidate = 300;
 
-const TITULO = "Achadinhos de casa no WhatsApp — Meu Novo Lar";
+const TITULO = "Grupo de Ofertas no WhatsApp — Meu Novo Lar";
 const DESCRICAO =
-  "Grupo gratuito com ofertas da Shopee, TikTok Shop e Mercado Livre para casa: organização, cozinha, limpeza e decoração.";
+  "Grupo gratuito com ofertas da Shopee, TikTok Shop e Mercado Livre — de qualquer categoria, sem só ficar em casa.";
 
 export const metadata: Metadata = {
   title: TITULO,
@@ -40,13 +35,13 @@ export const metadata: Metadata = {
 const LOJAS = ["Shopee", "TikTok Shop", "Mercado Livre"];
 const CATEGORIAS_RODAPE = [
   "Casa",
-  "Organização",
-  "Cozinha",
-  "Banheiro",
-  "Lavanderia",
-  "Limpeza",
-  "Decoração",
-  "Iluminação",
+  "Tecnologia",
+  "Moda",
+  "Beleza",
+  "Brinquedos",
+  "Esporte",
+  "Pet",
+  "Acessórios",
 ];
 
 async function resolverLinkGrupo(): Promise<string> {
@@ -64,9 +59,9 @@ async function resolverLinkGrupo(): Promise<string> {
 async function ofertasDeExemplo(): Promise<ItemMockupGrupo[]> {
   try {
     const produtos = await prisma.produto.findMany({
-      where: { ativo: true, destino: Destino.MEU_NOVO_LAR, categoria: { in: HOME_CATEGORIAS } },
+      where: { ativo: true },
       orderBy: { criadoEm: "desc" },
-      take: 24,
+      take: 40,
       select: {
         id: true,
         nome: true,
@@ -80,7 +75,7 @@ async function ofertasDeExemplo(): Promise<ItemMockupGrupo[]> {
       },
     });
     const itens: ItemMockupGrupo[] = [];
-    for (const produto of deduplicarCatalogo(produtos.filter(produtoVisivelNoSite))) {
+    for (const produto of deduplicarCatalogo(produtos)) {
       const desconto = descontoPercentual(produto);
       if (desconto === null) continue;
       itens.push({
@@ -107,13 +102,14 @@ export default async function LandingGrupoPage() {
       <section className="bg-background">
         <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
           <div>
-            <p className="text-[11px] font-bold tracking-[0.16em] text-primary">GRUPO DE OFERTAS PARA CASA</p>
+            <p className="text-[11px] font-bold tracking-[0.16em] text-primary">OFERTAS DE QUALQUER CATEGORIA</p>
             <h1 className="mt-3 max-w-xl font-heading text-4xl leading-[1.12] font-semibold text-foreground sm:text-5xl">
-              Achadinhos da Shopee, TikTok e Mercado Livre no WhatsApp
+              Grupo de Ofertas no WhatsApp
             </h1>
             <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-muted-foreground">
-              Promoções e cupons de item de casa — organização, cozinha, banheiro, limpeza, decoração —
-              direto no seu celular. Sem app extra: é o grupo do WhatsApp.
+              Promoções e cupons de qualquer categoria — casa, tecnologia, moda, beleza — direto no seu
+              celular. Oferta boa some rápido, então quem tá no grupo vê primeiro. Sem app extra: é o
+              WhatsApp que você já usa.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
@@ -153,8 +149,8 @@ export default async function LandingGrupoPage() {
         <h2 className="font-heading text-2xl font-semibold text-foreground sm:text-3xl">Como funciona</h2>
         <ol className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
-            { n: "1", t: "Entra no grupo", d: "Um toque no botão verde abre o convite do WhatsApp. É grátis." },
-            { n: "2", t: "Recebe as ofertas", d: "Quando aparece promoção de casa nas lojas, a gente manda no grupo." },
+            { n: "1", t: "Entra no grupo", d: "Um toque no botão verde abre o convite do WhatsApp. É grátis, sem compromisso." },
+            { n: "2", t: "Recebe os achados", d: "Quando encontramos uma oferta boa nas lojas, mandamos no grupo na hora." },
             { n: "3", t: "Você decide", d: "Abre o link, confere na loja e compra só se fizer sentido pra você." },
           ].map((passo) => (
             <li key={passo.n} className="rounded-2xl border border-border bg-card p-5">
@@ -168,9 +164,10 @@ export default async function LandingGrupoPage() {
         </ol>
 
         <div className="mt-12 rounded-2xl border border-sage/40 bg-secondary px-5 py-8 text-center sm:px-8">
-          <h2 className="font-heading text-2xl font-semibold text-foreground">Quer receber as próximas ofertas?</h2>
+          <h2 className="font-heading text-2xl font-semibold text-foreground">Quer receber os próximos achados?</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            O grupo é o canal rápido. O site continua com o blog e a vitrine, se você preferir olhar com calma.
+            O grupo é o canal rápido, de qualquer categoria. O site continua com o blog e a vitrine, se
+            você preferir olhar com calma.
           </p>
           <div className="mx-auto mt-6 flex justify-center">
             <BotaoGrupoWhatsapp href={href} />

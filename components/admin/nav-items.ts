@@ -43,6 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Produtos", href: "/admin/produtos", icon: Package },
       { title: "Produtos Shopee", href: "/admin/produtos/shopee", icon: ShoppingBag },
       { title: "Conversão Shopee", href: "/admin/produtos/relatorio-conversao", icon: BarChart3 },
+      { title: "Cliques Shopee", href: "/admin/produtos/relatorio-cliques", icon: BarChart3 },
       { title: "Posts", href: "/admin/posts", icon: Newspaper },
       { title: "Gerar artigo (IA)", href: "/admin/posts/gerar", icon: Sparkles },
       { title: "Gerar lista (IA)", href: "/admin/posts/gerar-lista", icon: ListChecks },

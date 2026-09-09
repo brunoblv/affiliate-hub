@@ -58,18 +58,56 @@ export function sanitizarEtiquetaCanal(valor: string | undefined | null): string
   return slug || undefined;
 }
 
+/**
+ * Últimos N caracteres do id (cuid) do produto — não os primeiros, porque um
+ * cuid começa com timestamp; produtos cadastrados perto um do outro
+ * colidiriam mais fácil num prefixo do que num sufixo (mistura contador +
+ * parte aleatória). Usado como 4º sub-id só no relatório de CLIQUES (a
+ * Shopee não devolve o produto lá, diferente do relatório de conversão, que
+ * já traz itemId por venda) — ver lib/shopee/relatorio-cliques.ts.
+ */
+export const TAMANHO_FRAGMENTO_PRODUTO = 10;
+
+export function fragmentoProduto(produtoId: string): string {
+  return produtoId.slice(-TAMANHO_FRAGMENTO_PRODUTO);
+}
+
+/** Acrescenta o fragmento do produto a uma lista de subIds já pronta (ex. vinda de subIdsDaOrigem), respeitando o teto de 5. */
+export function comFragmentoProduto(subIds: string[], produtoId: string): string[] {
+  if (subIds.includes(fragmentoProduto(produtoId))) return subIds;
+  return [...subIds, fragmentoProduto(produtoId)].slice(0, MAX_SUB_IDS);
+}
+
+/**
+ * [tipo, rede, canal específico, produto] — até 4 dos 5 sub-ids da Shopee.
+ * `canal` (objeto com rede+nome) é o caminho novo, com rede e canal em slots
+ * separados — mais fácil de agregar no relatório do que a string combinada
+ * de `etiquetaDoCanal`. `canalEtiqueta` (string já pronta, ex. vinda de `?o=`
+ * de um link externo) continua em um slot só, porque nesse ponto já não
+ * sabemos separar rede de canal. `produtoId` só é usado quando `tipo` é
+ * "produto" (link de um produto só, não faz sentido pra lista/jornada/vitrine).
+ */
 export function subIdsDe(params: {
   tipo: TipoEtiqueta;
   canal?: { rede: Rede; nome: string };
   canalEtiqueta?: string;
+  produtoId?: string;
 }): string[] {
   const subIds: string[] = [params.tipo];
-  const canal = params.canalEtiqueta
-    ? sanitizarEtiquetaCanal(params.canalEtiqueta)
-    : params.canal
-      ? etiquetaDoCanal(params.canal)
-      : undefined;
-  if (canal && canal !== params.tipo) subIds.push(canal);
+
+  if (params.canal) {
+    subIds.push(PREFIXO_REDE[params.canal.rede]);
+    const nomeCanal = slugEtiqueta(params.canal.nome);
+    if (nomeCanal) subIds.push(nomeCanal);
+  } else if (params.canalEtiqueta) {
+    const etiqueta = sanitizarEtiquetaCanal(params.canalEtiqueta);
+    if (etiqueta && etiqueta !== params.tipo) subIds.push(etiqueta);
+  }
+
+  if (params.tipo === "produto" && params.produtoId) {
+    subIds.push(fragmentoProduto(params.produtoId));
+  }
+
   return subIds.slice(0, MAX_SUB_IDS);
 }
 
@@ -109,7 +147,10 @@ export function subIdsDaOrigem(origem: string | null | undefined): string[] {
 
   if (TIPOS.has(tipo)) {
     const subIds = [tipo];
+    // partes[1] = rede, partes[2] = canal específico (ver subIdsDe) — o `o=`
+    // pode ter as duas ou só a combinada antiga, então aceita qualquer uma.
     if (partes[1] && partes[1] !== tipo) subIds.push(partes[1]);
+    if (partes[2] && partes[2] !== tipo && partes[2] !== partes[1]) subIds.push(partes[2]);
     return subIds.slice(0, MAX_SUB_IDS);
   }
 

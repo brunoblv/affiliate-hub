@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/database";
 import { logger } from "@/lib/logging";
-import { subIdsDaOrigem } from "@/lib/shopee/etiquetas";
+import { subIdsDaOrigem, comFragmentoProduto } from "@/lib/shopee/etiquetas";
 import { resolverLinkAfiliadoEtiquetado } from "@/lib/shopee/link-etiquetado";
 
 export interface RegisterClickInput {
@@ -32,7 +32,8 @@ export async function registerClick(input: RegisterClickInput): Promise<string |
 
     logger.info("AFFILIATE_SYNC", "Clique registrado", { codigoCurto: input.codigoCurto, produtoId: produto.id });
 
-    return resolverLinkAfiliadoEtiquetado(produto, subIdsDaOrigem(input.origem));
+    const subIds = comFragmentoProduto(subIdsDaOrigem(input.origem), produto.id);
+    return resolverLinkAfiliadoEtiquetado(produto, subIds);
   }
 
   const lista = await prisma.listaOferta.findUnique({ where: { codigoCurto: input.codigoCurto } });

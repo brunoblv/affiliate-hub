@@ -34,24 +34,41 @@ export async function buscarConversoesDoPeriodo(params: {
   return nodes;
 }
 
-const PREFIXOS_CANAL = ["facebook", "instagram", "telegram", "whatsapp", "pinterest"];
+const REDES_CONHECIDAS = ["facebook", "instagram", "telegram", "whatsapp", "pinterest"];
+
+export interface CanalIdentificado {
+  /** "facebook" | "instagram" | "telegram" | "whatsapp" | "pinterest" | "outro" | "sem etiqueta". */
+  rede: string;
+  /** Slug do canal específico (ex. nome do Canal) — null quando não dá pra identificar. */
+  canalEspecifico: string | null;
+}
 
 /**
- * Formato exato de junção do utmContent (quando há mais de um subId) ainda
- * não foi confirmado contra uma amostra real — best-effort: tenta separar
- * por ":", "," ou "|" (os separadores mais comuns nesse tipo de relatório) e
- * procura um segmento que bata com o prefixo de canal que já usamos em
- * lib/shopee/etiquetas.ts. Se não achar nada reconhecível, cai em "outro".
+ * Formato confirmado em produção (relatório de Cliques da própria Shopee):
+ * sub-ids são juntados por "-", sempre 5 posições, vazias viram "----".
+ * A partir de subIdsDe (lib/shopee/etiquetas.ts) o esquema novo é
+ * [tipo, rede, canal específico] — mas o histórico tem link criado fora
+ * desse código (manual no painel da Shopee, Pinterest, tags antigas por
+ * categoria) que não segue essa posição. Por isso a busca é por conteúdo
+ * (acha a rede em qualquer posição), não por índice fixo — funciona pro
+ * esquema novo e não quebra pro legado, só perde o "canal específico" do
+ * legado (fica null, cai em "outro" na agregação por rede se nem a rede
+ * for reconhecível).
  */
-export function canalDoUtmContent(utmContent: string | null): string {
-  // API real retorna "----" (não null/vazio) quando o link não levava sub-id — confirmado em produção.
-  if (!utmContent || /^-+$/.test(utmContent.trim())) return "sem etiqueta";
+export function identificarCanal(utmContent: string | null): CanalIdentificado {
+  if (!utmContent || /^-+$/.test(utmContent.trim())) return { rede: "sem etiqueta", canalEspecifico: null };
+
   const partes = utmContent
-    .split(/[:,|]/)
-    .map((p) => p.trim().toLowerCase())
+    .split("-")
+    .map((parte) => parte.trim().toLowerCase())
     .filter(Boolean);
-  const canal = partes.find((parte) => PREFIXOS_CANAL.some((prefixo) => parte === prefixo || parte.startsWith(`${prefixo}-`)));
-  return canal ?? "outro";
+  if (partes.length === 0) return { rede: "sem etiqueta", canalEspecifico: null };
+
+  const indiceRede = partes.findIndex((parte) => REDES_CONHECIDAS.some((rede) => parte === rede || parte.startsWith(rede)));
+  if (indiceRede === -1) return { rede: "outro", canalEspecifico: null };
+
+  const rede = REDES_CONHECIDAS.find((r) => partes[indiceRede] === r || partes[indiceRede]!.startsWith(r))!;
+  return { rede, canalEspecifico: partes[indiceRede + 1] ?? null };
 }
 
 export interface LinhaRelatorioPorProduto {
@@ -65,7 +82,16 @@ export interface LinhaRelatorioPorProduto {
 }
 
 export interface LinhaRelatorioPorCanal {
-  canal: string;
+  rede: string;
+  pedidos: number;
+  unidades: number;
+  comissaoTotal: number;
+}
+
+export interface LinhaRelatorioPorCanalEspecifico {
+  rede: string;
+  /** null = rede identificada mas sem canal específico no sub-id (link antigo, ou só 2 slots usados). */
+  canalEspecifico: string | null;
   pedidos: number;
   unidades: number;
   comissaoTotal: number;
@@ -74,6 +100,7 @@ export interface LinhaRelatorioPorCanal {
 export interface RelatorioConversaoAgregado {
   porProduto: LinhaRelatorioPorProduto[];
   porCanal: LinhaRelatorioPorCanal[];
+  porCanalEspecifico: LinhaRelatorioPorCanalEspecifico[];
   totalPedidos: number;
   totalComissao: number;
 }
@@ -87,11 +114,13 @@ export interface RelatorioConversaoAgregado {
 export function agregarRelatorioConversao(nodes: RelatorioConversaoNode[]): RelatorioConversaoAgregado {
   const porProduto = new Map<number, LinhaRelatorioPorProduto>();
   const porCanal = new Map<string, LinhaRelatorioPorCanal>();
+  const porCanalEspecifico = new Map<string, LinhaRelatorioPorCanalEspecifico>();
   let totalPedidos = 0;
   let totalComissao = 0;
 
   for (const node of nodes) {
-    const canal = canalDoUtmContent(node.utmContent);
+    const { rede, canalEspecifico } = identificarCanal(node.utmContent);
+    const chaveEspecifica = `${rede}::${canalEspecifico ?? ""}`;
 
     for (const pedido of node.pedidos) {
       totalPedidos++;
@@ -113,11 +142,23 @@ export function agregarRelatorioConversao(nodes: RelatorioConversaoNode[]): Rela
         linhaProduto.comissaoTotal += item.itemTotalCommission;
         porProduto.set(item.itemId, linhaProduto);
 
-        const linhaCanal = porCanal.get(canal) ?? { canal, pedidos: 0, unidades: 0, comissaoTotal: 0 };
+        const linhaCanal = porCanal.get(rede) ?? { rede, pedidos: 0, unidades: 0, comissaoTotal: 0 };
         linhaCanal.pedidos++;
         linhaCanal.unidades += item.qty;
         linhaCanal.comissaoTotal += item.itemTotalCommission;
-        porCanal.set(canal, linhaCanal);
+        porCanal.set(rede, linhaCanal);
+
+        const linhaEspecifica = porCanalEspecifico.get(chaveEspecifica) ?? {
+          rede,
+          canalEspecifico,
+          pedidos: 0,
+          unidades: 0,
+          comissaoTotal: 0,
+        };
+        linhaEspecifica.pedidos++;
+        linhaEspecifica.unidades += item.qty;
+        linhaEspecifica.comissaoTotal += item.itemTotalCommission;
+        porCanalEspecifico.set(chaveEspecifica, linhaEspecifica);
       }
     }
   }
@@ -125,6 +166,7 @@ export function agregarRelatorioConversao(nodes: RelatorioConversaoNode[]): Rela
   return {
     porProduto: [...porProduto.values()].sort((a, b) => b.comissaoTotal - a.comissaoTotal),
     porCanal: [...porCanal.values()].sort((a, b) => b.comissaoTotal - a.comissaoTotal),
+    porCanalEspecifico: [...porCanalEspecifico.values()].sort((a, b) => b.comissaoTotal - a.comissaoTotal),
     totalPedidos,
     totalComissao,
   };

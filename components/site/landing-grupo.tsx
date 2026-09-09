@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Home, Lock, Percent, Tag, Users } from "lucide-react";
+import { Bell, Lock, Percent, Sparkles, Tag, Users } from "lucide-react";
 import { primeiraImagem } from "@/lib/produtos";
 import { reais } from "@/lib/vitrine/rotulos";
 
@@ -53,9 +53,9 @@ export type ItemMockupGrupo = {
 };
 
 const MENSAGENS_EXEMPLO = [
-  { loja: "Shopee", texto: "Organização e cozinha com preço baixo" },
-  { loja: "TikTok Shop", texto: "Achadinhos de casa que acabaram de sair" },
-  { loja: "Mercado Livre", texto: "Limpeza, iluminação e decoração" },
+  { loja: "Shopee", texto: "Fone sem fio com desconto bom hoje" },
+  { loja: "TikTok Shop", texto: "Achadinho que acabou de sair, ainda com estoque" },
+  { loja: "Mercado Livre", texto: "Cupom valendo só até hoje à noite" },
 ];
 
 export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
@@ -71,7 +71,7 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
         <div className="mx-auto mb-3 h-5 w-24 rounded-full bg-foreground" />
         <div className="rounded-2xl bg-secondary px-3 py-2 text-center">
           <div className="text-[10px] font-bold tracking-[0.14em] text-muted-foreground">ACHADINHOS</div>
-          <div className="text-sm font-bold text-foreground">Ofertas pra casa</div>
+          <div className="text-sm font-bold text-foreground">Achados do dia</div>
         </div>
         {itens.length > 0 ? (
           <ul className="mt-3 space-y-2.5">
@@ -121,7 +121,7 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
 const BENEFICIOS = [
   { icon: Tag, texto: "Ofertas da Shopee, TikTok Shop e Mercado Livre" },
   { icon: Percent, texto: "Descontos e cupons quando a loja solta" },
-  { icon: Home, texto: "Só item de casa: organização, cozinha, limpeza" },
+  { icon: Sparkles, texto: "Qualquer categoria — casa, tecnologia, moda e mais" },
   { icon: Bell, texto: "Você vê a promoção na hora, no WhatsApp" },
 ];
 
@@ -146,7 +146,7 @@ export function ListaBeneficiosGrupo() {
 const SELOS = [
   { icon: Lock, texto: "Gratuito" },
   { icon: Users, texto: "Ofertas ao longo da semana" },
-  { icon: Home, texto: "Foco em casa e lar" },
+  { icon: Sparkles, texto: "Só oferta que vale a pena" },
 ];
 
 export function SelosConfiancaGrupo() {

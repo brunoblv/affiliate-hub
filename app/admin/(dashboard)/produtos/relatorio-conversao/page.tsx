@@ -120,10 +120,10 @@ export default async function RelatorioConversaoShopeePage({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground">Por canal</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">Por rede</h2>
             <p className="text-xs text-muted-foreground">
-              Canal identificado a partir do sub-id do link (utmContent) — formato exato ainda não confirmado contra
-              amostra real, ofertas sem etiqueta reconhecida caem em &quot;outro&quot;.
+              Rede identificada a partir do sub-id do link (utmContent). Link antigo ou criado fora do fluxo
+              automático de postagem pode cair em &quot;outro&quot;.
             </p>
             {relatorio.porCanal.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum pedido no período selecionado.</p>
@@ -131,7 +131,7 @@ export default async function RelatorioConversaoShopeePage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Canal</TableHead>
+                    <TableHead>Rede</TableHead>
                     <TableHead>Pedidos</TableHead>
                     <TableHead>Unidades</TableHead>
                     <TableHead>Comissão</TableHead>
@@ -139,8 +139,43 @@ export default async function RelatorioConversaoShopeePage({
                 </TableHeader>
                 <TableBody>
                   {relatorio.porCanal.map((linha) => (
-                    <TableRow key={linha.canal}>
-                      <TableCell className="font-medium capitalize">{linha.canal}</TableCell>
+                    <TableRow key={linha.rede}>
+                      <TableCell className="font-medium capitalize">{linha.rede}</TableCell>
+                      <TableCell>{linha.pedidos}</TableCell>
+                      <TableCell>{linha.unidades}</TableCell>
+                      <TableCell>{reais(linha.comissaoTotal)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground">Por canal específico</h2>
+            <p className="text-xs text-muted-foreground">
+              Página/grupo dentro da rede (ex. qual canal do WhatsApp) — só aparece pra links gerados pelo
+              fluxo automático de postagem (sub-id [tipo, rede, canal]); link antigo/manual mostra
+              &quot;—&quot;.
+            </p>
+            {relatorio.porCanalEspecifico.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum pedido no período selecionado.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Rede</TableHead>
+                    <TableHead>Canal</TableHead>
+                    <TableHead>Pedidos</TableHead>
+                    <TableHead>Unidades</TableHead>
+                    <TableHead>Comissão</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {relatorio.porCanalEspecifico.map((linha) => (
+                    <TableRow key={`${linha.rede}::${linha.canalEspecifico ?? ""}`}>
+                      <TableCell className="font-medium capitalize">{linha.rede}</TableCell>
+                      <TableCell>{linha.canalEspecifico ?? "—"}</TableCell>
                       <TableCell>{linha.pedidos}</TableCell>
                       <TableCell>{linha.unidades}</TableCell>
                       <TableCell>{reais(linha.comissaoTotal)}</TableCell>

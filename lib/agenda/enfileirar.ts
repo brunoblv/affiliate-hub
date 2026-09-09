@@ -66,7 +66,7 @@ async function linkAfiliadoDoProduto(produto: Produto, canal: Canal): Promise<st
       `Produto "${produto.slug}" não tem link de afiliado — não publica sem comissão.`,
     );
   }
-  return resolverLinkAfiliadoEtiquetado(produto, subIdsDe({ tipo: "produto", canal }));
+  return resolverLinkAfiliadoEtiquetado(produto, subIdsDe({ tipo: "produto", canal, produtoId: produto.id }));
 }
 
 /** Primeira imagem do produto, ou undefined se a API não trouxe nenhuma. */
