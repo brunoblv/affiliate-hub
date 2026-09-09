@@ -212,19 +212,26 @@ export async function enfileirarProduto(produtoId: string, canalIds?: string[]):
     return [pulado(produto.id, produto.nome, `Produto "${produto.slug}" está inativo.`)];
   }
 
+  // Produto fora do nicho casa (destino Meu Novo Lar) pode ser divulgado, mas
+  // só em grupo/mensageria — nunca em página pública (FACEBOOK_PAGE/INSTAGRAM),
+  // pra preservar a regra de ouro do AdSense (ver CLAUDE.md).
+  const foraDoNicho = produto.destino === Destino.MEU_NOVO_LAR && !produtoVisivelNoSite(produto);
+
   const canais = await prisma.canal.findMany({
-    where: { ativo: true, destino: produto.destino, ...(canalIds?.length ? { id: { in: canalIds } } : {}) },
+    where: {
+      ativo: true,
+      destino: produto.destino,
+      ...(foraDoNicho ? { rede: { in: [Rede.WHATSAPP, Rede.TELEGRAM, Rede.FACEBOOK_GROUP] } } : {}),
+      ...(canalIds?.length ? { id: { in: canalIds } } : {}),
+    },
   });
 
   if (canais.length === 0) {
     const destino = LABEL_DESTINO[produto.destino] ?? produto.destino;
-    return [
-      pulado(
-        produto.destino,
-        "Nenhum canal",
-        `Nenhum canal ativo para o destino ${destino}. Cadastre ou ative um canal com o mesmo destino.`,
-      ),
-    ];
+    const motivo = foraDoNicho
+      ? `Nenhum canal de grupo (WhatsApp/Telegram/Facebook Grupo) ativo para o destino ${destino} — produto fora do nicho casa não vai para páginas públicas.`
+      : `Nenhum canal ativo para o destino ${destino}. Cadastre ou ative um canal com o mesmo destino.`;
+    return [pulado(produto.destino, "Nenhum canal", motivo)];
   }
 
   if (ehProdutoTikTok(produto)) {
@@ -850,10 +857,12 @@ async function preencherHorariosVaziosDoCanalGrupo(canal: Canal): Promise<number
     take: LOTE_GRUPOS_POR_TICK * 4,
   });
 
+  // Produto fora do nicho casa PODE cair aqui — grupo (WhatsApp/Telegram) é
+  // justamente o canal certo pra ele (ver foraDoNicho em enfileirarProduto).
+  // Só a página pública (FACEBOOK_PAGE/INSTAGRAM) continua vedada.
   let agendados = 0;
   for (const produto of produtos) {
     if (agendados >= LOTE_GRUPOS_POR_TICK) break;
-    if (produto.destino === Destino.MEU_NOVO_LAR && !produtoVisivelNoSite(produto)) continue;
 
     const resultados = await enfileirarProduto(produto.id, [canal.id]);
     if (resultados.some((resultado) => resultado.agendadaPara)) agendados++;

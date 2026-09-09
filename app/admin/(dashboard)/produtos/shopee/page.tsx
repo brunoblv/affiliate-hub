@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { prisma, Plataforma, type Produto } from "@/lib/database";
+import { prisma, Plataforma, Categoria, SegmentoProduto, type Produto, type Prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { RodarDescobertaShopeeButton } from "@/components/admin/rodar-descoberta-shopee-button";
 import { ConfiguracaoShopeeForm } from "@/components/admin/configuracao-shopee-form";
+import { ConfiguracaoMotorForm } from "@/components/admin/configuracao-motor-form";
 import { ProdutosTabela, type ProdutoLinha } from "@/components/admin/produtos-tabela";
+import { ProdutosShopeeFiltros } from "@/components/admin/produtos-shopee-filtros";
 import { descontoPercentual, LABEL_CATEGORIA } from "@/lib/produtos";
 import { inicioDoDia, formatarLocal } from "@/lib/agenda/fuso";
 import { obterConfiguracao } from "@/lib/configuracao";
@@ -31,28 +33,59 @@ function paraLinha(produto: Produto): ProdutoLinha {
     precoAtual: Number(produto.precoAtual),
     desconto: descontoPercentual(produto),
     ativo: produto.ativo,
+    segmento: produto.segmento,
+    pontuacao: produto.pontuacao != null ? Number(produto.pontuacao) : null,
+    vendas: produto.vendas,
+    motivoSegmento: produto.motivoSegmento ? JSON.stringify(produto.motivoSegmento) : null,
   };
 }
 
 export default async function ProdutosShopeePage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    segmento?: string;
+    categoria?: string;
+    descontoMin?: string;
+    comissaoMin?: string;
+    mostrarDescartados?: string;
+  }>;
 }) {
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, segmento, categoria, descontoMin, comissaoMin, mostrarDescartados } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
 
+  const segmentoValido =
+    segmento && Object.values(SegmentoProduto).includes(segmento as SegmentoProduto)
+      ? (segmento as SegmentoProduto)
+      : undefined;
+  const categoriaValida =
+    categoria && Object.values(Categoria).includes(categoria as Categoria) ? (categoria as Categoria) : undefined;
+  const descontoMinNum = descontoMin ? Number(descontoMin) : undefined;
+  const comissaoMinNum = comissaoMin ? Number(comissaoMin) : undefined;
+  const temFiltroMotor = Boolean(segmentoValido || categoriaValida || descontoMinNum || comissaoMinNum);
+
+  const whereMotor: Prisma.ProdutoWhereInput = {
+    ...(segmentoValido ? { segmento: segmentoValido } : mostrarDescartados === "1" ? {} : { segmento: { not: SegmentoProduto.DESCARTADO } }),
+    ...(categoriaValida ? { categoria: categoriaValida } : {}),
+    ...(descontoMinNum ? { descontoPct: { gte: descontoMinNum } } : {}),
+    ...(comissaoMinNum ? { taxaComissao: { gte: comissaoMinNum } } : {}),
+  };
+
   const [produtosShopee, ultimaDescoberta, configuracao] = await Promise.all([
-    prisma.produto.findMany({ where: { plataforma: Plataforma.SHOPEE }, orderBy: { criadoEm: "desc" } }),
+    prisma.produto.findMany({
+      where: { plataforma: Plataforma.SHOPEE, ...whereMotor },
+      orderBy: temFiltroMotor ? [{ pontuacao: "desc" }, { criadoEm: "desc" }] : { criadoEm: "desc" },
+    }),
     prisma.log.findFirst({ where: { area: "PRODUTO_DESCOBERTA" }, orderBy: { criadoEm: "desc" } }),
     obterConfiguracao(),
   ]);
 
   const comecoDoDia = inicioDoDia(new Date());
-  const ofertasDeHoje = produtosShopee.filter(
-    (p) => ehDescobertaAutomatica(p) && p.criadoEm.getTime() >= comecoDoDia.getTime(),
-  );
-  const todosOutrosProdutos = produtosShopee.filter((p) => !ofertasDeHoje.includes(p));
+  const ofertasDeHoje = temFiltroMotor
+    ? []
+    : produtosShopee.filter((p) => ehDescobertaAutomatica(p) && p.criadoEm.getTime() >= comecoDoDia.getTime());
+  const todosOutrosProdutos = temFiltroMotor ? produtosShopee : produtosShopee.filter((p) => !ofertasDeHoje.includes(p));
   const totalPages = Math.max(1, Math.ceil(todosOutrosProdutos.length / PAGE_SIZE));
   const outrosProdutos = todosOutrosProdutos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -77,6 +110,14 @@ export default async function ProdutosShopeePage({
         shopeeComissaoMinimaPct={configuracao.shopeeComissaoMinimaPct}
       />
 
+      <ConfiguracaoMotorForm
+        motorPercentilVendeBem={configuracao.motorPercentilVendeBem}
+        motorDescontoMinimoPct={configuracao.motorDescontoMinimoPct}
+        motorPesoVendas={Number(configuracao.motorPesoVendas)}
+        motorPesoDesconto={Number(configuracao.motorPesoDesconto)}
+        motorPesoComissao={Number(configuracao.motorPesoComissao)}
+      />
+
       <div className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
         {ultimaDescoberta ? (
           <>Última descoberta: {formatarLocal(ultimaDescoberta.criadoEm)} — {ultimaDescoberta.mensagem}</>
@@ -95,26 +136,36 @@ export default async function ProdutosShopeePage({
         </Link>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Ofertas de hoje</h2>
-        {ofertasDeHoje.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma oferta descoberta automaticamente hoje ainda.</p>
-        ) : (
-          <ProdutosTabela produtos={ofertasDeHoje.map(paraLinha)} />
-        )}
-      </section>
+      <ProdutosShopeeFiltros />
+
+      {!temFiltroMotor && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Ofertas de hoje</h2>
+          {ofertasDeHoje.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma oferta descoberta automaticamente hoje ainda.</p>
+          ) : (
+            <ProdutosTabela produtos={ofertasDeHoje.map(paraLinha)} mostrarMotor />
+          )}
+        </section>
+      )}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Outros produtos Shopee</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {temFiltroMotor ? "Curadoria (motor de produtos)" : "Outros produtos Shopee"}
+        </h2>
         {outrosProdutos.length === 0 ? (
           <EmptyState
             icon={ShoppingBag}
-            title="Nenhum outro produto Shopee"
-            description="Produtos importados manualmente ou de dias anteriores aparecem aqui."
+            title="Nenhum produto encontrado"
+            description={
+              temFiltroMotor
+                ? "Nenhum produto bate com os filtros selecionados."
+                : "Produtos importados manualmente ou de dias anteriores aparecem aqui."
+            }
           />
         ) : (
           <>
-            <ProdutosTabela produtos={outrosProdutos.map(paraLinha)} />
+            <ProdutosTabela produtos={outrosProdutos.map(paraLinha)} mostrarMotor />
             <Pagination page={page} totalPages={totalPages} basePath="/admin/produtos/shopee" />
           </>
         )}

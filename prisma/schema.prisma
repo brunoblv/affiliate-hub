@@ -305,6 +305,23 @@ enum Categoria {
   OUTRA
 }
 
+/// Classificação automática do motor de produtos (Fase 1: só Shopee) —
+/// null até a primeira sincronização/classificação rodar para o produto.
+enum SegmentoProduto {
+  VENDE_BEM
+  VENDE_BEM_DESCONTO
+  POTENCIAL
+  DESCARTADO
+}
+
+/// Fonte da oferta dentro da API de afiliados da Shopee — determina qual
+/// query trouxe o produto (motor de produtos, Fase 1).
+enum TipoOfertaShopee {
+  OFERTA_PRODUTO // productOfferV2 — já em uso pela descoberta atual
+  OFERTA_LOJA // shopOfferV2
+  OFERTA_GERAL // shopeeOfferV2
+}
+
 model Produto {
   id         String     @id @default(cuid())
   plataforma Plataforma
@@ -342,11 +359,27 @@ model Produto {
   /// Entra na curadoria da landing mesmo sem atingir o desconto mínimo.
   destaqueVitrine Boolean @default(false)
 
+  /// -------- Motor de produtos (Fase 1: só Shopee) --------
+  /// Vendas acumuladas relatadas pela API no último sync.
+  vendas         Int?
+  taxaComissao   Decimal?          @db.Decimal(5, 2)
+  comissaoEstimada Decimal?        @db.Decimal(12, 2)
+  descontoPct    Int?
+  tipoOferta     TipoOfertaShopee?
+
+  segmento     SegmentoProduto?
+  pontuacao    Decimal?         @db.Decimal(8, 3)
+  segmentadoEm DateTime?
+  /// Auditoria: percentil/médias/pesos usados no momento da classificação —
+  /// necessário para calibrar os critérios depois (ver Configuracao).
+  motivoSegmento Json?
+
   itens            ItemDePost[]
   publicacoes      Publicacao[]
   cliques          Clique[]
   linksEtiquetados LinkAfiliadoEtiquetado[]
   precos           HistoricoPreco[]
+  vendaSnapshots   ProdutoVendaSnapshot[]
   itensLanding     LandingProduto[]
   landingsHero     LandingDiaria[]          @relation("HeroDaLanding")
   imagensLarSmart  ImagemLarSmart[]
@@ -358,6 +391,8 @@ model Produto {
   @@index([ativo])
   @@index([destino])
   @@index([categoria])
+  @@index([segmento])
+  @@index([plataforma, categoria, segmento])
   @@map("produtos")
 }
 
@@ -389,6 +424,23 @@ model HistoricoPreco {
 
   @@index([produtoId, registradoEm])
   @@map("historico_precos")
+}
+
+/// Snapshot de vendas por produto Shopee ao longo do tempo (motor de
+/// produtos, Fase 1) — série usada para tendência/potencial. Diferente de
+/// HistoricoPreco, grava sempre a cada sync (não só quando o valor muda):
+/// o job de classificação roda em cadência própria e precisa da série
+/// completa, não só dos pontos em que o valor mudou.
+model ProdutoVendaSnapshot {
+  id           String   @id @default(cuid())
+  produtoId    String
+  vendas       Int
+  registradoEm DateTime @default(now())
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId, registradoEm])
+  @@map("produto_venda_snapshots")
 }
 
 // ---------------------------------------------------------------------------
@@ -624,6 +676,16 @@ model Configuracao {
   shopeeDescobertaLimiteDiario Int @default(15)
   /// Comissão mínima (%) para uma oferta da Shopee entrar na descoberta automática.
   shopeeComissaoMinimaPct      Int @default(10)
+
+  /// -------- Motor de produtos (Fase 1: só Shopee) --------
+  /// Percentil de vendas dentro da categoria para o produto virar VENDE_BEM.
+  motorPercentilVendeBem Int     @default(80)
+  /// Desconto mínimo (%) para VENDE_BEM virar VENDE_BEM_DESCONTO.
+  motorDescontoMinimoPct Int     @default(15)
+  /// Pesos do score dentro do segmento (não decidem o segmento, só a ordem).
+  motorPesoVendas        Decimal @default(1) @db.Decimal(4, 2)
+  motorPesoDesconto      Decimal @default(1) @db.Decimal(4, 2)
+  motorPesoComissao      Decimal @default(1) @db.Decimal(4, 2)
 
   atualizadoEm DateTime @updatedAt
 

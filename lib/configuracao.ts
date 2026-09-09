@@ -5,6 +5,11 @@ const ID_CONFIGURACAO = "app";
 const PADRAO = {
   shopeeDescobertaLimiteDiario: 15,
   shopeeComissaoMinimaPct: 10,
+  motorPercentilVendeBem: 80,
+  motorDescontoMinimoPct: 15,
+  motorPesoVendas: 1,
+  motorPesoDesconto: 1,
+  motorPesoComissao: 1,
 };
 
 /** Cria a linha única de configuração com os padrões, se ainda não existir. */
@@ -17,8 +22,13 @@ export async function obterConfiguracao() {
 }
 
 export async function atualizarConfiguracao(dados: {
-  shopeeDescobertaLimiteDiario: number;
-  shopeeComissaoMinimaPct: number;
+  shopeeDescobertaLimiteDiario?: number;
+  shopeeComissaoMinimaPct?: number;
+  motorPercentilVendeBem?: number;
+  motorDescontoMinimoPct?: number;
+  motorPesoVendas?: number;
+  motorPesoDesconto?: number;
+  motorPesoComissao?: number;
 }) {
   return prisma.configuracao.upsert({
     where: { id: ID_CONFIGURACAO },

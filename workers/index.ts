@@ -8,6 +8,7 @@ import { reagendarPublicacoesForaDaJanela, aplicarJanelaPadraoNosCanais } from "
 import { sincronizarPrecosMercadoLivre } from "@/lib/mercado-livre/sincronizar-precos";
 import { sincronizarPrecosShopee } from "@/lib/shopee/sincronizar-precos";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
+import { classificarProdutosShopee } from "@/lib/shopee/classificar-produtos";
 import { gerarLandingsDoDia } from "@/lib/vitrine/gerar";
 import { sincronizarInsightsFacebook } from "@/lib/publicacao/insights";
 import { executarRelatorioSemanalFacebook } from "@/lib/relatorios/relatorio-semanal-facebook";
@@ -20,6 +21,8 @@ const LOTE = 5;
 const INTERVALO_SYNC_PRECOS_MS = 6 * 60 * 60 * 1000;
 /** Ofertas do dia — uma leva só, uma vez por dia. */
 const INTERVALO_DESCOBERTA_SHOPEE_MS = 24 * 60 * 60 * 1000;
+/** Motor de produtos (Fase 1): sync de vendas + classificação, 4x/dia. */
+const INTERVALO_CLASSIFICACAO_SHOPEE_MS = 6 * 60 * 60 * 1000;
 /** Landing da vitrine: confere a cada 15 min; gera a partir das 6h (TZ_APP). */
 const INTERVALO_VITRINE_MS = 15 * 60 * 1000;
 const HORA_VITRINE = 6;
@@ -174,6 +177,20 @@ async function loopDescobertaShopee(): Promise<void> {
   }
 }
 
+/** Motor de produtos (Fase 1): sync de vendas + classificação em segmento/score, 4x/dia. */
+async function loopClassificacaoShopee(): Promise<void> {
+  while (!encerrando) {
+    try {
+      await classificarProdutosShopee();
+    } catch (erro) {
+      await registrar("ERRO", "PRODUTO_SEGMENTACAO", "Classificação de produtos da Shopee falhou", {
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVALO_CLASSIFICACAO_SHOPEE_MS));
+  }
+}
+
 /** Job da vitrine: a partir das 6h no fuso da operação; idempotente no mesmo dia. */
 async function loopLandingDiaria(): Promise<void> {
   while (!encerrando) {
@@ -285,6 +302,7 @@ void loop();
 void loopSincronizacaoPrecos();
 void loopSincronizacaoPrecosShopee();
 void loopDescobertaShopee();
+void loopClassificacaoShopee();
 void loopLandingDiaria();
 void loopInsightsFacebook();
 void loopRelatorioSemanalFacebook();

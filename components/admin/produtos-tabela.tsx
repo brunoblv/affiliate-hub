@@ -20,11 +20,23 @@ export interface ProdutoLinha {
   precoAtual: number;
   desconto: number | null;
   ativo: boolean;
+  /** Motor de produtos (Fase 1: só Shopee) — undefined fora da tela de curadoria Shopee. */
+  segmento?: string | null;
+  pontuacao?: number | null;
+  vendas?: number | null;
+  motivoSegmento?: string | null;
 }
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+const LABEL_SEGMENTO: Record<string, string> = {
+  VENDE_BEM: "Vende bem",
+  VENDE_BEM_DESCONTO: "Vende bem + desconto",
+  POTENCIAL: "Potencial",
+  DESCARTADO: "Descartado",
+};
 
 function avisarDistribuicao(
   lote: ResultadoDistribuicaoEmLote[],
@@ -49,7 +61,14 @@ function avisarDistribuicao(
   toast.warning(pulado ?? "Nenhum canal recebeu o produto.", { id: toastId, duration: 8000 });
 }
 
-export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
+export function ProdutosTabela({
+  produtos,
+  mostrarMotor = false,
+}: {
+  produtos: ProdutoLinha[];
+  /** Colunas do motor de produtos (segmento/score/vendas) — só na curadoria Shopee. */
+  mostrarMotor?: boolean;
+}) {
   const router = useRouter();
   const [excluindo, startExcluir] = useTransition();
   const [enfileirando, startEnfileirar] = useTransition();
@@ -146,6 +165,13 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
             <TableHead>Destino</TableHead>
             <TableHead>Categoria</TableHead>
             <TableHead>Preço</TableHead>
+            {mostrarMotor && (
+              <>
+                <TableHead>Segmento</TableHead>
+                <TableHead title="Ordena dentro do segmento — não decide o segmento">Score</TableHead>
+                <TableHead>Vendas</TableHead>
+              </>
+            )}
             <TableHead>Status</TableHead>
             <TableHead className="w-28">Ações</TableHead>
           </TableRow>
@@ -176,6 +202,15 @@ export function ProdutosTabela({ produtos }: { produtos: ProdutoLinha[] }) {
                     <span className="ml-2 text-xs text-muted-foreground">-{produto.desconto}%</span>
                   )}
                 </TableCell>
+                {mostrarMotor && (
+                  <>
+                    <TableCell title={produto.motivoSegmento ?? undefined}>
+                      {produto.segmento ? LABEL_SEGMENTO[produto.segmento] ?? produto.segmento : "—"}
+                    </TableCell>
+                    <TableCell>{produto.pontuacao != null ? produto.pontuacao.toFixed(1) : "—"}</TableCell>
+                    <TableCell>{produto.vendas ?? "—"}</TableCell>
+                  </>
+                )}
                 <TableCell>{produto.ativo ? "Ativo" : "Inativo"}</TableCell>
                 <TableCell>
                   <Button

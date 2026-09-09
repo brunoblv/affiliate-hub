@@ -716,6 +716,39 @@ export async function atualizarConfiguracaoShopeeAction(
   return { status: "success", message: "Configuração salva." };
 }
 
+/** Salva percentil/desconto mínimo/pesos do motor de produtos (Fase 1: Shopee). */
+export async function atualizarConfiguracaoMotorAction(
+  _prev: ProdutoFormState,
+  formData: FormData,
+): Promise<ProdutoFormState> {
+  const percentil = Number(formData.get("motorPercentilVendeBem"));
+  const descontoMinimo = Number(formData.get("motorDescontoMinimoPct"));
+  const pesoVendas = Number(formData.get("motorPesoVendas"));
+  const pesoDesconto = Number(formData.get("motorPesoDesconto"));
+  const pesoComissao = Number(formData.get("motorPesoComissao"));
+
+  if (!Number.isInteger(percentil) || percentil < 1 || percentil > 99) {
+    return { status: "error", message: "Percentil precisa ser um número inteiro entre 1 e 99." };
+  }
+  if (!Number.isInteger(descontoMinimo) || descontoMinimo < 0 || descontoMinimo > 100) {
+    return { status: "error", message: "Desconto mínimo precisa ser um número inteiro entre 0 e 100." };
+  }
+  if ([pesoVendas, pesoDesconto, pesoComissao].some((peso) => !Number.isFinite(peso) || peso < 0)) {
+    return { status: "error", message: "Pesos precisam ser números maiores ou iguais a zero." };
+  }
+
+  await atualizarConfiguracao({
+    motorPercentilVendeBem: percentil,
+    motorDescontoMinimoPct: descontoMinimo,
+    motorPesoVendas: pesoVendas,
+    motorPesoDesconto: pesoDesconto,
+    motorPesoComissao: pesoComissao,
+  });
+
+  revalidatePath("/admin/produtos/shopee");
+  return { status: "success", message: "Configuração do motor salva." };
+}
+
 /** Roda a descoberta automática de ofertas Shopee agora, fora do horário do worker. */
 export async function rodarDescobertaShopeeAction(): Promise<{ status: "success" | "error"; message?: string }> {
   try {
@@ -827,6 +860,11 @@ export async function importarOfertasShopeeEmLoteAction(params: {
       comissaoPercentual: curada.comissaoPercentual ?? null,
       offerLink: String(curada.offerLink ?? ""),
       avaliacaoMedia: curada.avaliacaoMedia ?? null,
+      // Curadoria por cômodo não carrega vendas/comissão calculada — motor
+      // de produtos preenche no próximo ciclo de classificação (workers/index.ts).
+      vendas: null,
+      comissaoValor: null,
+      tipoOferta: "OFERTA_PRODUTO",
     };
     if (!oferta.shopId || !oferta.itemId || !oferta.nome) {
       erros++;
