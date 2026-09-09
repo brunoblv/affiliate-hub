@@ -1,3 +1,5 @@
+"use client";
+
 import { Bell, Home, Lock, Percent, Tag, Users } from "lucide-react";
 import { primeiraImagem } from "@/lib/produtos";
 import { reais } from "@/lib/vitrine/rotulos";
@@ -29,6 +31,7 @@ export function BotaoGrupoWhatsapp({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => window.fbq?.("track", "Contact")}
       className={`inline-flex w-full max-w-lg items-center justify-center gap-3 rounded-full bg-[#25D366] font-bold tracking-wide text-white shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:bg-[#1fbe5a] active:translate-y-px ${tamanhoClasse} ${className}`}
     >
       <IconeWhatsApp className={tamanho === "barra" ? "size-5" : "size-6"} />
