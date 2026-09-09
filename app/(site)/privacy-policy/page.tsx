@@ -24,12 +24,14 @@ export default function PrivacyPolicyPage() {
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Cookies</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-        Usamos cookies próprios e de terceiros (analytics, Google AdSense quando os anúncios
-        estiverem no ar, e as lojas parceiras via links de afiliado) para lembrar preferências, medir
-        audiência, veicular publicidade e saber quando uma compra veio através de um dos nossos links.
-        No primeiro acesso mostramos um aviso de cookies: você pode aceitar ou recusar os não
-        essenciais. Também é possível bloquear cookies nas configurações do navegador — o site
-        continua funcionando, mas analytics e anúncios personalizados ficam limitados.
+        Usamos cookies próprios e de terceiros (analytics, o Pixel do Meta para medir e direcionar
+        anúncios no Facebook/Instagram, Google AdSense quando os anúncios estiverem no ar, e as
+        lojas parceiras via links de afiliado) para lembrar preferências, medir audiência, veicular
+        publicidade e saber quando uma compra veio através de um dos nossos links. No primeiro
+        acesso mostramos um aviso de cookies: você pode aceitar ou recusar os não essenciais — o
+        Pixel do Meta só recebe dados depois que você aceita. Também é possível bloquear cookies nas
+        configurações do navegador — o site continua funcionando, mas analytics e anúncios
+        personalizados ficam limitados.
       </p>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Com quem compartilhamos</h2>
@@ -38,7 +40,8 @@ export default function PrivacyPolicyPage() {
         e-mail que nos ajudam a operar o site, sob contrato de confidencialidade; (2) as redes de
         afiliados e lojas parceiras, na medida necessária para registrar que uma venda veio pelo nosso
         link — elas não recebem seu e-mail de newsletter nem seu histórico de navegação no nosso site;
-        e (3) o Google, se você aceitar cookies de analytics ou de anúncios (Analytics e AdSense).
+        (3) o Google, se você aceitar cookies de analytics ou de anúncios (Analytics e AdSense); e (4)
+        a Meta (Facebook/Instagram), se você aceitar cookies, através do Pixel do Meta.
       </p>
 
       <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Seus direitos</h2>
@@ -80,6 +83,32 @@ export default function PrivacyPolicyPage() {
           className="font-semibold text-primary hover:underline"
         >
           policies.google.com/technologies/ads
+        </a>
+        .
+      </p>
+
+      <h2 className="mt-10 font-heading text-xl font-semibold text-foreground">Anúncios (Meta/Facebook)</h2>
+      <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+        Usamos o Pixel do Meta para entender quais páginas você visita e, se aceitar cookies,
+        mostrar anúncios mais relevantes do Meu Novo Lar no Facebook e no Instagram. Esse rastreamento
+        só é ativado depois que você aceita cookies no aviso da primeira visita. Você pode gerenciar
+        os anúncios que vê da Meta em{" "}
+        <a
+          href="https://www.facebook.com/adpreferences/ad_settings/"
+          rel="noopener noreferrer"
+          target="_blank"
+          className="font-semibold text-primary hover:underline"
+        >
+          preferências de anúncios do Facebook
+        </a>
+        . A política de cookies e dados da Meta está em{" "}
+        <a
+          href="https://www.facebook.com/privacy/policy/"
+          rel="noopener noreferrer"
+          target="_blank"
+          className="font-semibold text-primary hover:underline"
+        >
+          facebook.com/privacy/policy
         </a>
         .
       </p>

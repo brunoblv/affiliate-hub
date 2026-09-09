@@ -27,9 +27,10 @@ export function CookieBanner() {
     >
       <div className="mx-auto flex max-w-[1200px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Usamos cookies para medir audiência (Google Analytics) e, quando os anúncios
-          estiverem no ar, para veicular publicidade do Google AdSense. Essenciais do
-          site continuam funcionando se você recusar. Detalhes na{" "}
+          Usamos cookies para medir audiência (Google Analytics), para o Pixel do Meta
+          (Facebook/Instagram) e, quando os anúncios estiverem no ar, para veicular
+          publicidade do Google AdSense. Essenciais do site continuam funcionando se
+          você recusar. Detalhes na{" "}
           <Link href="/privacy-policy" className="font-semibold text-foreground underline">
             política de privacidade
           </Link>
