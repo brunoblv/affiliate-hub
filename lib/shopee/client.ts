@@ -109,6 +109,41 @@ const QUERY_BUSCAR_OFERTAS = /* GraphQL */ `
 `;
 
 /**
+ * Busca por categoria real da Shopee (`productCatId`, confirmado via
+ * introspecção + teste real — ver lib/shopee/categorias-shopee.ts pros
+ * IDs). Query própria, sem `$keyword`/`$shopId`/`$itemId` declarados —
+ * mesma cautela do comentário acima.
+ */
+const QUERY_BUSCAR_POR_CATEGORIA = /* GraphQL */ `
+  query buscarPorCategoria($productCatId: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(productCatId: $productCatId, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${CAMPOS_NODE} }
+    }
+  }
+`;
+
+/** Busca produtos de uma categoria real da Shopee (não nosso enum), ordenável por mais vendido (sortType 2). */
+export async function buscarOfertasPorCategoriaShopee(params: {
+  productCatId: number;
+  page?: number;
+  limit?: number;
+  sortType?: number;
+}): Promise<OfertaShopee[]> {
+  return withRetry(
+    async () => {
+      const data = await shopeeRequest<RespostaProductOfferV2>(QUERY_BUSCAR_POR_CATEGORIA, {
+        productCatId: params.productCatId,
+        page: params.page ?? 1,
+        limit: params.limit ?? 20,
+        sortType: params.sortType ?? 2,
+      });
+      return nodesDe(data).map((node) => paraOferta(node));
+    },
+    RETRY_INSTABILIDADE_SHOPEE,
+  );
+}
+
+/**
  * Busca por item específico — `$shopId`/`$itemId` como `Int64!` (obrigatório)
  * e sempre enviados como string na variável: o scalar Int64 da API rejeita
  * ("graphql: wrong type") valor numérico, e rejeita variável opcional ausente
@@ -264,10 +299,99 @@ export async function buscarOfertasLoja(params: {
 }
 
 /**
- * "Ofertas gerais" da Shopee NÃO é uma query `shopeeOfferV2` com `nodes`
- * (palpite anterior, incorreto) — é o Product Feed: um catálogo em lote por
- * categoria, baixado em duas etapas (listItemFeeds -> getItemFeedData).
- * Confirmado contra a doc oficial (`listItemFeeds`/`getItemFeedData`).
+ * `shopeeOfferV2` EXISTE de verdade (confirmado via introspecção do schema,
+ * não chute — o palpite anterior deste comentário estava errado). Cada node
+ * é uma campanha/coleção inteira da Shopee (ex. "Home Appliances", "Beauty"
+ * — é o "Nome da oferta" que aparece no painel de afiliados), não produtos
+ * individuais: tem `offerName`, `categoryId`/`collectionId`, período e um
+ * `offerLink` único pra campanha inteira. Isso mapeia pro model `ListaOferta`
+ * já existente (link de afiliado único, sem página de blog) — ver
+ * lib/shopee/buscar-campanhas.ts.
+ */
+export interface CampanhaShopee {
+  offerName: string;
+  imagemUrl: string;
+  offerLink: string;
+  originalLink: string;
+  comissaoPercentual: number | null;
+  /** 0 = desconhecido no schema oficial; valores documentados não confirmados. */
+  offerType: number;
+  categoryId: number | null;
+  collectionId: number | null;
+  periodoInicio: number;
+  periodoFim: number;
+}
+
+interface NodeShopeeOfferV2 {
+  offerName: string;
+  imageUrl: string;
+  offerLink: string;
+  originalLink: string;
+  commissionRate: string | number | null;
+  offerType: number;
+  categoryId: number | string | null;
+  collectionId: number | string | null;
+  periodStartTime: number;
+  periodEndTime: number;
+}
+
+interface RespostaShopeeOfertasGerais {
+  shopeeOfferV2: { nodes: NodeShopeeOfferV2[] } | null;
+}
+
+const QUERY_CAMPANHAS_SHOPEE = /* GraphQL */ `
+  query campanhasShopee($keyword: String, $page: Int, $limit: Int, $sortType: Int) {
+    shopeeOfferV2(keyword: $keyword, page: $page, limit: $limit, sortType: $sortType) {
+      nodes {
+        offerName
+        imageUrl
+        offerLink
+        originalLink
+        commissionRate
+        offerType
+        categoryId
+        collectionId
+        periodStartTime
+        periodEndTime
+      }
+    }
+  }
+`;
+
+/** Campanhas/coleções gerais da Shopee ("Oferta Shopee" no painel) — não são produtos individuais. */
+export async function buscarCampanhasShopee(params: {
+  keyword?: string;
+  page?: number;
+  limit?: number;
+  sortType?: number;
+}): Promise<CampanhaShopee[]> {
+  return withRetry(async () => {
+    const data = await shopeeRequest<RespostaShopeeOfertasGerais>(QUERY_CAMPANHAS_SHOPEE, {
+      keyword: params.keyword,
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+      sortType: params.sortType ?? 1,
+    });
+    return (data.shopeeOfferV2?.nodes ?? []).map((node) => ({
+      offerName: node.offerName,
+      imagemUrl: node.imageUrl,
+      offerLink: node.offerLink,
+      originalLink: node.originalLink,
+      comissaoPercentual: node.commissionRate ? Number(node.commissionRate) * 100 : null,
+      offerType: node.offerType,
+      categoryId: node.categoryId != null ? Number(node.categoryId) : null,
+      collectionId: node.collectionId != null ? Number(node.collectionId) : null,
+      periodoInicio: node.periodStartTime,
+      periodoFim: node.periodEndTime,
+    }));
+  }, RETRY_INSTABILIDADE_SHOPEE);
+}
+
+/**
+ * Além das campanhas, a Shopee também tem o Product Feed: um catálogo em
+ * lote por categoria, baixado em duas etapas (listItemFeeds ->
+ * getItemFeedData) — mecanismo diferente de shopeeOfferV2, confirmado contra
+ * a doc oficial.
  */
 export type ModoFeedItens = "FULL" | "DELTA";
 

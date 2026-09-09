@@ -19,7 +19,7 @@ import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
 import { purgarForaDoNichoEDuplicatas } from "@/lib/conteudo/purgar-nicho";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { buscarOfertasPorComodo, type OfertaShopeeCurada } from "@/lib/shopee/buscar-por-comodo";
-import { buscarMaisVendidosPorCategoria } from "@/lib/shopee/buscar-mais-vendidos";
+import { buscarMaisVendidosPorCategoriaShopee } from "@/lib/shopee/buscar-mais-vendidos";
 import { importarOfertaShopee } from "@/lib/shopee/importar-oferta";
 import { atualizarConfiguracao, obterConfiguracao } from "@/lib/configuracao";
 import { contarProdutosVendasAbaixoDe, excluirProdutosVendasAbaixoDe } from "@/lib/shopee/excluir-vendas-baixas";
@@ -881,44 +881,43 @@ export interface BuscaMaisVendidosState {
   status: "idle" | "error" | "success";
   message?: string;
   ofertas?: OfertaShopeeCurada[];
-  keywordsBuscadas?: number;
   avaliadas?: number;
   descartadas?: number;
 }
 
-/** Busca os mais vendidos (sortType=2) de uma categoria — não importa nada, só lista pra curadoria. */
+/**
+ * Busca os mais vendidos (sortType=2) de uma categoria REAL da Shopee
+ * (productCatId) — não importa nada, só lista pra curadoria. `categoria` é
+ * o rótulo do nosso catálogo (Produto.categoria) que o item recebe se for
+ * importado, não influencia a busca.
+ */
 export async function buscarMaisVendidosPorCategoriaAction(
   _prev: BuscaMaisVendidosState,
   formData: FormData,
 ): Promise<BuscaMaisVendidosState> {
+  const categoriaShopeeId = Number(formData.get("categoriaShopeeId"));
   const categoria = String(formData.get("categoria") ?? "").trim() as Categoria;
-  const keywordExtra = String(formData.get("keywordExtra") ?? "").trim();
 
-  if (!HOME_CATEGORIAS.includes(categoria)) {
-    return { status: "error", message: "Escolha uma categoria de casa pra buscar." };
+  if (!Number.isInteger(categoriaShopeeId) || categoriaShopeeId <= 0) {
+    return { status: "error", message: "Escolha uma categoria da Shopee pra buscar." };
+  }
+  if (!Object.values(Categoria).includes(categoria)) {
+    return { status: "error", message: "Escolha a categoria do catálogo pra marcar os produtos importados." };
   }
 
   try {
-    const resultado = await buscarMaisVendidosPorCategoria(categoria, { keywordExtra: keywordExtra || undefined });
+    const resultado = await buscarMaisVendidosPorCategoriaShopee(categoriaShopeeId, categoria);
     if (resultado.ofertas.length === 0) {
       const message =
         resultado.avaliadas === 0
           ? "Nenhuma oferta encontrada pra essa categoria."
           : `Achei ${resultado.avaliadas} produtos, mas todos já estavam no catálogo, eram parecidos ou ficaram abaixo do mínimo de vendas configurado.`;
-      return {
-        status: "success",
-        message,
-        ofertas: [],
-        keywordsBuscadas: resultado.keywordsBuscadas,
-        avaliadas: resultado.avaliadas,
-        descartadas: resultado.descartadas,
-      };
+      return { status: "success", message, ofertas: [], avaliadas: resultado.avaliadas, descartadas: resultado.descartadas };
     }
     return {
       status: "success",
       message: `${resultado.ofertas.length} ofertas novas, ordenadas por mais vendidos.`,
       ofertas: resultado.ofertas,
-      keywordsBuscadas: resultado.keywordsBuscadas,
       avaliadas: resultado.avaliadas,
       descartadas: resultado.descartadas,
     };
@@ -984,6 +983,10 @@ export async function importarOfertasShopeeEmLoteAction(params: {
         categoria: curada.categoria,
         destino,
         origem: "busca_por_comodo",
+        // A regra de ouro (só casa/lar no catálogo público) é do Meu Novo
+        // Lar; pra outros destinos (Achadinhos/TikTok Shop, Umbanda) não faz
+        // sentido restringir por tema casa — são verticais diferentes.
+        permitirForaDoNicho: destino !== Destino.MEU_NOVO_LAR,
       });
       if (resultado.status === "importado") {
         const produto = await prisma.produto.findUnique({ where: { id: resultado.id } });

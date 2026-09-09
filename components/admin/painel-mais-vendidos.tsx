@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Search, Star, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,10 +15,20 @@ import {
   type BuscaMaisVendidosState,
   type OfertaShopeeCurada,
 } from "@/app/admin/(dashboard)/produtos/actions";
-import { HOME_CATEGORIAS, LABEL_CATEGORIA } from "@/lib/produtos";
+import { LABEL_CATEGORIA } from "@/lib/produtos";
+import { LABEL_DESTINO } from "@/lib/vitrine/destinos";
+import { CATEGORIAS_SHOPEE, CATEGORIAS_SHOPEE_CASA_IDS } from "@/lib/shopee/categorias-shopee";
+import { Categoria, Destino } from "@/lib/database/enums";
 import { cn } from "@/lib/utils";
 
 const LIMITE_IMPORT = 20;
+
+/** Sugestão de categoria/destino do catálogo ao trocar a categoria real da Shopee. */
+function categoriaSugerida(categoriaShopeeId: number): { categoria: Categoria; destino: Destino } {
+  if (categoriaShopeeId === 100010) return { categoria: Categoria.ELETRODOMESTICOS, destino: Destino.MEU_NOVO_LAR };
+  if (categoriaShopeeId === 100636) return { categoria: Categoria.CASA, destino: Destino.MEU_NOVO_LAR };
+  return { categoria: Categoria.OUTRA, destino: Destino.TIKTOK_SHOP };
+}
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,7 +44,10 @@ export function PainelMaisVendidos() {
     buscarMaisVendidosPorCategoriaAction,
     { status: "idle" },
   );
-  const [categoria, setCategoria] = useState<string>(HOME_CATEGORIAS[0]!);
+  const [categoriaShopeeId, setCategoriaShopeeId] = useState<number>(CATEGORIAS_SHOPEE[0]!.id);
+  const sugestao = categoriaSugerida(categoriaShopeeId);
+  const [categoria, setCategoria] = useState<Categoria>(sugestao.categoria);
+  const [destino, setDestino] = useState<Destino>(sugestao.destino);
   const [importadosAgora, setImportadosAgora] = useState<Set<string>>(() => new Set());
   const [ofertasAnteriores, setOfertasAnteriores] = useState(state.ofertas);
   const [importando, startImportar] = useTransition();
@@ -80,7 +92,7 @@ export function PainelMaisVendidos() {
         escolhidas.length === 1 ? "Salvando oferta..." : `Salvando ${escolhidas.length} ofertas...`,
       );
       try {
-        const resultado = await importarOfertasShopeeEmLoteAction({ ofertas: escolhidas });
+        const resultado = await importarOfertasShopeeEmLoteAction({ ofertas: escolhidas, destino });
         if (!resultado.ok) {
           toast.error(resultado.message, { id: toastId });
           return;
@@ -114,15 +126,57 @@ export function PainelMaisVendidos() {
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-4">
-        <div className="flex max-w-xl flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
           <div className="flex-1 space-y-1.5">
-            <Label htmlFor="categoria-mais-vendidos">Categoria</Label>
-            <Select value={categoria} onValueChange={(valor) => valor && setCategoria(valor)}>
-              <SelectTrigger id="categoria-mais-vendidos">
+            <Label htmlFor="categoria-shopee">Categoria (Shopee)</Label>
+            <Select
+              value={String(categoriaShopeeId)}
+              onValueChange={(valor) => {
+                if (!valor) return;
+                const id = Number(valor);
+                setCategoriaShopeeId(id);
+                const sugerida = categoriaSugerida(id);
+                setCategoria(sugerida.categoria);
+                setDestino(sugerida.destino);
+              }}
+            >
+              <SelectTrigger id="categoria-shopee">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {HOME_CATEGORIAS.map((cat) => (
+                {CATEGORIAS_SHOPEE.map((cat) => (
+                  <SelectItem key={cat.id} value={String(cat.id)}>
+                    {cat.nome}
+                    {CATEGORIAS_SHOPEE_CASA_IDS.has(cat.id) ? " (casa)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="categoriaShopeeId" value={categoriaShopeeId} />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <Label htmlFor="destino-mais-vendidos">Vai pra (destino)</Label>
+            <Select value={destino} onValueChange={(valor) => valor && setDestino(valor as Destino)}>
+              <SelectTrigger id="destino-mais-vendidos">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(Destino).map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {LABEL_DESTINO[d] ?? d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <Label htmlFor="categoria-catalogo">Categoria do catálogo</Label>
+            <Select value={categoria} onValueChange={(valor) => valor && setCategoria(valor as Categoria)}>
+              <SelectTrigger id="categoria-catalogo">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(Categoria).map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {LABEL_CATEGORIA[cat] ?? cat}
                   </SelectItem>
@@ -131,18 +185,16 @@ export function PainelMaisVendidos() {
             </Select>
             <input type="hidden" name="categoria" value={categoria} />
           </div>
-          <div className="flex-1 space-y-1.5">
-            <Label htmlFor="keywordExtra">Palavra-chave extra (opcional)</Label>
-            <Input id="keywordExtra" name="keywordExtra" placeholder="ex.: organizador acrílico" />
-          </div>
           <Button type="submit" disabled={buscando}>
             <Search />
             {buscando ? "Buscando..." : "Buscar mais vendidos"}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Ordenado por vendas (sortType Most Sold da Shopee). Respeita o mínimo de vendas configurado em
-          &quot;Configurações de importação e classificação&quot; acima.
+          Busca pela categoria real da Shopee (mais precisa que palavra-chave), ordenada por vendas. Fora do
+          nicho casa só pode ir pra WhatsApp/Telegram/Facebook Grupo — nunca pro catálogo público do Meu Novo
+          Lar. Respeita o mínimo de vendas configurado em &quot;Configurações de importação e
+          classificação&quot; na tela de Produtos Shopee.
         </p>
       </form>
 

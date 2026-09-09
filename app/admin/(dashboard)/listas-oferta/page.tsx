@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { ListaOfertaForm } from "@/components/admin/lista-oferta-form";
 import { ListasOfertaTabela } from "@/components/admin/listas-oferta-tabela";
 import { AgendarListasOfertaDoDiaButton } from "@/components/admin/agendar-listas-oferta-do-dia-button";
+import { PainelCampanhasShopee } from "@/components/admin/painel-campanhas-shopee";
 import { atualizarListaOfertaAction, criarListaOfertaAction } from "./actions";
 
 export const maxDuration = 60;
@@ -71,6 +72,13 @@ export default async function ListasOfertaPage({
           }
         />
       </section>
+
+      <details className="rounded-lg border border-border p-4">
+        <summary className="cursor-pointer text-sm font-medium">Importar campanha da Shopee (Oferta Shopee)</summary>
+        <div className="mt-4">
+          <PainelCampanhasShopee />
+        </div>
+      </details>
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium">Cadastradas</h2>
