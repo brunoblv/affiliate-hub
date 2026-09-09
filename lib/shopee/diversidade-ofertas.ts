@@ -8,35 +8,55 @@ import {
 /** No máximo dois resultados por tipo (cômodo/keyword) na busca e na descoberta. */
 export const MAX_POR_TIPO_BUSCA = 2;
 
-/** Título parecido com algo já no catálogo — não mostra e não salva de novo. */
-export const LIMIAR_PARECIDO_CATALOGO = 0.62;
+/**
+ * Título parecido com algo já no catálogo — não mostra e não salva de novo.
+ * Igual ao limiar de "post repetido no mesmo canal" (regra 2,
+ * lib/agenda/similaridade.ts) — usar o mesmo número evita a estranheza de
+ * "por que aqui bloqueia com menos overlap que ali". Comparação é só dentro
+ * da mesma categoria (ver `porCategoria` abaixo): título de cozinha não deve
+ * ser descartado por parecer com um título de banheiro.
+ */
+export const LIMIAR_PARECIDO_CATALOGO = LIMIAR_SIMILARIDADE_PRODUTO;
 
 export interface IndiceCatalogoShopee {
   ids: Set<string>;
   chaves: Set<string>;
-  titulos: string[];
+  /** Títulos já no catálogo, agrupados por categoria — comparação de similaridade fica restrita à mesma categoria. */
+  porCategoria: Map<string, string[]>;
 }
 
 export async function indiceCatalogoShopeeCasa(): Promise<IndiceCatalogoShopee> {
   const produtos = await prisma.produto.findMany({
     where: { plataforma: Plataforma.SHOPEE, destino: Destino.MEU_NOVO_LAR },
-    select: { idExterno: true, nome: true },
+    select: { idExterno: true, nome: true, categoria: true },
   });
+
+  const porCategoria = new Map<string, string[]>();
+  for (const produto of produtos) {
+    const lista = porCategoria.get(produto.categoria) ?? [];
+    lista.push(produto.nome);
+    porCategoria.set(produto.categoria, lista);
+  }
+
   return {
     ids: new Set(produtos.map((p) => p.idExterno)),
     chaves: new Set(produtos.map((p) => chaveCanonicoProduto(p.nome)).filter(Boolean)),
-    titulos: produtos.map((p) => p.nome),
+    porCategoria,
   };
 }
 
 export function ofertaJaSalva(
-  oferta: { nome: string; idExterno: string },
+  oferta: { nome: string; idExterno: string; categoria?: string },
   indice: IndiceCatalogoShopee,
 ): boolean {
   if (indice.ids.has(oferta.idExterno)) return true;
   const chave = chaveCanonicoProduto(oferta.nome);
   if (chave && indice.chaves.has(chave)) return true;
-  return maiorSimilaridade(oferta.nome, indice.titulos) >= LIMIAR_PARECIDO_CATALOGO;
+
+  const titulos = oferta.categoria
+    ? (indice.porCategoria.get(oferta.categoria) ?? [])
+    : [...indice.porCategoria.values()].flat();
+  return maiorSimilaridade(oferta.nome, titulos) >= LIMIAR_PARECIDO_CATALOGO;
 }
 
 /**
@@ -48,6 +68,8 @@ export function escolherOfertasDiversas<T>(
   opts: {
     nome: (oferta: T) => string;
     idExterno: (oferta: T) => string;
+    /** Restringe a checagem de "parecido no catálogo" à mesma categoria — sem isso, compara contra o catálogo inteiro. */
+    categoria?: (oferta: T) => string;
     tipo?: (oferta: T) => string;
     score?: (oferta: T) => number;
     indice: IndiceCatalogoShopee;
@@ -71,7 +93,8 @@ export function escolherOfertasDiversas<T>(
 
     const nome = opts.nome(oferta);
     const idExterno = opts.idExterno(oferta);
-    if (ofertaJaSalva({ nome, idExterno }, opts.indice)) continue;
+    const categoria = opts.categoria?.(oferta);
+    if (ofertaJaSalva({ nome, idExterno, categoria }, opts.indice)) continue;
 
     const chave = chaveCanonicoProduto(nome);
     if (chave && chavesAceitas.has(chave)) continue;

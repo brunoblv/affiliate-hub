@@ -110,6 +110,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
   const candidatas = escolherOfertasDiversas(elegiveis, {
     nome: (c) => c.oferta.nome,
     idExterno: (c) => `${c.oferta.shopId}_${c.oferta.itemId}`,
+    categoria: (c) => c.categoria,
     tipo: (c) => c.keyword,
     score: (c) => pontuarOferta(c.oferta),
     indice,

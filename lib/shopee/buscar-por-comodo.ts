@@ -115,6 +115,7 @@ export async function buscarOfertasPorComodo(params: {
   const diversas = escolherOfertasDiversas(classificadas, {
     nome: (c) => c.oferta.nome,
     idExterno: (c) => `${c.oferta.shopId}_${c.oferta.itemId}`,
+    categoria: (c) => c.item.categoria,
     tipo: (c) => c.item.id,
     score: (c) => pontuarOferta(c.oferta),
     indice,
