@@ -853,7 +853,12 @@ async function preencherHorariosVaziosDoCanalGrupo(canal: Canal): Promise<number
       },
     },
     select: { id: true, nome: true, destino: true, categoria: true, ativo: true },
-    orderBy: [{ publicacoes: { _count: "asc" } }, { criadoEm: "asc" }],
+    // Mais vendas primeiro (Shopee); sem vendas conhecidas cai no critério antigo.
+    orderBy: [
+      { vendas: { sort: "desc", nulls: "last" } },
+      { publicacoes: { _count: "asc" } },
+      { criadoEm: "asc" },
+    ],
     take: LOTE_GRUPOS_POR_TICK * 4,
   });
 

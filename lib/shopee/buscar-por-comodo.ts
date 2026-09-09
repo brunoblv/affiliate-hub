@@ -1,5 +1,6 @@
 import { Categoria } from "@/lib/database";
 import { registrar } from "@/lib/log";
+import { obterConfiguracao } from "@/lib/configuracao";
 import { buscarOfertasShopee, type OfertaShopee } from "./client";
 import { resolverItensBusca, type ItemBusca } from "./catalogo-comodos";
 import { classificarOferta, descontoPercentualOferta, pontuarOferta, type MotivoOferta } from "./qualidade-oferta";
@@ -17,6 +18,7 @@ export interface OfertaShopeeCurada {
   comissaoPercentual: number | null;
   offerLink: string;
   avaliacaoMedia: number | null;
+  vendas: number | null;
   categoria: Categoria;
   comodoId: string;
   comodoLabel: string;
@@ -46,6 +48,7 @@ function paraCurada(oferta: OfertaShopee, item: ItemBusca, motivo: MotivoOferta,
     comissaoPercentual: oferta.comissaoPercentual,
     offerLink: oferta.offerLink,
     avaliacaoMedia: oferta.avaliacaoMedia,
+    vendas: oferta.vendas,
     categoria: item.categoria,
     comodoId: item.comodoId,
     comodoLabel: item.comodoLabel,
@@ -95,9 +98,13 @@ export async function buscarOfertasPorComodo(params: {
     }
   }
 
+  const configuracao = await obterConfiguracao();
+  const vendasMinimas = configuracao.motorVendasMinimas;
+
   const avaliadas = encontradas.size;
   const classificadas: Array<{ oferta: OfertaShopee; item: ItemBusca; motivo: MotivoOferta }> = [];
   for (const { oferta, item } of encontradas.values()) {
+    if ((oferta.vendas ?? 0) < vendasMinimas) continue;
     const motivo = classificarOferta(oferta);
     if (motivo) classificadas.push({ oferta, item, motivo });
   }

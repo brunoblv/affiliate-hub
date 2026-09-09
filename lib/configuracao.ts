@@ -10,6 +10,7 @@ const PADRAO = {
   motorPesoVendas: 1,
   motorPesoDesconto: 1,
   motorPesoComissao: 1,
+  motorVendasMinimas: 0,
 };
 
 /** Cria a linha única de configuração com os padrões, se ainda não existir. */
@@ -29,6 +30,7 @@ export async function atualizarConfiguracao(dados: {
   motorPesoVendas?: number;
   motorPesoDesconto?: number;
   motorPesoComissao?: number;
+  motorVendasMinimas?: number;
 }) {
   return prisma.configuracao.upsert({
     where: { id: ID_CONFIGURACAO },

@@ -72,6 +72,7 @@ export async function descobrirOfertasShopee(): Promise<void> {
   const configuracao = await obterConfiguracao();
   const limiteDiario = configuracao.shopeeDescobertaLimiteDiario;
   const comissaoMinima = configuracao.shopeeComissaoMinimaPct;
+  const vendasMinimas = configuracao.motorVendasMinimas;
 
   const encontradas = new Map<string, { oferta: OfertaShopee; categoria: Categoria; keyword: string }>();
   let falhasBusca = 0;
@@ -99,7 +100,10 @@ export async function descobrirOfertasShopee(): Promise<void> {
   const ofertas = [...encontradas.values()];
   const foraDoTema = ofertas.filter(({ oferta }) => classificarOferta(oferta) === null).length;
   const elegiveis = ofertas.filter(
-    ({ oferta }) => (oferta.comissaoPercentual ?? 0) >= comissaoMinima && classificarOferta(oferta) !== null,
+    ({ oferta }) =>
+      (oferta.comissaoPercentual ?? 0) >= comissaoMinima &&
+      (oferta.vendas ?? 0) >= vendasMinimas &&
+      classificarOferta(oferta) !== null,
   );
 
   const indice = await indiceCatalogoShopeeCasa();

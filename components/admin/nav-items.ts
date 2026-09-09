@@ -15,6 +15,7 @@ import {
   ClipboardList,
   ScrollText,
   BarChart3,
+  TrendingUp,
 } from "lucide-react";
 
 export interface NavItem {
@@ -42,6 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Produtos", href: "/admin/produtos", icon: Package },
       { title: "Produtos Shopee", href: "/admin/produtos/shopee", icon: ShoppingBag },
+      { title: "Mais vendidos", href: "/admin/produtos/mais-vendidos", icon: TrendingUp },
       { title: "Conversão Shopee", href: "/admin/produtos/relatorio-conversao", icon: BarChart3 },
       { title: "Cliques Shopee", href: "/admin/produtos/relatorio-cliques", icon: BarChart3 },
       { title: "Posts", href: "/admin/posts", icon: Newspaper },

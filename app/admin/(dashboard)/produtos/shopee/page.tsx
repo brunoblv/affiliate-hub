@@ -34,6 +34,7 @@ function paraLinha(produto: Produto): ProdutoLinha {
     precoAtual: Number(produto.precoAtual),
     desconto: descontoPercentual(produto),
     ativo: produto.ativo,
+    criadoEm: produto.criadoEm,
     segmento: produto.segmento,
     pontuacao: produto.pontuacao != null ? Number(produto.pontuacao) : null,
     vendas: produto.vendas,
@@ -118,6 +119,7 @@ export default async function ProdutosShopeePage({
         motorPesoVendas={Number(configuracao.motorPesoVendas)}
         motorPesoDesconto={Number(configuracao.motorPesoDesconto)}
         motorPesoComissao={Number(configuracao.motorPesoComissao)}
+        motorVendasMinimas={configuracao.motorVendasMinimas}
       />
 
       <div className="rounded-lg border border-border p-4 text-sm text-muted-foreground">

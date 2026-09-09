@@ -102,6 +102,7 @@ export default async function ProdutosAdminPage({
             precoAtual: Number(produto.precoAtual),
             desconto: descontoPercentual(produto),
             ativo: produto.ativo,
+            criadoEm: produto.criadoEm,
           }))}
         />
       )}

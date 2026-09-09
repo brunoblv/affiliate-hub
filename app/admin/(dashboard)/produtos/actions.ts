@@ -19,8 +19,9 @@ import { excluirProdutosComPaginas } from "@/lib/conteudo/excluir-produto";
 import { purgarForaDoNichoEDuplicatas } from "@/lib/conteudo/purgar-nicho";
 import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { buscarOfertasPorComodo, type OfertaShopeeCurada } from "@/lib/shopee/buscar-por-comodo";
+import { buscarMaisVendidosPorCategoria } from "@/lib/shopee/buscar-mais-vendidos";
 import { importarOfertaShopee } from "@/lib/shopee/importar-oferta";
-import { atualizarConfiguracao } from "@/lib/configuracao";
+import { atualizarConfiguracao, obterConfiguracao } from "@/lib/configuracao";
 import { contarProdutosVendasAbaixoDe, excluirProdutosVendasAbaixoDe } from "@/lib/shopee/excluir-vendas-baixas";
 
 export interface ProdutoFormState {
@@ -439,8 +440,12 @@ export async function buscarOfertasShopeeAction(_prev: BuscaShopeeState, formDat
       buscarOfertasShopee({ keyword, page: 1 }),
       buscarOfertasShopee({ keyword, page: 2 }),
     ]);
+    const configuracao = await obterConfiguracao();
+    const vendasMinimas = configuracao.motorVendasMinimas;
+
     const porId = new Map<string, OfertaShopee>();
     for (const oferta of [...pagina1, ...pagina2]) {
+      if ((oferta.vendas ?? 0) < vendasMinimas) continue;
       porId.set(`${oferta.shopId}_${oferta.itemId}`, oferta);
     }
     const indice = await indiceCatalogoShopeeCasa();
@@ -600,7 +605,10 @@ export async function distribuirProdutosNuncaPostadosAction(): Promise<Resultado
   const produtos = await prisma.produto.findMany({
     where: { ativo: true, publicacoes: { none: {} } },
     select: { id: true, nome: true },
-    orderBy: { criadoEm: "asc" },
+    // Mais vendas primeiro (Shopee, motor de produtos); produto sem vendas
+    // conhecidas (null — não-Shopee ou ainda não classificado) vai depois,
+    // não é penalizado nem beneficiado, só cai no critério antigo.
+    orderBy: [{ vendas: { sort: "desc", nulls: "last" } }, { criadoEm: "asc" }],
   });
 
   const saida: ResultadoDistribuicaoEmLote[] = [];
@@ -646,7 +654,11 @@ export async function enfileirarNosHorariosVaziosAction(): Promise<ResultadoDist
       publicacoes: { none: { status: { in: ["PENDENTE", "PUBLICANDO"] } } },
     },
     select: { id: true, nome: true },
-    orderBy: [{ publicacoes: { _count: "asc" } }, { criadoEm: "asc" }],
+    orderBy: [
+      { vendas: { sort: "desc", nulls: "last" } },
+      { publicacoes: { _count: "asc" } },
+      { criadoEm: "asc" },
+    ],
     take: LIMITE_HORARIOS_VAZIOS,
   });
 
@@ -765,6 +777,7 @@ export async function atualizarConfiguracaoMotorAction(
   const pesoVendas = Number(formData.get("motorPesoVendas"));
   const pesoDesconto = Number(formData.get("motorPesoDesconto"));
   const pesoComissao = Number(formData.get("motorPesoComissao"));
+  const vendasMinimas = Number(formData.get("motorVendasMinimas"));
 
   if (!Number.isInteger(percentil) || percentil < 1 || percentil > 99) {
     return { status: "error", message: "Percentil precisa ser um número inteiro entre 1 e 99." };
@@ -775,6 +788,9 @@ export async function atualizarConfiguracaoMotorAction(
   if ([pesoVendas, pesoDesconto, pesoComissao].some((peso) => !Number.isFinite(peso) || peso < 0)) {
     return { status: "error", message: "Pesos precisam ser números maiores ou iguais a zero." };
   }
+  if (!Number.isInteger(vendasMinimas) || vendasMinimas < 0) {
+    return { status: "error", message: "Vendas mínimas precisa ser um número inteiro maior ou igual a zero." };
+  }
 
   await atualizarConfiguracao({
     motorPercentilVendeBem: percentil,
@@ -782,6 +798,7 @@ export async function atualizarConfiguracaoMotorAction(
     motorPesoVendas: pesoVendas,
     motorPesoDesconto: pesoDesconto,
     motorPesoComissao: pesoComissao,
+    motorVendasMinimas: vendasMinimas,
   });
 
   revalidatePath("/admin/produtos/shopee");
@@ -860,6 +877,56 @@ export async function buscarOfertasPorComodoAction(
   }
 }
 
+export interface BuscaMaisVendidosState {
+  status: "idle" | "error" | "success";
+  message?: string;
+  ofertas?: OfertaShopeeCurada[];
+  keywordsBuscadas?: number;
+  avaliadas?: number;
+  descartadas?: number;
+}
+
+/** Busca os mais vendidos (sortType=2) de uma categoria — não importa nada, só lista pra curadoria. */
+export async function buscarMaisVendidosPorCategoriaAction(
+  _prev: BuscaMaisVendidosState,
+  formData: FormData,
+): Promise<BuscaMaisVendidosState> {
+  const categoria = String(formData.get("categoria") ?? "").trim() as Categoria;
+  const keywordExtra = String(formData.get("keywordExtra") ?? "").trim();
+
+  if (!HOME_CATEGORIAS.includes(categoria)) {
+    return { status: "error", message: "Escolha uma categoria de casa pra buscar." };
+  }
+
+  try {
+    const resultado = await buscarMaisVendidosPorCategoria(categoria, { keywordExtra: keywordExtra || undefined });
+    if (resultado.ofertas.length === 0) {
+      const message =
+        resultado.avaliadas === 0
+          ? "Nenhuma oferta encontrada pra essa categoria."
+          : `Achei ${resultado.avaliadas} produtos, mas todos já estavam no catálogo, eram parecidos ou ficaram abaixo do mínimo de vendas configurado.`;
+      return {
+        status: "success",
+        message,
+        ofertas: [],
+        keywordsBuscadas: resultado.keywordsBuscadas,
+        avaliadas: resultado.avaliadas,
+        descartadas: resultado.descartadas,
+      };
+    }
+    return {
+      status: "success",
+      message: `${resultado.ofertas.length} ofertas novas, ordenadas por mais vendidos.`,
+      ofertas: resultado.ofertas,
+      keywordsBuscadas: resultado.keywordsBuscadas,
+      avaliadas: resultado.avaliadas,
+      descartadas: resultado.descartadas,
+    };
+  } catch (erro) {
+    return { status: "error", message: erro instanceof Error ? erro.message : "Falha ao buscar mais vendidos na Shopee." };
+  }
+}
+
 const LIMITE_IMPORT_LOTE_SHOPEE = 20;
 
 export interface ResultadoImportLoteShopee {
@@ -899,9 +966,10 @@ export async function importarOfertasShopeeEmLoteAction(params: {
       comissaoPercentual: curada.comissaoPercentual ?? null,
       offerLink: String(curada.offerLink ?? ""),
       avaliacaoMedia: curada.avaliacaoMedia ?? null,
-      // Curadoria por cômodo não carrega vendas/comissão calculada — motor
-      // de produtos preenche no próximo ciclo de classificação (workers/index.ts).
-      vendas: null,
+      vendas: curada.vendas ?? null,
+      // comissaoValor (valor calculado pela API) não vem na curadoria por
+      // cômodo — motor de produtos recalcula no próximo ciclo de
+      // classificação (workers/index.ts), que busca a oferta fresca.
       comissaoValor: null,
       tipoOferta: "OFERTA_PRODUTO",
     };

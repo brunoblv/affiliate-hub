@@ -686,6 +686,10 @@ model Configuracao {
   motorPesoVendas        Decimal @default(1) @db.Decimal(4, 2)
   motorPesoDesconto      Decimal @default(1) @db.Decimal(4, 2)
   motorPesoComissao      Decimal @default(1) @db.Decimal(4, 2)
+  /// Vendas mínimas (campo `sales` da Shopee) pra uma oferta entrar na
+  /// descoberta automática ou na busca do painel — abaixo disso nem aparece
+  /// pra importar. 0 = sem filtro (padrão, mantém o comportamento atual).
+  motorVendasMinimas     Int     @default(0)
 
   atualizadoEm DateTime @updatedAt
 

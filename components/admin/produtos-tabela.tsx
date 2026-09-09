@@ -20,6 +20,7 @@ export interface ProdutoLinha {
   precoAtual: number;
   desconto: number | null;
   ativo: boolean;
+  criadoEm: Date;
   /** Motor de produtos (Fase 1: só Shopee) — undefined fora da tela de curadoria Shopee. */
   segmento?: string | null;
   pontuacao?: number | null;
@@ -29,6 +30,10 @@ export interface ProdutoLinha {
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDataCurta(data: Date) {
+  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
 const LABEL_SEGMENTO: Record<string, string> = {
@@ -149,10 +154,10 @@ export function ProdutosTabela({
           </Button>
         }
       />
-      <Table>
+      <Table className="table-fixed text-xs">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10">
+            <TableHead className="w-8">
               <CheckboxLote
                 checked={selecao.todosSelecionados}
                 indeterminate={selecao.algunsSelecionados}
@@ -160,20 +165,23 @@ export function ProdutosTabela({
                 aria-label="Selecionar todos os produtos desta página"
               />
             </TableHead>
-            <TableHead>Produto</TableHead>
-            <TableHead>Plataforma</TableHead>
-            <TableHead>Destino</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Preço</TableHead>
+            <TableHead className="w-auto">Produto</TableHead>
+            {!mostrarMotor && <TableHead className="w-20">Plataforma</TableHead>}
+            {!mostrarMotor && <TableHead className="w-24">Destino</TableHead>}
+            <TableHead className="w-24">Categoria</TableHead>
+            <TableHead className="w-20">Preço</TableHead>
             {mostrarMotor && (
               <>
-                <TableHead>Segmento</TableHead>
-                <TableHead title="Ordena dentro do segmento — não decide o segmento">Score</TableHead>
-                <TableHead>Vendas</TableHead>
+                <TableHead className="w-28">Segmento</TableHead>
+                <TableHead className="w-14" title="Ordena dentro do segmento — não decide o segmento">
+                  Score
+                </TableHead>
+                <TableHead className="w-14">Vendas</TableHead>
               </>
             )}
-            <TableHead>Status</TableHead>
-            <TableHead className="w-28">Ações</TableHead>
+            <TableHead className="w-16">Importado</TableHead>
+            <TableHead className="w-16">Status</TableHead>
+            <TableHead className="w-16">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -188,29 +196,36 @@ export function ProdutosTabela({
                     aria-label={`Selecionar ${produto.nome}`}
                   />
                 </TableCell>
-                <TableCell className="font-medium">
-                  <Link href={`/admin/produtos/${produto.id}`} className="hover:underline">
+                <TableCell className="max-w-0 font-medium">
+                  <Link
+                    href={`/admin/produtos/${produto.id}`}
+                    title={produto.nome}
+                    className="block truncate hover:underline"
+                  >
                     {produto.nome}
                   </Link>
                 </TableCell>
-                <TableCell>{produto.plataforma}</TableCell>
-                <TableCell>{produto.destino}</TableCell>
-                <TableCell>{produto.categoria}</TableCell>
+                {!mostrarMotor && <TableCell className="truncate">{produto.plataforma}</TableCell>}
+                {!mostrarMotor && <TableCell className="truncate">{produto.destino}</TableCell>}
+                <TableCell className="truncate" title={produto.categoria}>
+                  {produto.categoria}
+                </TableCell>
                 <TableCell>
                   {formatCurrency(produto.precoAtual)}
                   {produto.desconto !== null && (
-                    <span className="ml-2 text-xs text-muted-foreground">-{produto.desconto}%</span>
+                    <span className="ml-1 text-muted-foreground">-{produto.desconto}%</span>
                   )}
                 </TableCell>
                 {mostrarMotor && (
                   <>
-                    <TableCell title={produto.motivoSegmento ?? undefined}>
+                    <TableCell className="truncate" title={produto.motivoSegmento ?? undefined}>
                       {produto.segmento ? LABEL_SEGMENTO[produto.segmento] ?? produto.segmento : "—"}
                     </TableCell>
                     <TableCell>{produto.pontuacao != null ? produto.pontuacao.toFixed(1) : "—"}</TableCell>
                     <TableCell>{produto.vendas ?? "—"}</TableCell>
                   </>
                 )}
+                <TableCell>{formatDataCurta(produto.criadoEm)}</TableCell>
                 <TableCell>{produto.ativo ? "Ativo" : "Inativo"}</TableCell>
                 <TableCell>
                   <Button
