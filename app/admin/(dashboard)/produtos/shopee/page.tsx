@@ -3,6 +3,7 @@ import { prisma, Plataforma, Categoria, SegmentoProduto, type Produto, type Pris
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { RodarDescobertaShopeeButton } from "@/components/admin/rodar-descoberta-shopee-button";
+import { ExcluirVendasBaixasButton } from "@/components/admin/excluir-vendas-baixas-button";
 import { ConfiguracaoShopeeForm } from "@/components/admin/configuracao-shopee-form";
 import { ConfiguracaoMotorForm } from "@/components/admin/configuracao-motor-form";
 import { ProdutosTabela, type ProdutoLinha } from "@/components/admin/produtos-tabela";
@@ -102,6 +103,7 @@ export default async function ProdutosShopeePage({
             Buscar por cômodo
           </Button>
           <RodarDescobertaShopeeButton />
+          <ExcluirVendasBaixasButton />
         </div>
       </div>
 

@@ -21,6 +21,7 @@ import { descobrirOfertasShopee } from "@/lib/shopee/descobrir-ofertas";
 import { buscarOfertasPorComodo, type OfertaShopeeCurada } from "@/lib/shopee/buscar-por-comodo";
 import { importarOfertaShopee } from "@/lib/shopee/importar-oferta";
 import { atualizarConfiguracao } from "@/lib/configuracao";
+import { contarProdutosVendasAbaixoDe, excluirProdutosVendasAbaixoDe } from "@/lib/shopee/excluir-vendas-baixas";
 
 export interface ProdutoFormState {
   status: "idle" | "error" | "success";
@@ -224,6 +225,44 @@ export async function purgarNichoAdsenseAction(): Promise<
     return { ok: true, foraDoNicho: resultado.foraDoNicho, duplicatas: resultado.duplicatas };
   } catch (erro) {
     return { ok: false, message: erro instanceof Error ? erro.message : "Falha ao purgar o catálogo." };
+  }
+}
+
+function validarLimiteVendas(limite: number): string | null {
+  if (!Number.isInteger(limite) || limite < 1) return "Informe um número inteiro maior que zero.";
+  return null;
+}
+
+/** Só conta — usado pra mostrar o impacto antes de confirmar a exclusão. */
+export async function contarProdutosVendasAbaixoDeAction(
+  limite: number,
+): Promise<{ ok: true; total: number } | { ok: false; message: string }> {
+  const erro = validarLimiteVendas(limite);
+  if (erro) return { ok: false, message: erro };
+  const total = await contarProdutosVendasAbaixoDe(limite);
+  return { ok: true, total };
+}
+
+/** Apaga todo produto Shopee com vendas conhecidas abaixo do limite (motor de produtos). */
+export async function excluirProdutosVendasAbaixoDeAction(
+  limite: number,
+): Promise<{ ok: true; total: number } | { ok: false; message: string }> {
+  const erro = validarLimiteVendas(limite);
+  if (erro) return { ok: false, message: erro };
+
+  try {
+    const resultado = await excluirProdutosVendasAbaixoDe(limite);
+    revalidatePath("/admin/produtos");
+    revalidatePath("/admin/produtos/shopee");
+    revalidatePath("/admin/posts");
+    revalidatePath("/");
+    revalidatePath("/ofertas");
+    revalidatePath("/produtos");
+    revalidatePath("/vitrine");
+    revalidatePath("/blog");
+    return { ok: true, total: resultado.total };
+  } catch (erro2) {
+    return { ok: false, message: erro2 instanceof Error ? erro2.message : "Falha ao excluir os produtos." };
   }
 }
 
