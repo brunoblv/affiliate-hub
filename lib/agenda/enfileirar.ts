@@ -13,7 +13,6 @@ import { registrar } from "@/lib/log";
 import { getSiteUrl, urlPublica } from "@/lib/site-url";
 import { CAPA_EDITORIAL } from "@/lib/conteudo/capa";
 import { gerarImagemDePublicacao, type EntradaArte } from "@/lib/artes";
-import { reais } from "@/lib/vitrine/rotulos";
 import { comEtiquetaCanal, origemDoGo, subIdsDe } from "@/lib/shopee/etiquetas";
 import { resolverLinkAfiliadoEtiquetado } from "@/lib/shopee/link-etiquetado";
 import { chaveDoDia, intervaloDoDia } from "./fuso";
@@ -118,23 +117,12 @@ function imagemParaRede(rede: Rede, imagens: ImagensPorFormato): string | undefi
 }
 
 /**
- * Compõe as artes do produto (fundo + foto + título/preço) nos dois
- * formatos. Cai de volta para a foto crua do marketplace se o fundo do tipo
- * "produto" ainda não existir em public/fundos-posts/.
+ * Foto crua do produto (marketplace), sem compor com o fundo do site — os
+ * posts de produto usam a imagem original em ambos os formatos.
  */
-async function imagensDoProduto(produto: Produto): Promise<ImagensPorFormato> {
+function imagensDoProduto(produto: Produto): ImagensPorFormato {
   const fotoCrua = primeiraImagem(produto);
-  const precoAtual = reais(produto.precoAtual);
-  const precoOriginal =
-    produto.precoOriginal && Number(produto.precoOriginal) > Number(produto.precoAtual)
-      ? reais(produto.precoOriginal)
-      : null;
-
-  return comporImagensPorFormato(
-    { tipo: "produto", semente: produto.id, titulo: produto.nome, fotoUrl: fotoCrua ?? null, precoAtual, precoOriginal },
-    fotoCrua,
-    { produto: produto.slug },
-  );
+  return { quadrada: fotoCrua, retangular: fotoCrua };
 }
 
 function pulado(canalId: string, canal: string, motivoPulado: string): ResultadoEnfileiramento {

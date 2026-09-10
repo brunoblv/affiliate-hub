@@ -366,7 +366,7 @@ function montarOfertaTemplateA(
   partes: PartesProduto,
   desconto: number,
 ): string {
-  const linhas: string[] = ["🔥 OFERTA ESPECIAL 🔥"];
+  const linhas: string[] = ["🔥 OFERTA ESPECIAL 🔥", "", negrito(rede, produto.nome)];
 
   if (partes.descricaoCurta) {
     linhas.push("", partes.descricaoCurta);
