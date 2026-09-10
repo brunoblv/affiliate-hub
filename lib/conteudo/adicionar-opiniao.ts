@@ -22,6 +22,9 @@ const SCHEMA_REVISAO = {
 const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
   [CategoriaEditorial.DICAS_CASA]: "adicionar-opiniao-dicas-casa.md",
   [CategoriaEditorial.JORNADA_APARTAMENTO]: "adicionar-opiniao-jornada-apartamento.md",
+  [CategoriaEditorial.JORNADA_ESPIRITUAL]: "adicionar-opiniao-jornada-espiritual.md",
+  [CategoriaEditorial.REFLEXAO_ESPIRITUAL]: "adicionar-opiniao-reflexao-espiritual.md",
+  [CategoriaEditorial.GUIA_ESPIRITUALIDADE]: "adicionar-opiniao-guia-espiritualidade.md",
 };
 
 const promptsCarregados = new Map<string, string>();
@@ -46,8 +49,8 @@ export async function adicionarOpiniao(post: PostParaEditar): Promise<string> {
     .replace("{{resumo}}", post.resumo ?? "(sem resumo)")
     .replace("{{corpoAtual}}", post.corpo);
 
-  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO) {
-    prompt = prompt.replace("{{contextoJornada}}", await contextoJornada());
+  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO || categoria === CategoriaEditorial.JORNADA_ESPIRITUAL) {
+    prompt = prompt.replace("{{contextoJornada}}", await contextoJornada(categoria));
   }
 
   const resultado = await gerarJson<{ corpoRevisado: string }>({

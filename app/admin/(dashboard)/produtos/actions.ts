@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Categoria, Plataforma } from "@/lib/database";
-import { gerarCodigoCurto, slugify, HOME_CATEGORIAS } from "@/lib/produtos";
-import { ehForaDoTemaCasa } from "@/lib/nicho";
+import { gerarCodigoCurto, slugify, HOME_CATEGORIAS, MAGO_CATEGORIAS } from "@/lib/produtos";
+import { ehForaDoTemaCasa, ehForaDoTemaEspiritualidade } from "@/lib/nicho";
 import { encontrarProdutoCanonico } from "@/lib/catalogo";
 import { slugDeProdutoLivre } from "@/lib/conteudo/slug";
 import { buscarItemMercadoLivre, buscarInfoCatalogo, buscarPrecoViaCatalogo } from "@/lib/mercado-livre/client";
@@ -79,13 +79,26 @@ function readForm(formData: FormData) {
 }
 
 function recusarForaDoNicho(destino: Destino, categoria: Categoria, nome: string): string | null {
-  if (destino !== Destino.MEU_NOVO_LAR) return null;
-  if (!HOME_CATEGORIAS.includes(categoria)) {
-    return "Categoria fora do nicho casa/lar — o catálogo público do Meu Novo Lar não aceita esse item.";
+  if (destino === Destino.MEU_NOVO_LAR) {
+    if (!HOME_CATEGORIAS.includes(categoria)) {
+      return "Categoria fora do nicho casa/lar — o catálogo público do Meu Novo Lar não aceita esse item.";
+    }
+    if (ehForaDoTemaCasa(nome)) {
+      return "Esse produto não é do nicho casa/lar (skincare, eletrônico, suplemento etc.). Não entra no catálogo público.";
+    }
+    return null;
   }
-  if (ehForaDoTemaCasa(nome)) {
-    return "Esse produto não é do nicho casa/lar (skincare, eletrônico, suplemento etc.). Não entra no catálogo público.";
+
+  if (destino === Destino.MAGO_MEIA_NOITE) {
+    if (!MAGO_CATEGORIAS.includes(categoria)) {
+      return "Categoria fora do nicho espiritualidade — o catálogo público do Mago da Meia Noite não aceita esse item.";
+    }
+    if (ehForaDoTemaEspiritualidade(nome)) {
+      return "Esse produto não é do nicho espiritualidade (eletrônico, moda, suplemento etc.). Não entra no catálogo público.";
+    }
+    return null;
   }
+
   return null;
 }
 

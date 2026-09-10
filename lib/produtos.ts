@@ -1,6 +1,6 @@
 import { Categoria, Destino, Plataforma } from "@/lib/database/enums";
 import type { Produto } from "@/lib/database";
-import { ehForaDoTemaCasa } from "@/lib/nicho";
+import { ehForaDoTemaCasa, ehForaDoTemaEspiritualidade } from "@/lib/nicho";
 
 /**
  * Categorias "de casa" do catálogo público do Meu Novo Lar — única fonte de
@@ -25,6 +25,30 @@ export const HOME_CATEGORIAS: Categoria[] = [
   Categoria.ELETRODOMESTICOS,
 ];
 
+/**
+ * Categorias do catálogo público do Mago da Meia Noite — mesmo papel de
+ * HOME_CATEGORIAS, para o destino MAGO_MEIA_NOITE (ver dock/blog.md seção 6
+ * "Guias", no repo midnight-mage, para a lista original de itens).
+ */
+export const MAGO_CATEGORIAS: Categoria[] = [
+  Categoria.TAROT,
+  Categoria.PEDRAS_CRISTAIS,
+  Categoria.VELAS,
+  Categoria.INCENSOS,
+  Categoria.LIVROS_ESPIRITUALIDADE,
+  Categoria.ITENS_ALTAR,
+  Categoria.JAPAMALAS,
+  Categoria.DECORACAO_ESPIRITUAL,
+];
+
+/** Categorias públicas + filtro de nicho por Destino — ver produtoVisivelNoSite. */
+const CONFIG_CATALOGO_POR_DESTINO: Partial<
+  Record<Destino, { categorias: Categoria[]; foraDoTema: (nome: string) => boolean }>
+> = {
+  [Destino.MEU_NOVO_LAR]: { categorias: HOME_CATEGORIAS, foraDoTema: ehForaDoTemaCasa },
+  [Destino.MAGO_MEIA_NOITE]: { categorias: MAGO_CATEGORIAS, foraDoTema: ehForaDoTemaEspiritualidade },
+};
+
 export const LABEL_CATEGORIA: Record<Categoria, string> = {
   CASA: "Casa",
   ORGANIZACAO: "Organização",
@@ -45,6 +69,14 @@ export const LABEL_CATEGORIA: Record<Categoria, string> = {
   UMBANDA_RELIGIAO: "Umbanda e Religião (legado)",
   PET: "Pet (legado)",
   OUTRA: "Outra",
+  TAROT: "Tarot",
+  PEDRAS_CRISTAIS: "Pedras e Cristais",
+  VELAS: "Velas",
+  INCENSOS: "Incensos",
+  LIVROS_ESPIRITUALIDADE: "Livros de Espiritualidade",
+  ITENS_ALTAR: "Itens para Altar",
+  JAPAMALAS: "Japamalas",
+  DECORACAO_ESPIRITUAL: "Decoração Espiritual",
 };
 
 export const LABEL_PLATAFORMA: Record<Plataforma, string> = {
@@ -61,9 +93,10 @@ export const OPCOES_PLATAFORMA: Array<{ value: Plataforma; label: string }> = [
   Plataforma.TIKTOK_SHOP,
 ].map((value) => ({ value, label: LABEL_PLATAFORMA[value] }));
 
-/** Opções pros `<select>` de categoria no admin — casa primeiro, legado por último. */
+/** Opções pros `<select>` de categoria no admin — casa e espiritualidade primeiro, legado por último. */
 export const OPCOES_CATEGORIA: Array<{ value: Categoria; label: string }> = [
   ...HOME_CATEGORIAS,
+  ...MAGO_CATEGORIAS,
   Categoria.BELEZA,
   Categoria.CASA_DECORACAO,
   Categoria.ELETRONICOS,
@@ -79,19 +112,30 @@ export const OPCOES_CATEGORIA_PUBLICA: Array<{ value: Categoria; label: string }
   label: LABEL_CATEGORIA[value],
 }));
 
-/** Pode aparecer em /produtos, /ofertas, home e vitrine do Meu Novo Lar. */
+/** Mesma ideia de OPCOES_CATEGORIA_PUBLICA, mas pro catálogo do Mago da Meia Noite. */
+export const OPCOES_CATEGORIA_MAGO: Array<{ value: Categoria; label: string }> = MAGO_CATEGORIAS.map((value) => ({
+  value,
+  label: LABEL_CATEGORIA[value],
+}));
+
+/** Categorias públicas do select de import/cadastro, de acordo com o destino escolhido. */
+export function opcoesCategoriaPublicaPorDestino(destino: Destino): Array<{ value: Categoria; label: string }> {
+  return (CONFIG_CATALOGO_POR_DESTINO[destino]?.categorias ?? HOME_CATEGORIAS).map((value) => ({
+    value,
+    label: LABEL_CATEGORIA[value],
+  }));
+}
+
+/** Pode aparecer em /produtos, /ofertas, home e vitrine do respectivo Destino. */
 export function produtoVisivelNoSite(produto: {
   ativo: boolean;
   destino: Destino;
   categoria: Categoria;
   nome: string;
 }): boolean {
-  return (
-    produto.ativo &&
-    produto.destino === Destino.MEU_NOVO_LAR &&
-    HOME_CATEGORIAS.includes(produto.categoria) &&
-    !ehForaDoTemaCasa(produto.nome)
-  );
+  const config = CONFIG_CATALOGO_POR_DESTINO[produto.destino];
+  if (!config) return false;
+  return produto.ativo && config.categorias.includes(produto.categoria) && !config.foraDoTema(produto.nome);
 }
 
 export function slugify(value: string): string {

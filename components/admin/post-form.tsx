@@ -25,12 +25,16 @@ const CATEGORIAS_EDITORIAIS = [
   { value: "", label: "Nenhuma" },
   { value: "DICAS_CASA", label: "Dicas de casa" },
   { value: "JORNADA_APARTAMENTO", label: "Jornada de compra de apartamento" },
+  { value: "JORNADA_ESPIRITUAL", label: "Minha Jornada (espiritual)" },
+  { value: "REFLEXAO_ESPIRITUAL", label: "Espiritualidade (reflexão temática)" },
+  { value: "GUIA_ESPIRITUALIDADE", label: "Guia (espiritualidade)" },
 ];
 
 const DESTINOS = [
   { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
   { value: "TIKTOK_SHOP", label: "TikTok Shop" },
   { value: "UMBANDA", label: "Umbanda" },
+  { value: "MAGO_MEIA_NOITE", label: "O Mago da Meia Noite" },
 ];
 
 type CapaPreview = { id: string; url: string; alt: string | null };
@@ -41,7 +45,7 @@ export interface PostFormDefaults {
   corpo: string;
   seoTitulo?: string;
   metaDescricao?: string;
-  categoriaEditorial?: "DICAS_CASA" | "JORNADA_APARTAMENTO";
+  categoriaEditorial?: "DICAS_CASA" | "JORNADA_APARTAMENTO" | "JORNADA_ESPIRITUAL" | "REFLEXAO_ESPIRITUAL" | "GUIA_ESPIRITUALIDADE";
   tipo?: "JORNADA" | "PRODUTO" | "LISTA";
   avisoSeguranca?: boolean;
 }

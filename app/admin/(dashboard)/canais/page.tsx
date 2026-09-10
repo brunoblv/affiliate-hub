@@ -14,6 +14,7 @@ const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
   TIKTOK_SHOP: "TikTok Shop",
   UMBANDA: "Umbanda",
+  MAGO_MEIA_NOITE: "O Mago da Meia Noite",
 };
 
 export default async function CanaisAdminPage({

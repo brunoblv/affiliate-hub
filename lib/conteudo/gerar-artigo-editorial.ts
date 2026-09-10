@@ -32,6 +32,9 @@ const MAX_TENTATIVAS = 3;
 const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
   [CategoriaEditorial.DICAS_CASA]: "artigo-editorial.md",
   [CategoriaEditorial.JORNADA_APARTAMENTO]: "artigo-jornada-apartamento.md",
+  [CategoriaEditorial.JORNADA_ESPIRITUAL]: "artigo-jornada-espiritual.md",
+  [CategoriaEditorial.REFLEXAO_ESPIRITUAL]: "artigo-reflexao-espiritual.md",
+  [CategoriaEditorial.GUIA_ESPIRITUALIDADE]: "artigo-guia-espiritualidade.md",
 };
 
 /**
@@ -66,8 +69,8 @@ async function montarPrompt(
     .replace("{{resumoPauta}}", tema.resumoPauta)
     .replace("{{palavraChave}}", tema.palavraChave);
 
-  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO) {
-    preenchido = preenchido.replace("{{contextoJornada}}", await contextoJornada());
+  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO || categoria === CategoriaEditorial.JORNADA_ESPIRITUAL) {
+    preenchido = preenchido.replace("{{contextoJornada}}", await contextoJornada(categoria));
   }
 
   if (!rascunhoCurto) return preenchido;

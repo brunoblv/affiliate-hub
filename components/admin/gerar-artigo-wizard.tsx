@@ -14,6 +14,9 @@ import type { CategoriaEditorial } from "@/lib/database/enums";
 const CATEGORIAS = [
   { value: "DICAS_CASA" as const, label: "Dicas de casa" },
   { value: "JORNADA_APARTAMENTO" as const, label: "Jornada de compra de apartamento" },
+  { value: "JORNADA_ESPIRITUAL" as const, label: "Minha Jornada (espiritual)" },
+  { value: "REFLEXAO_ESPIRITUAL" as const, label: "Espiritualidade (reflexão temática)" },
+  { value: "GUIA_ESPIRITUALIDADE" as const, label: "Guia (espiritualidade)" },
 ];
 
 async function chamarApi<T>(url: string, body: unknown): Promise<T> {

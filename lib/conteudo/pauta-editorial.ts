@@ -33,6 +33,9 @@ const SCHEMA_PAUTA = {
 const ARQUIVO_POR_CATEGORIA: Record<CategoriaEditorial, string> = {
   [CategoriaEditorial.DICAS_CASA]: "pauta-editorial.md",
   [CategoriaEditorial.JORNADA_APARTAMENTO]: "pauta-jornada-apartamento.md",
+  [CategoriaEditorial.JORNADA_ESPIRITUAL]: "pauta-jornada-espiritual.md",
+  [CategoriaEditorial.REFLEXAO_ESPIRITUAL]: "pauta-reflexao-espiritual.md",
+  [CategoriaEditorial.GUIA_ESPIRITUALIDADE]: "pauta-guia-espiritualidade.md",
 };
 
 const promptsCarregados = new Map<string, string>();
@@ -71,8 +74,8 @@ export async function gerarTemasEditoriais(quantidade: number, categoria: Catego
   const pedir = quantidade + 2;
   let promptCompleto = `${prompt}\n\n## Títulos já existentes no site (nessa categoria)\n\n${listaExistentes}\n\n## Pedido\n\nGere ${pedir} temas novos (peço uma folga porque alguns podem ser descartados por semelhança com os já existentes).`;
 
-  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO) {
-    promptCompleto = promptCompleto.replace("{{contextoJornada}}", await contextoJornada());
+  if (categoria === CategoriaEditorial.JORNADA_APARTAMENTO || categoria === CategoriaEditorial.JORNADA_ESPIRITUAL) {
+    promptCompleto = promptCompleto.replace("{{contextoJornada}}", await contextoJornada(categoria));
   }
 
   const { temas } = await gerarJson<{ temas: TemaEditorial[] }>({

@@ -1,6 +1,6 @@
 import { prisma, Plataforma, Destino, Categoria, TipoOfertaShopee } from "@/lib/database";
-import { gerarCodigoCurto, HOME_CATEGORIAS } from "@/lib/produtos";
-import { ehForaDoTemaCasa } from "@/lib/nicho";
+import { gerarCodigoCurto, HOME_CATEGORIAS, MAGO_CATEGORIAS } from "@/lib/produtos";
+import { ehForaDoTemaCasa, ehForaDoTemaEspiritualidade } from "@/lib/nicho";
 import { encontrarProdutoCanonico } from "@/lib/catalogo";
 import { slugDeProdutoLivre } from "@/lib/conteudo/slug";
 import { gerarLinkAfiliado, type OfertaShopee, type TipoOfertaShopeeApi } from "./client";
@@ -47,13 +47,18 @@ export async function importarOfertaShopee(params: {
   const destino = params.destino ?? Destino.MEU_NOVO_LAR;
   const idExterno = `${oferta.shopId}_${oferta.itemId}`;
 
-  if (!permitirForaDoNicho && ehForaDoTemaCasa(oferta.nome)) return { status: "fora_do_nicho" };
-  // Fora do nicho permitido: mantém a categoria real (não força CASA), pra
-  // HOME_CATEGORIAS/produtoVisivelNoSite continuarem corretos no roteamento.
+  const foraDoTema = destino === Destino.MAGO_MEIA_NOITE ? ehForaDoTemaEspiritualidade : ehForaDoTemaCasa;
+  if (!permitirForaDoNicho && (destino === Destino.MEU_NOVO_LAR || destino === Destino.MAGO_MEIA_NOITE) && foraDoTema(oferta.nome)) {
+    return { status: "fora_do_nicho" };
+  }
+  // Fora do nicho permitido: mantém a categoria real (não força CASA/TAROT), pra
+  // HOME_CATEGORIAS/MAGO_CATEGORIAS/produtoVisivelNoSite continuarem corretos no roteamento.
   const categoria =
     !permitirForaDoNicho && destino === Destino.MEU_NOVO_LAR && !HOME_CATEGORIAS.includes(params.categoria)
       ? Categoria.CASA
-      : params.categoria;
+      : !permitirForaDoNicho && destino === Destino.MAGO_MEIA_NOITE && !MAGO_CATEGORIAS.includes(params.categoria)
+        ? Categoria.TAROT
+        : params.categoria;
 
   const descontoPct = descontoPercentualOferta({ precoAtual: oferta.precoAtual, precoOriginal: oferta.precoOriginal });
   const dadosMotor = {

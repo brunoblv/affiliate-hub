@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { prisma, Destino } from "@/lib/database";
-import { GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
+import { CANAL_WHATSAPP_URL, GRUPO_TELEGRAM_URL, GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
 import { getSiteUrl } from "@/lib/site-url";
 import { deduplicarCatalogo, descontoPercentual } from "@/lib/produtos";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
@@ -8,6 +8,7 @@ import {
   BotaoGrupoWhatsapp,
   ListaBeneficiosGrupo,
   MockupCelularGrupo,
+  OutrosCanaisGrupo,
   SelosConfiancaGrupo,
   type ItemMockupGrupo,
 } from "@/components/site/landing-grupo";
@@ -44,15 +45,18 @@ const CATEGORIAS_RODAPE = [
   "Acessórios",
 ];
 
-async function resolverLinkGrupo(): Promise<string> {
+async function resolverLinksGrupo(): Promise<{ whatsapp: string; telegram: string }> {
   try {
     const [achadinhos, casa] = await Promise.all([
       obterConfiguracaoVitrine(Destino.TIKTOK_SHOP),
       obterConfiguracaoVitrine(Destino.MEU_NOVO_LAR),
     ]);
-    return achadinhos.linkGrupoWhatsapp || casa.linkGrupoWhatsapp || GRUPO_WHATSAPP_URL;
+    return {
+      whatsapp: achadinhos.linkGrupoWhatsapp || casa.linkGrupoWhatsapp || GRUPO_WHATSAPP_URL,
+      telegram: achadinhos.linkGrupoTelegram || casa.linkGrupoTelegram || GRUPO_TELEGRAM_URL,
+    };
   } catch {
-    return GRUPO_WHATSAPP_URL;
+    return { whatsapp: GRUPO_WHATSAPP_URL, telegram: GRUPO_TELEGRAM_URL };
   }
 }
 
@@ -95,7 +99,8 @@ async function ofertasDeExemplo(): Promise<ItemMockupGrupo[]> {
 }
 
 export default async function LandingGrupoPage() {
-  const [href, itens] = await Promise.all([resolverLinkGrupo(), ofertasDeExemplo()]);
+  const [links, itens] = await Promise.all([resolverLinksGrupo(), ofertasDeExemplo()]);
+  const { whatsapp: href, telegram: hrefTelegram } = links;
 
   return (
     <>
@@ -129,6 +134,9 @@ export default async function LandingGrupoPage() {
 
             <div className="mt-8">
               <BotaoGrupoWhatsapp href={href} />
+            </div>
+            <div className="mt-3">
+              <OutrosCanaisGrupo telegram={hrefTelegram} canalWhatsapp={CANAL_WHATSAPP_URL} />
             </div>
             <div className="mt-4">
               <SelosConfiancaGrupo />
@@ -169,8 +177,9 @@ export default async function LandingGrupoPage() {
             O grupo é o canal rápido, de qualquer categoria. O site continua com o blog e a vitrine, se
             você preferir olhar com calma.
           </p>
-          <div className="mx-auto mt-6 flex justify-center">
+          <div className="mx-auto mt-6 flex flex-col items-center gap-3">
             <BotaoGrupoWhatsapp href={href} />
+            <OutrosCanaisGrupo telegram={hrefTelegram} canalWhatsapp={CANAL_WHATSAPP_URL} />
           </div>
         </div>
       </section>

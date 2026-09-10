@@ -91,6 +91,7 @@ const LABEL_DESTINO: Record<Destino, string> = {
   [Destino.MEU_NOVO_LAR]: "Meu Novo Lar",
   [Destino.TIKTOK_SHOP]: "TikTok Shop",
   [Destino.UMBANDA]: "Umbanda",
+  [Destino.MAGO_MEIA_NOITE]: "O Mago da Meia Noite",
 };
 
 const TOM_DESTINO: Record<Destino, string> = {
@@ -100,6 +101,8 @@ const TOM_DESTINO: Record<Destino, string> = {
     "Achadinhos. Mais promocional e visual, mas honesto: sem falsa urgência e sem inventar vantagem.",
   [Destino.UMBANDA]:
     "Produtos de Umbanda e espiritualidade. Respeitoso, sem tom agressivo de oferta, sem reduzir o sagrado a propaganda.",
+  [Destino.MAGO_MEIA_NOITE]:
+    "Espiritualidade e autoconhecimento (tarot, pedras, velas, incensos). Íntimo, reflexivo, misterioso — nunca de guru ou autoridade espiritual absoluta, sem promessa de cura ou iluminação.",
 };
 
 const LABEL_PLATAFORMA: Record<Produto["plataforma"], string> = {

@@ -31,6 +31,7 @@ const LABEL_DESTINO: Record<Destino, string> = {
   [Destino.MEU_NOVO_LAR]: "Meu Novo Lar",
   [Destino.TIKTOK_SHOP]: "TikTok Shop",
   [Destino.UMBANDA]: "Umbanda",
+  [Destino.MAGO_MEIA_NOITE]: "O Mago da Meia Noite",
 };
 
 export interface ResultadoEnfileiramento {

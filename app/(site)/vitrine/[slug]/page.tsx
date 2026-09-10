@@ -26,7 +26,7 @@ type ItemComProduto = {
     nome: string;
     slug: string;
     categoria: keyof typeof LABEL_CATEGORIA;
-    destino: "MEU_NOVO_LAR" | "TIKTOK_SHOP" | "UMBANDA";
+    destino: "MEU_NOVO_LAR" | "TIKTOK_SHOP" | "UMBANDA" | "MAGO_MEIA_NOITE";
     ativo: boolean;
     imagens: unknown;
     precoAtual: unknown;

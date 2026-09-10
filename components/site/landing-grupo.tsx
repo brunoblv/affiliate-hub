@@ -12,6 +12,23 @@ export function IconeWhatsApp({ className }: { className?: string }) {
   );
 }
 
+export function IconeTelegram({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="currentColor">
+      <path d="M22.05 2.94a1.62 1.62 0 00-1.68-.24L1.6 10.3a1.53 1.53 0 00.1 2.87l4.75 1.5 1.83 5.92a1.4 1.4 0 002.32.6l2.6-2.44 4.68 3.46a1.55 1.55 0 002.44-.9l3.12-16.5a1.6 1.6 0 00-.39-1.87zM8.98 13.9l-1.02 4.5-1.2-3.9L18.4 6.4z" />
+    </svg>
+  );
+}
+
+export function IconeCanal({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M4 11a8 8 0 0116 0M7 11a5 5 0 0110 0" strokeLinecap="round" />
+      <circle cx="12" cy="17" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function BotaoGrupoWhatsapp({
   href,
   className = "",
@@ -40,6 +57,47 @@ export function BotaoGrupoWhatsapp({
         →
       </span>
     </a>
+  );
+}
+
+export function OutrosCanaisGrupo({
+  telegram,
+  canalWhatsapp,
+  className = "",
+}: {
+  telegram?: string | null;
+  canalWhatsapp?: string | null;
+  className?: string;
+}) {
+  if (!telegram && !canalWhatsapp) return null;
+
+  return (
+    <div className={`flex w-full max-w-lg flex-wrap gap-2.5 ${className}`}>
+      {canalWhatsapp && (
+        <a
+          href={canalWhatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => window.fbq?.("track", "Contact")}
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:bg-secondary active:translate-y-px"
+        >
+          <IconeCanal className="size-4 text-[#25D366]" />
+          Canal no WhatsApp
+        </a>
+      )}
+      {telegram && (
+        <a
+          href={telegram}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => window.fbq?.("track", "Contact")}
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:bg-secondary active:translate-y-px"
+        >
+          <IconeTelegram className="size-4 text-[#229ED9]" />
+          Telegram
+        </a>
+      )}
+    </div>
   );
 }
 

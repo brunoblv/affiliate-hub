@@ -22,6 +22,7 @@ const DESTINOS = [
   { value: "MEU_NOVO_LAR", label: "Meu Novo Lar" },
   { value: "TIKTOK_SHOP", label: "TikTok Shop" },
   { value: "UMBANDA", label: "Umbanda" },
+  { value: "MAGO_MEIA_NOITE", label: "O Mago da Meia Noite" },
 ];
 
 export function CanalForm({
