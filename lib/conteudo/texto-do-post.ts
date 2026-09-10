@@ -8,7 +8,7 @@ import { Destino, Rede, type Produto, type Post } from "@/lib/database";
  * desconto só aparecem se vierem da API da plataforma.
  */
 
-const AVISO_AFILIADO = "Link de afiliado — não custa nada a mais para você, e ajuda o site.";
+const AVISO_AFILIADO = "*Publicidade — link de afiliado: não custa nada a mais para você, e ajuda o site.";
 
 /** Redes com seção de comentários — só nelas faz sentido puxar comentário. */
 const REDES_COMENTARIO = new Set<Rede>([Rede.INSTAGRAM, Rede.FACEBOOK_PAGE, Rede.FACEBOOK_GROUP]);
@@ -22,6 +22,19 @@ function descontoPercentual(atual: unknown, original: unknown): number | null {
   const o = Number(original);
   if (!o || o <= a) return null;
   return Math.round(((o - a) / o) * 100);
+}
+
+/** Negrito/riscado nativo de cada rede — Telegram em HTML (parse_mode), WhatsApp no markdown próprio, o resto plano. */
+function negrito(rede: Rede, texto: string): string {
+  if (rede === Rede.TELEGRAM) return `<b>${texto}</b>`;
+  if (rede === Rede.WHATSAPP) return `*${texto}*`;
+  return texto;
+}
+
+function riscado(rede: Rede, texto: string): string {
+  if (rede === Rede.TELEGRAM) return `<s>${texto}</s>`;
+  if (rede === Rede.WHATSAPP) return `~${texto}~`;
+  return texto;
 }
 
 export interface EntradaTexto {
@@ -41,7 +54,7 @@ export function montarTextoDoPost({ produto, rede, link, comentario }: EntradaTe
   linhas.push("");
 
   if (desconto !== null) {
-    linhas.push(`De ${reais(produto.precoOriginal)} por ${reais(produto.precoAtual)} (-${desconto}%)`);
+    linhas.push(`De ${riscado(rede, reais(produto.precoOriginal))} por ${negrito(rede, reais(produto.precoAtual))} (-${desconto}%)`);
   } else {
     linhas.push(reais(produto.precoAtual));
   }

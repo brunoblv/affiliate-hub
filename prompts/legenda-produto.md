@@ -39,6 +39,9 @@ por código — você **não** escreve nenhum desses.
 - `cta`: uma linha de chamada. Preferir: VER OFERTA, COMPRAR AGORA, VER PRODUTO,
   CONFERIR PREÇO, VER DESCONTO, CONFERIR NA LOJA. Instagram: não diga "link na
   bio" — o sistema coloca. Pode ter emoji (🛒 👉).
+- `bonus`: só preencha se a descrição da loja confirmar um brinde/item extra
+  incluso no kit (ex.: "acompanha 2 filtros extras"). Na grande maioria dos
+  produtos não existe — devolva string vazia `""`. Nunca invente bônus.
 
 ## Adaptação por rede
 

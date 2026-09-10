@@ -43,6 +43,8 @@ interface PartesProduto {
   descricaoCurta: string;
   beneficios: string[];
   cta: string;
+  /** Bônus/brinde real do kit, só se confirmado — vazio na maioria dos casos. */
+  bonus: string;
 }
 
 interface PartesLista {
@@ -60,8 +62,9 @@ const SCHEMA_PRODUTO = {
     descricaoCurta: { type: "STRING" },
     beneficios: { type: "ARRAY", items: { type: "STRING" } },
     cta: { type: "STRING" },
+    bonus: { type: "STRING" },
   },
-  required: ["abertura", "descricaoCurta", "beneficios", "cta"],
+  required: ["abertura", "descricaoCurta", "beneficios", "cta", "bonus"],
 };
 
 const SCHEMA_LISTA = {
@@ -120,7 +123,10 @@ const ABERTURA_PADRAO: Record<TipoPostSocial, string> = {
   NEW: "✨ NOVIDADE",
 };
 
-const DISCLOSURE = "⚠️ Preço e disponibilidade podem mudar.\n*Link de afiliado — não custa nada a mais para você, e ajuda o site.";
+const DISCLOSURE = "⚠️ Preço e disponibilidade podem mudar.\n*Publicidade — link de afiliado: não custa nada a mais para você, e ajuda o site.";
+
+/** Disclosure compacto dos templates de oferta (produto com desconto real) — sempre deixa claro que é publicidade. */
+const DISCLOSURE_OFERTA = "*Publicidade — link de afiliado.";
 
 const URL_EM_TEXTO = /https?:\/\/\S+/gi;
 const PRECO_EM_TEXTO = /R\$\s*[\d.,]+/gi;
@@ -193,6 +199,25 @@ function blocoPreco(produto: Produto): string {
 function linhaDeLink(rede: Rede, link: string, ctaInstagram = "🔗 Confira no link da bio."): string {
   if (rede === Rede.INSTAGRAM) return ctaInstagram;
   return link;
+}
+
+/** Negrito nativo de cada rede — Telegram sai em HTML (parse_mode), WhatsApp em markdown próprio; o resto não formata. */
+function negrito(rede: Rede, texto: string): string {
+  if (rede === Rede.TELEGRAM) return `<b>${texto}</b>`;
+  if (rede === Rede.WHATSAPP) return `*${texto}*`;
+  return texto;
+}
+
+/** Riscado nativo de cada rede — mesma lógica de `negrito`. */
+function riscado(rede: Rede, texto: string): string {
+  if (rede === Rede.TELEGRAM) return `<s>${texto}</s>`;
+  if (rede === Rede.WHATSAPP) return `~${texto}~`;
+  return texto;
+}
+
+function linhaCtaOferta(rede: Rede, link: string, rotulo: string): string {
+  if (rede === Rede.INSTAGRAM) return `👉 ${rotulo} — confira no link da bio.`;
+  return `👉 ${negrito(rede, `${rotulo}:`)} ${link}`;
 }
 
 function mensagemErro(erro: unknown): string {
@@ -293,6 +318,7 @@ async function pedirPartesProduto({ produto, rede, comentario }: EntradaTexto): 
     descricaoCurta: limparCampo(bruto.descricaoCurta, 500),
     beneficios,
     cta: limparCampo(bruto.cta, 80) || "🛒 VER OFERTA",
+    bonus: limparCampo(bruto.bonus, 80),
   };
 }
 
@@ -334,7 +360,72 @@ async function pedirPartesJornada({ post, rede }: EntradaTextoDaJornada): Promis
   };
 }
 
-function montarLegendaProduto({ produto, rede, link }: EntradaTexto, partes: PartesProduto): string {
+/** Template A — "OFERTA ESPECIAL", com bullets de benefício. */
+function montarOfertaTemplateA(
+  { produto, rede, link }: EntradaTexto,
+  partes: PartesProduto,
+  desconto: number,
+): string {
+  const linhas: string[] = ["🔥 OFERTA ESPECIAL 🔥"];
+
+  if (partes.descricaoCurta) {
+    linhas.push("", partes.descricaoCurta);
+  }
+
+  if (partes.beneficios.length > 0) {
+    linhas.push("");
+    for (const beneficio of partes.beneficios) {
+      linhas.push(beneficio.startsWith("✅") ? beneficio : `✅ ${beneficio}`);
+    }
+  }
+
+  linhas.push(
+    "",
+    `💰 De ${riscado(rede, reais(produto.precoOriginal))} por apenas ${negrito(rede, reais(produto.precoAtual))} (-${desconto}%)`,
+  );
+
+  if (partes.bonus) linhas.push("", `🎁 ${partes.bonus}`);
+
+  linhas.push("", linhaCtaOferta(rede, link, "Confira a oferta aqui"));
+  linhas.push("", "⏰ Aproveite enquanto o desconto estiver disponível!", "", DISCLOSURE_OFERTA);
+  return linhas.join("\n").trim();
+}
+
+/** Template B — "OFERTA POR TEMPO LIMITADO", mais direto/agressivo. */
+function montarOfertaTemplateB(
+  { produto, rede, link }: EntradaTexto,
+  partes: PartesProduto,
+  desconto: number,
+): string {
+  const diferencial = partes.beneficios[0] ?? "";
+  const linhas: string[] = ["🚨 OFERTA POR TEMPO LIMITADO 🚨", "", `${negrito(rede, produto.nome)} está com desconto!`];
+
+  if (partes.descricaoCurta) {
+    linhas.push("", partes.descricaoCurta);
+  }
+
+  linhas.push(
+    "",
+    `🔥 De ${riscado(rede, reais(produto.precoOriginal))} por apenas ${negrito(rede, reais(produto.precoAtual))} (-${desconto}%)`,
+  );
+  if (partes.bonus) linhas.push(`🎁 ${partes.bonus}`);
+  if (diferencial) linhas.push(`⭐ ${diferencial}`);
+
+  linhas.push("", linhaCtaOferta(rede, link, "Acessar a oferta"));
+  linhas.push("", "⚠️ O valor promocional pode sair do ar a qualquer momento.", "", DISCLOSURE_OFERTA);
+  return linhas.join("\n").trim();
+}
+
+function montarLegendaProduto(entrada: EntradaTexto, partes: PartesProduto): string {
+  const { produto, rede, link } = entrada;
+  const desconto = descontoPercentual(produto.precoAtual, produto.precoOriginal);
+
+  if (desconto !== null) {
+    return Math.random() < 0.5
+      ? montarOfertaTemplateA(entrada, partes, desconto)
+      : montarOfertaTemplateB(entrada, partes, desconto);
+  }
+
   const linhas: string[] = [partes.abertura, "", produto.nome, "", blocoPreco(produto)];
 
   if (partes.descricaoCurta) {
