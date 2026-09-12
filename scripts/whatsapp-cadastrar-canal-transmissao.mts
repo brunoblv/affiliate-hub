@@ -38,6 +38,30 @@ function extrairCodigoConvite(entrada: string): string {
   return match ? match[1]! : entrada.trim();
 }
 
+const NOME_PADRAO: Record<Destino, string> = {
+  [Destino.TIKTOK_SHOP]: "Canal Achadinhos",
+  [Destino.MEU_NOVO_LAR]: "Canal Meu Novo Lar",
+  [Destino.UMBANDA]: "Canal Umbanda",
+  [Destino.MAGO_MEIA_NOITE]: "Canal O Mago da Meia Noite",
+};
+
+function textoAninhado(valor: unknown): string {
+  if (typeof valor === "string") return valor.trim();
+  if (valor && typeof valor === "object" && "text" in valor) {
+    const texto = (valor as { text?: unknown }).text;
+    return typeof texto === "string" ? texto.trim() : "";
+  }
+  return "";
+}
+
+/** Baileys rc14 devolve o GraphQL cru: `name` vem vazio e o título está em thread_metadata.name.text. */
+function nomeDoCanal(meta: { id: string; name?: unknown; thread_metadata?: { name?: unknown } }, destino: Destino, nomeArg?: string): string {
+  const informado = nomeArg?.trim();
+  if (informado) return informado;
+  const doMeta = textoAninhado(meta.name) || textoAninhado(meta.thread_metadata?.name);
+  return doMeta || NOME_PADRAO[destino] || "Canal WhatsApp";
+}
+
 async function main() {
   const [entrada, destinoRaw, nomeArg] = process.argv.slice(2);
   const destino = destinoRaw as Destino;
@@ -72,9 +96,9 @@ async function main() {
           process.exit(1);
         }
 
-        console.log(`Canal: "${meta.name}" — id: ${meta.id} — assinantes: ${meta.subscribers ?? "?"} — dono: ${meta.owner ?? "?"}`);
+        console.log(`Canal: "${meta.name ?? "(sem nome)"}" — id: ${meta.id} — assinantes: ${meta.subscribers ?? "?"} — dono: ${meta.owner ?? "?"}`);
 
-        const nome = nomeArg || meta.name;
+        const nome = nomeDoCanal(meta, destino, nomeArg);
         const existente = await prisma.canal.findUnique({
           where: { rede_idExterno: { rede: Rede.WHATSAPP, idExterno: meta.id } },
         });
