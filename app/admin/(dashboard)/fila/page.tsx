@@ -10,6 +10,7 @@ import { FilaFiltros } from "@/components/admin/fila-filtros";
 import { chaveDoDia, FUSO_APP, formatarHora, formatarLocal, intervaloDoDia, somarDiasCivis } from "@/lib/agenda/fuso";
 import { ehRedeFila, LABEL_REDE_FILA, REDE_PADRAO_FILA, REDES_FILA, type RedeFila } from "@/lib/agenda/fila-admin";
 import { diagnosticarFilaWhatsapp } from "@/lib/agenda/fila-diagnostico";
+import { rotuloDestinoWhatsApp } from "@/lib/whatsapp/jid";
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { LimparFilaButton } from "@/components/admin/limpar-fila-button";
 import { ReorganizarFilaGrupoButton } from "@/components/admin/reorganizar-fila-grupo-button";
@@ -88,7 +89,7 @@ export default async function FilaAdminPage({
 
   const canais = await prisma.canal.findMany({
     orderBy: { nome: "asc" },
-    select: { id: true, nome: true, ativo: true, rede: true },
+    select: { id: true, nome: true, ativo: true, rede: true, idExterno: true },
   });
   const canalEscolhido = canais.find((canal) => canal.id === canalParam);
   const canalId = canalEscolhido?.id ?? null;
@@ -143,7 +144,7 @@ export default async function FilaAdminPage({
         post: { select: { titulo: true } },
         landingDiaria: { select: { headline: true, slug: true } },
         listaOferta: { select: { titulo: true } },
-        canal: { select: { nome: true } },
+        canal: { select: { nome: true, rede: true, idExterno: true } },
       },
     }),
     prisma.publicacao.count({ where }),
@@ -225,9 +226,9 @@ export default async function FilaAdminPage({
             semPublicacaoAlguma
               ? "Distribua um produto na tela de Produtos para começar."
               : busca
-                ? `Nenhuma publicação com “${busca}”. Troque a busca, o grupo ou abra Todas.`
+                ? `Nenhuma publicação com “${busca}”. Troque a busca, o destino ou abra Todas.`
                 : rede === REDE_PADRAO_FILA
-                ? "Não há posts de WhatsApp neste dia. Troque o dia, o grupo, ou abra outra rede."
+                ? "Não há posts de WhatsApp neste dia. Troque o dia, o grupo/canal, ou abra outra rede. Canal de transmissão só aparece se estiver cadastrado em Canais com JID @newsletter."
                 : "Não há publicações neste dia ou canal. Troque o filtro ou escolha Todos os dias."
           }
         />
@@ -236,7 +237,7 @@ export default async function FilaAdminPage({
           <TableHeader>
             <TableRow>
               <TableHead>Produto</TableHead>
-              <TableHead>{rede === REDE_PADRAO_FILA ? "Grupo" : "Canal"}</TableHead>
+              <TableHead>Destino</TableHead>
               <TableHead>{verTodos ? "Agendada para" : "Horário"}</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
@@ -255,7 +256,11 @@ export default async function FilaAdminPage({
                 {grupo.itens.map((publicacao) => (
                   <TableRow key={publicacao.id}>
                     <TableCell className="font-medium">{tituloDaPublicacao(publicacao)}</TableCell>
-                    <TableCell>{publicacao.canal.nome}</TableCell>
+                    <TableCell>
+                      {publicacao.canal.rede === "WHATSAPP"
+                        ? rotuloDestinoWhatsApp(publicacao.canal)
+                        : publicacao.canal.nome}
+                    </TableCell>
                     <TableCell>
                       {verTodos ? formatarLocal(publicacao.agendadaPara) : `${formatarHora(publicacao.agendadaPara)} (Brasília)`}
                     </TableCell>

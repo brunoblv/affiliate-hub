@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Pagination, PAGE_SIZE } from "@/components/ui/pagination";
 import { rotuloJanela } from "@/lib/agenda/janela";
 import { etiquetaDoCanal } from "@/lib/shopee/etiquetas";
+import { tipoDestinoWhatsApp } from "@/lib/whatsapp/jid";
 
 const LABEL_DESTINO: Record<string, string> = {
   MEU_NOVO_LAR: "Meu Novo Lar",
@@ -38,7 +39,10 @@ export default async function CanaisAdminPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <PageHeader title="Canais" description="Onde e quando os produtos são distribuídos." />
+        <PageHeader
+          title="Canais"
+          description="Onde os produtos são distribuídos. No WhatsApp, grupo comum e canal de transmissão (Business) são destinos separados — cada um com a própria fila e etiqueta de afiliado."
+        />
         <Button render={<Link href="/admin/canais/novo" />}>
           <Plus />
           Novo canal
@@ -66,6 +70,15 @@ export default async function CanaisAdminPage({
                   <Link href={`/admin/canais/${canal.id}`} className="hover:underline">
                     {canal.nome}
                   </Link>
+                  {canal.rede === "WHATSAPP" ? (
+                    <p className="text-xs font-normal text-muted-foreground">
+                      {tipoDestinoWhatsApp(canal.idExterno) === "canal"
+                        ? "Canal de transmissão"
+                        : tipoDestinoWhatsApp(canal.idExterno) === "grupo"
+                          ? "Grupo"
+                          : "JID inválido — não entra na fila de verdade"}
+                    </p>
+                  ) : null}
                 </TableCell>
                 <TableCell className="font-mono text-xs">{etiquetaDoCanal(canal)}</TableCell>
                 <TableCell>{canal.rede}</TableCell>

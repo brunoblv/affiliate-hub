@@ -112,7 +112,7 @@ export async function reorganizarFilaDoGrupoAction(
   if (!sessao) return { ok: false, message: "Não autorizado." };
 
   const id = canalId.trim();
-  if (!id) return { ok: false, message: "Escolha o grupo do WhatsApp para reorganizar." };
+  if (!id) return { ok: false, message: "Escolha o grupo ou o canal do WhatsApp para reorganizar." };
 
   try {
     const resultado = await reorganizarFilaDoGrupo(id);

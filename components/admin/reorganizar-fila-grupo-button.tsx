@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { reorganizarFilaDoGrupoAction } from "@/app/admin/(dashboard)/fila/actions";
 import { hrefFila } from "@/lib/agenda/fila-admin";
 import { Rede } from "@/lib/database/enums";
+import { rotuloDestinoWhatsApp } from "@/lib/whatsapp/jid";
 
 export function ReorganizarFilaGrupoButton({
   canais,
   canalIdAtual,
 }: {
-  canais: { id: string; nome: string; ativo: boolean; rede: Rede }[];
+  canais: { id: string; nome: string; ativo: boolean; rede: Rede; idExterno: string }[];
   canalIdAtual: string | null;
 }) {
   const router = useRouter();
@@ -30,13 +31,13 @@ export function ReorganizarFilaGrupoButton({
 
   function reorganizar() {
     if (!canalId || !escolhido) {
-      toast.error("Escolha o grupo do WhatsApp cuja fila você quer reorganizar.");
+      toast.error("Escolha o grupo ou o canal do WhatsApp cuja fila você quer reorganizar.");
       return;
     }
 
     if (
       !confirm(
-        `Reorganizar a fila de ${escolhido.nome}? Os pendentes entram de novo a partir de agora (9h–21h, a cada 10–20 min). O que já saiu ou está saindo agora não muda.`,
+        `Reorganizar a fila de ${rotuloDestinoWhatsApp(escolhido)}? Os pendentes entram de novo a partir de agora (9h–21h, a cada 10–20 min). O que já saiu ou está saindo agora não muda.`,
       )
     ) {
       return;
@@ -71,15 +72,15 @@ export function ReorganizarFilaGrupoButton({
   return (
     <div className="flex flex-wrap items-end gap-2">
       <div className="space-y-1.5">
-        <Label htmlFor="reorganizar-grupo">Reorganizar grupo</Label>
+        <Label htmlFor="reorganizar-grupo">Reorganizar destino</Label>
         <Select value={canalId ?? undefined} onValueChange={(valor) => setCanalId(valor)}>
           <SelectTrigger id="reorganizar-grupo" className="min-w-52">
-            <SelectValue placeholder="Escolha o grupo" />
+            <SelectValue placeholder="Grupo ou canal" />
           </SelectTrigger>
           <SelectContent>
             {grupos.map((grupo) => (
               <SelectItem key={grupo.id} value={grupo.id}>
-                {grupo.ativo ? grupo.nome : `${grupo.nome} (inativo)`}
+                {`${rotuloDestinoWhatsApp(grupo)}${grupo.ativo ? "" : " (inativo)"}`}
               </SelectItem>
             ))}
           </SelectContent>

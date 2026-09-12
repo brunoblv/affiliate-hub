@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Rede } from "@/lib/database/enums";
 import { hrefFila, type RedeFila } from "@/lib/agenda/fila-admin";
+import { rotuloDestinoWhatsApp } from "@/lib/whatsapp/jid";
 
 export function FilaFiltros({
   dia,
@@ -25,7 +26,7 @@ export function FilaFiltros({
   rede: RedeFila;
   canalId: string | null;
   busca: string;
-  canais: { id: string; nome: string; ativo: boolean; rede: Rede }[];
+  canais: { id: string; nome: string; ativo: boolean; rede: Rede; idExterno: string }[];
   dias: { chave: string; rotulo: string; count: number }[];
   redes: { id: Rede; label: string; count: number }[];
   totalTodos: number;
@@ -123,19 +124,19 @@ export function FilaFiltros({
         </div>
         {canaisDaRede.length > 0 && (
           <div className="space-y-1.5">
-            <Label htmlFor="fila-canal">{ehWhatsapp ? "Grupo" : "Canal"}</Label>
+            <Label htmlFor="fila-canal">{ehWhatsapp ? "Grupo ou canal" : "Canal"}</Label>
             <Select
               value={canalId ?? "todos"}
               onValueChange={(valor) => irPara({ canalId: !valor || valor === "todos" ? null : valor })}
             >
               <SelectTrigger id="fila-canal" className="min-w-56">
-                <SelectValue placeholder={ehWhatsapp ? "Todos os grupos" : "Todos os canais"} />
+                <SelectValue placeholder={ehWhatsapp ? "Todos os destinos" : "Todos os canais"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">{ehWhatsapp ? "Todos os grupos" : "Todos os canais"}</SelectItem>
+                <SelectItem value="todos">{ehWhatsapp ? "Todos os destinos" : "Todos os canais"}</SelectItem>
                 {canaisDaRede.map((canal) => (
                   <SelectItem key={canal.id} value={canal.id}>
-                    {canal.ativo ? canal.nome : `${canal.nome} (inativo)`}
+                    {`${canal.rede === Rede.WHATSAPP ? rotuloDestinoWhatsApp(canal) : canal.nome}${canal.ativo ? "" : " (inativo)"}`}
                   </SelectItem>
                 ))}
               </SelectContent>

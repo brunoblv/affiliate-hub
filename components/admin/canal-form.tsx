@@ -95,9 +95,16 @@ export function CanalForm({
           id="idExterno"
           name="idExterno"
           defaultValue={canal?.idExterno}
-          placeholder="page_id / group_id / ig_user_id / chat_id / JID (@g.us ou @newsletter)"
+          placeholder="page_id / ig_user_id / chat_id / JID (@g.us ou @newsletter)"
           required
         />
+        <p className="text-xs text-muted-foreground">
+          WhatsApp tem dois destinos: grupo comum (<span className="font-mono">…@g.us</span>) e canal de
+          transmissão da conta Business (<span className="font-mono">…@newsletter</span>). Cada um é uma fonte de
+          link na Shopee. O convite <span className="font-mono">whatsapp.com/channel/…</span> não entra na fila —
+          na VPS:{" "}
+          <span className="font-mono">npx tsx scripts/whatsapp-cadastrar-canal-transmissao.mts &lt;link&gt; TIKTOK_SHOP</span>.
+        </p>
       </div>
 
       <div className="space-y-1.5">

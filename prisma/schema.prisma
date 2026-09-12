@@ -543,7 +543,7 @@ model Canal {
   /// Site/grupos que este canal atende — ver enum Destino.
   destino   Destino @default(MEU_NOVO_LAR)
   /// page_id (Facebook page), group_id (Facebook group), ig_user_id (Instagram),
-  /// chat_id (Telegram) ou JID do grupo (WhatsApp/Baileys).
+  /// chat_id (Telegram), JID de grupo WhatsApp (@g.us) ou de canal de transmissão (@newsletter).
   idExterno String
   ativo     Boolean @default(true)
 

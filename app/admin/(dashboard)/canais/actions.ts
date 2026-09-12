@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma, Destino, Rede } from "@/lib/database";
 import { obterPublicador } from "@/lib/publicacao/publicadores";
+import { ehJidWhatsApp } from "@/lib/whatsapp/jid";
 import { gerarHorariosDaJanela, INTERVALO_PADRAO_MIN, TETO_PADRAO } from "@/lib/agenda/janela";
 import { formatarLocal } from "@/lib/agenda/fuso";
 import { urlPublica } from "@/lib/site-url";
@@ -44,10 +45,22 @@ function readForm(formData: FormData) {
   };
 }
 
+function mensagemIdExternoWhatsApp(idExterno: string): string | undefined {
+  if (ehJidWhatsApp(idExterno)) return undefined;
+  if (/whatsapp\.com\/channel\//i.test(idExterno)) {
+    return "Link de canal não entra na fila. Canal de transmissão (Business) usa JID …@newsletter. Na VPS, com a sessão logada: npx tsx scripts/whatsapp-cadastrar-canal-transmissao.mts <link> TIKTOK_SHOP";
+  }
+  return "WhatsApp: grupo comum termina em @g.us; canal de transmissão (o da conta Business) termina em @newsletter.";
+}
+
 export async function createCanalAction(_prev: CanalFormState, formData: FormData): Promise<CanalFormState> {
   const dados = readForm(formData);
   if (!dados.nome || !dados.idExterno) {
     return { status: "error", message: "Nome e identificador externo são obrigatórios." };
+  }
+  if (dados.rede === Rede.WHATSAPP) {
+    const erroJid = mensagemIdExternoWhatsApp(dados.idExterno);
+    if (erroJid) return { status: "error", message: erroJid };
   }
 
   const canal = await prisma.canal.create({
@@ -74,6 +87,10 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
   const dados = readForm(formData);
   if (!dados.nome || !dados.idExterno) {
     return { status: "error", message: "Nome e identificador externo são obrigatórios." };
+  }
+  if (dados.rede === Rede.WHATSAPP) {
+    const erroJid = mensagemIdExternoWhatsApp(dados.idExterno);
+    if (erroJid) return { status: "error", message: erroJid };
   }
 
   await prisma.canal.update({
