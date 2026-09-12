@@ -66,6 +66,13 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('consent','revoke');
 fbq('init', '${FB_PIXEL_ID}');
+try {
+  if (localStorage.getItem('mnl-cookie-consent') === 'accepted') {
+    fbq('consent','grant');
+  }
+} catch {
+  // O armazenamento pode estar indisponível em navegação privada.
+}
 fbq('track', 'PageView');`,
           }}
         />
