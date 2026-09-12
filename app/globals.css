@@ -146,3 +146,12 @@
 [data-radix-popper-content-wrapper] {
   z-index: 60 !important;
 }
+
+@keyframes marcas-deslizam {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

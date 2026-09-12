@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { BadgeCheck, Gem, ShieldCheck, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { BadgeCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { Destino } from "@/lib/database";
-import { GRUPO_TELEGRAM_URL, GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
+import { CANAL_WHATSAPP_URL, GRUPO_TELEGRAM_URL, GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
 import { getSiteUrl } from "@/lib/site-url";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
-import { BotaoGrupoWhatsapp, OutrosCanaisGrupo } from "@/components/site/landing-grupo";
+import { BotaoCanalWhatsapp, BotaoGrupoWhatsapp, OutrosCanaisGrupo } from "@/components/site/landing-grupo";
 
 export const revalidate = 300;
 
-const TITULO = "Grupo de Ofertas no WhatsApp — Meu Novo Lar";
+const TITULO = "Top Ofertas | Achadinhos";
 const DESCRICAO =
-  "Grupo gratuito com ofertas da Shopee, TikTok Shop e Mercado Livre — de qualquer categoria, sem só ficar em casa.";
+  "Ofertas e cupons da Shopee, TikTok Shop e Mercado Livre em um só lugar.";
+
+const MARCAS = ["Shopee", "TikTok Shop", "Mercado Livre", "Amazon", "Cupons"];
 
 export const metadata: Metadata = {
   title: TITULO,
@@ -53,23 +56,33 @@ export default async function LandingGrupoPage() {
   return (
     <section className="flex min-h-svh items-center justify-center px-4 py-16 sm:px-6">
       <div className="relative w-full max-w-xl rounded-[2rem] border border-[#eeeaf2] bg-white px-6 pb-8 pt-14 text-center shadow-[0_24px_70px_rgba(73,38,108,0.12)] sm:px-10 sm:pb-10">
-        <div className="absolute -top-12 left-1/2 flex size-24 -translate-x-1/2 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#f0abfc] text-white shadow-lg">
-          <Gem className="size-10" aria-hidden="true" />
+        <div className="absolute -top-12 left-1/2 size-24 -translate-x-1/2 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg">
+          <Image
+            src="/top-ofertas-avatar.png"
+            alt="Foto do perfil Top Ofertas Achadinhos"
+            width={160}
+            height={160}
+            className="size-full object-cover"
+            priority
+          />
         </div>
 
         <p className="text-xs font-extrabold tracking-[0.16em] text-[#7c3aed]">OFERTAS SELECIONADAS</p>
         <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-[#481d73] sm:text-4xl">
-          Achadinhos do Meu Novo Lar
+          Top Ofertas <span className="text-[#9461bd]">|</span> Achadinhos
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#62576a] sm:text-base">
           Ofertas e cupons de verdade, em qualquer categoria, para você economizar sem perder tempo procurando.
         </p>
 
-        <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl bg-[#f4f0f8] p-4 text-[11px] font-bold text-[#766b7e] sm:grid-cols-4 sm:text-xs">
-          <span>Shopee</span>
-          <span>TikTok Shop</span>
-          <span>Mercado Livre</span>
-          <span className="hidden sm:inline">Cupons</span>
+        <div className="mt-7 overflow-hidden rounded-2xl bg-[#f4f0f8] py-4">
+          <div className="flex w-max animate-[marcas-deslizam_18s_linear_infinite] gap-9 px-5 text-xs font-bold text-[#766b7e] sm:gap-12 sm:text-sm">
+            {[...MARCAS, ...MARCAS].map((marca, index) => (
+              <span key={`${marca}-${index}`} className="whitespace-nowrap">
+                {marca}
+              </span>
+            ))}
+          </div>
         </div>
 
         <ul className="mt-7 space-y-4 text-left text-sm font-semibold text-[#31273a] sm:text-base">
@@ -90,7 +103,10 @@ export default async function LandingGrupoPage() {
             className="max-w-none rounded-xl bg-[#20c65a] py-4 text-base shadow-[0_10px_24px_rgba(32,198,90,0.28)] hover:bg-[#19b44f]"
           />
         </div>
-        <div className="mt-4 flex justify-center">
+        <div className="mt-3">
+          <BotaoCanalWhatsapp href={CANAL_WHATSAPP_URL} />
+        </div>
+        <div className="mt-3 flex justify-center">
           <OutrosCanaisGrupo telegram={hrefTelegram} className="justify-center" />
         </div>
 

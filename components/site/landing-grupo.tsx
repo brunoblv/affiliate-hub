@@ -64,6 +64,21 @@ export function BotaoGrupoWhatsapp({
   );
 }
 
+export function BotaoCanalWhatsapp({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => window.fbq?.("trackCustom", "JoinWhatsAppChannel", { content_category: "whatsapp_channel" })}
+      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#d9cfdf] bg-white px-5 text-sm font-bold text-[#55227d] transition hover:bg-[#faf6fd] active:translate-y-px"
+    >
+      <IconeWhatsApp className="size-5 text-[#25D366]" />
+      Seguir o canal no WhatsApp
+    </a>
+  );
+}
+
 export function OutrosCanaisGrupo({
   telegram,
   className = "",
