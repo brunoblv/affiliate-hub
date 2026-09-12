@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { prisma, Destino } from "@/lib/database";
+import { BadgeCheck, Gem, ShieldCheck, Sparkles } from "lucide-react";
+import { Destino } from "@/lib/database";
 import { GRUPO_TELEGRAM_URL, GRUPO_WHATSAPP_URL } from "@/lib/site-publico";
 import { getSiteUrl } from "@/lib/site-url";
-import { deduplicarCatalogo, descontoPercentual } from "@/lib/produtos";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
-import {
-  BotaoGrupoWhatsapp,
-  ListaBeneficiosGrupo,
-  MockupCelularGrupo,
-  OutrosCanaisGrupo,
-  SelosConfiancaGrupo,
-  type ItemMockupGrupo,
-} from "@/components/site/landing-grupo";
+import { BotaoGrupoWhatsapp, OutrosCanaisGrupo } from "@/components/site/landing-grupo";
 
 export const revalidate = 300;
 
@@ -38,18 +31,6 @@ export const metadata: Metadata = {
   },
 };
 
-const LOJAS = ["Shopee", "TikTok Shop", "Mercado Livre"];
-const CATEGORIAS_RODAPE = [
-  "Casa",
-  "Tecnologia",
-  "Moda",
-  "Beleza",
-  "Brinquedos",
-  "Esporte",
-  "Pet",
-  "Acessórios",
-];
-
 async function resolverLinksGrupo(): Promise<{ whatsapp: string; telegram: string }> {
   try {
     const [achadinhos, casa] = await Promise.all([
@@ -65,129 +46,64 @@ async function resolverLinksGrupo(): Promise<{ whatsapp: string; telegram: strin
   }
 }
 
-async function ofertasDeExemplo(): Promise<ItemMockupGrupo[]> {
-  try {
-    const produtos = await prisma.produto.findMany({
-      where: { ativo: true },
-      orderBy: { criadoEm: "desc" },
-      take: 40,
-      select: {
-        id: true,
-        nome: true,
-        slug: true,
-        imagens: true,
-        precoAtual: true,
-        precoOriginal: true,
-        ativo: true,
-        destino: true,
-        categoria: true,
-      },
-    });
-    const itens: ItemMockupGrupo[] = [];
-    for (const produto of deduplicarCatalogo(produtos)) {
-      const desconto = descontoPercentual(produto);
-      if (desconto === null) continue;
-      itens.push({
-        id: produto.id,
-        nome: produto.nome,
-        imagens: produto.imagens,
-        precoAtual: produto.precoAtual,
-        precoOriginal: produto.precoOriginal,
-        desconto,
-      });
-      if (itens.length >= 4) break;
-    }
-    return itens;
-  } catch {
-    return [];
-  }
-}
-
 export default async function LandingGrupoPage() {
-  const [links, itens] = await Promise.all([resolverLinksGrupo(), ofertasDeExemplo()]);
+  const links = await resolverLinksGrupo();
   const { whatsapp: href, telegram: hrefTelegram } = links;
 
   return (
-    <>
-      <section className="bg-background">
-        <div className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
-          <div>
-            <p className="text-[11px] font-bold tracking-[0.16em] text-primary">OFERTAS DE QUALQUER CATEGORIA</p>
-            <h1 className="mt-3 max-w-xl font-heading text-4xl leading-[1.12] font-semibold text-foreground sm:text-5xl">
-              Grupo de Ofertas no WhatsApp
-            </h1>
-            <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-muted-foreground">
-              Promoções e cupons de qualquer categoria — casa, tecnologia, moda, beleza — direto no seu
-              celular. Oferta boa some rápido, então quem tá no grupo vê primeiro. Sem app extra: é o
-              WhatsApp que você já usa.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {LOJAS.map((loja) => (
-                <span
-                  key={loja}
-                  className="rounded-full border border-border bg-card px-3 py-1 text-xs font-bold tracking-wide text-foreground"
-                >
-                  {loja}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-7">
-              <ListaBeneficiosGrupo />
-            </div>
-
-            <div className="mt-8">
-              <BotaoGrupoWhatsapp href={href} posicao="hero" />
-            </div>
-            <div className="mt-3">
-              <OutrosCanaisGrupo telegram={hrefTelegram} />
-            </div>
-            <div className="mt-4">
-              <SelosConfiancaGrupo />
-            </div>
-          </div>
-
-          <div className="pb-4 lg:pb-0">
-            <MockupCelularGrupo itens={itens} />
-          </div>
+    <section className="flex min-h-svh items-center justify-center px-4 py-16 sm:px-6">
+      <div className="relative w-full max-w-xl rounded-[2rem] border border-[#eeeaf2] bg-white px-6 pb-8 pt-14 text-center shadow-[0_24px_70px_rgba(73,38,108,0.12)] sm:px-10 sm:pb-10">
+        <div className="absolute -top-12 left-1/2 flex size-24 -translate-x-1/2 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#f0abfc] text-white shadow-lg">
+          <Gem className="size-10" aria-hidden="true" />
         </div>
 
-        <div className="border-t border-border bg-secondary px-5 py-3 text-center text-[11px] font-bold tracking-[0.12em] text-muted-foreground sm:px-8">
-          {CATEGORIAS_RODAPE.join("  ·  ")}
+        <p className="text-xs font-extrabold tracking-[0.16em] text-[#7c3aed]">OFERTAS SELECIONADAS</p>
+        <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-[#481d73] sm:text-4xl">
+          Achadinhos do Meu Novo Lar
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#62576a] sm:text-base">
+          Ofertas e cupons de verdade, em qualquer categoria, para você economizar sem perder tempo procurando.
+        </p>
+
+        <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl bg-[#f4f0f8] p-4 text-[11px] font-bold text-[#766b7e] sm:grid-cols-4 sm:text-xs">
+          <span>Shopee</span>
+          <span>TikTok Shop</span>
+          <span>Mercado Livre</span>
+          <span className="hidden sm:inline">Cupons</span>
         </div>
-      </section>
 
-      <section className="mx-auto max-w-3xl px-5 py-14 sm:px-8">
-        <h2 className="font-heading text-2xl font-semibold text-foreground sm:text-3xl">Como funciona</h2>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-3">
-          {[
-            { n: "1", t: "Entra no grupo", d: "Um toque no botão verde abre o convite do WhatsApp. É grátis, sem compromisso." },
-            { n: "2", t: "Recebe os achados", d: "Quando encontramos uma oferta boa nas lojas, mandamos no grupo na hora." },
-            { n: "3", t: "Você decide", d: "Abre o link, confere na loja e compra só se fizer sentido pra você." },
-          ].map((passo) => (
-            <li key={passo.n} className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                {passo.n}
-              </div>
-              <h3 className="mt-3 font-heading text-lg font-semibold text-foreground">{passo.t}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{passo.d}</p>
-            </li>
-          ))}
-        </ol>
+        <ul className="mt-7 space-y-4 text-left text-sm font-semibold text-[#31273a] sm:text-base">
+          <li className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 size-5 shrink-0 text-[#7c3aed]" aria-hidden="true" />
+            Ofertas pesquisadas para encontrar preço bom e desconto real
+          </li>
+          <li className="flex items-start gap-3">
+            <BadgeCheck className="mt-0.5 size-5 shrink-0 text-[#7c3aed]" aria-hidden="true" />
+            Entre grátis e receba as promoções direto no WhatsApp
+          </li>
+        </ul>
 
-        <div className="mt-12 rounded-2xl border border-sage/40 bg-secondary px-5 py-8 text-center sm:px-8">
-          <h2 className="font-heading text-2xl font-semibold text-foreground">Quer receber os próximos achados?</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            O grupo é o canal rápido, de qualquer categoria. O site continua com o blog e a vitrine, se
-            você preferir olhar com calma.
+        <div className="mt-8">
+          <BotaoGrupoWhatsapp
+            href={href}
+            posicao="hero"
+            className="max-w-none rounded-xl bg-[#20c65a] py-4 text-base shadow-[0_10px_24px_rgba(32,198,90,0.28)] hover:bg-[#19b44f]"
+          />
+        </div>
+        <div className="mt-4 flex justify-center">
+          <OutrosCanaisGrupo telegram={hrefTelegram} className="justify-center" />
+        </div>
+
+        <div className="mt-8 border-t border-[#eeeaf2] pt-6">
+          <div className="flex items-center justify-center gap-2 text-sm font-extrabold tracking-wide text-[#5b2786]">
+            <ShieldCheck className="size-5" aria-hidden="true" />
+            É CONFIÁVEL
+          </div>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-[#766b7e]">
+            O grupo é gratuito. Você decide se quer aproveitar cada oferta, e alguns links podem gerar comissão sem custo extra para você.
           </p>
-          <div className="mx-auto mt-6 flex flex-col items-center gap-3">
-            <BotaoGrupoWhatsapp href={href} posicao="rodape" />
-            <OutrosCanaisGrupo telegram={hrefTelegram} />
-          </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
