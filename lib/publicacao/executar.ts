@@ -1,8 +1,15 @@
 import { prisma, Rede } from "@/lib/database";
-import { obterPublicador } from "./publicadores";
-import { urlJpegPublicaParaInstagram } from "./instagram-imagem";
+import { ehCanalDeGrupo } from "@/lib/agenda/janela";
 import { registrar } from "@/lib/log";
 import { proximoHorarioLivre } from "@/lib/agenda/proximo-horario";
+import { primeiraImagem } from "@/lib/produtos";
+import { obterPublicador } from "./publicadores";
+import { urlJpegPublicaParaInstagram } from "./instagram-imagem";
+
+/** Criativo composto do site (`/midia/artes/...`) — grupos recebem a foto real do produto. */
+function ehArteDoSite(url: string): boolean {
+  return /\/midia\/artes(\/|$)/i.test(url);
+}
 
 const MAX_TENTATIVAS = 4;
 const ESPERA_MINIMA_ENTRE_TENTATIVAS_MIN = 10;
@@ -17,7 +24,7 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     where: { id: publicacaoId },
     include: {
       canal: true,
-      produto: { select: { slug: true } },
+      produto: { select: { slug: true, imagens: true } },
       post: { select: { slug: true, tipo: true } },
       landingDiaria: { select: { slug: true } },
       listaOferta: { select: { titulo: true } },
@@ -28,6 +35,16 @@ export async function executarPublicacao(publicacaoId: string): Promise<void> {
     const publicador = obterPublicador(publicacao.canal);
 
     let imagemUrl = publicacao.imagemUrl ?? undefined;
+    if (ehCanalDeGrupo(publicacao.canal.rede) && publicacao.produto) {
+      const fotoReal = primeiraImagem(publicacao.produto) ?? undefined;
+      if (fotoReal && (!imagemUrl || ehArteDoSite(imagemUrl))) {
+        imagemUrl = fotoReal;
+        if (imagemUrl !== publicacao.imagemUrl) {
+          await prisma.publicacao.update({ where: { id: publicacaoId }, data: { imagemUrl } });
+        }
+      }
+    }
+
     if (publicacao.canal.rede === Rede.INSTAGRAM && imagemUrl) {
       const jpeg = await urlJpegPublicaParaInstagram(imagemUrl);
       if (jpeg !== imagemUrl) {

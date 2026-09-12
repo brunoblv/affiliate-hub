@@ -95,7 +95,7 @@ export function CanalForm({
           id="idExterno"
           name="idExterno"
           defaultValue={canal?.idExterno}
-          placeholder="page_id / group_id / ig_user_id / chat_id / JID do grupo (WhatsApp)"
+          placeholder="page_id / group_id / ig_user_id / chat_id / JID (@g.us ou @newsletter)"
           required
         />
       </div>

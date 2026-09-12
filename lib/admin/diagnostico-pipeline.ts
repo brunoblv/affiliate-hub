@@ -4,6 +4,7 @@ import { prisma, Rede, StatusPublicacao, type NivelLog } from "@/lib/database";
 import { diagnosticarFilaWhatsapp } from "@/lib/agenda/fila-diagnostico";
 import { formatarHora, formatarLocal } from "@/lib/agenda/fuso";
 import { diretorioAuthWhatsApp } from "@/lib/whatsapp/auth-dir";
+import { ehJidWhatsApp } from "@/lib/whatsapp/jid";
 
 export type StatusEtapa = "ok" | "alerta" | "erro";
 
@@ -106,6 +107,10 @@ export async function diagnosticarPipeline(): Promise<DiagnosticoPipeline> {
 
   const ativos = canaisWa.filter((c) => c.ativo);
   const semJid = ativos.filter((c) => !c.idExterno?.trim());
+  const jidInvalido = ativos.filter((c) => {
+    const jid = c.idExterno?.trim() ?? "";
+    return jid.length > 0 && !ehJidWhatsApp(jid);
+  });
 
   const worker: EtapaDiagnostico = !fila.workerAtivo
     ? etapa(
@@ -135,11 +140,19 @@ export async function diagnosticarPipeline(): Promise<DiagnosticoPipeline> {
             `${semJid.map((c) => c.nome).join(", ")} sem JID — o envio não tem destino.`,
             "Abra o canal e grave o identificador externo do grupo (JID).",
           )
+        : jidInvalido.length > 0
+          ? etapa(
+              "canais",
+              "2. Canal WhatsApp",
+              "erro",
+              `${jidInvalido.map((c) => c.nome).join(", ")} com JID que não é grupo (@g.us) nem canal (@newsletter).`,
+              "Cole o JID real. Link whatsapp.com/channel/... não publica — rode o script de cadastro do canal de transmissão.",
+            )
         : etapa(
             "canais",
             "2. Canal WhatsApp",
             "ok",
-            `${ativos.length} grupo(s): ${ativos.map((c) => c.nome).join(", ")}.`,
+            `${ativos.length} destino(s): ${ativos.map((c) => c.nome).join(", ")}.`,
           );
 
   const qrRecente = qrLog && (!conectadoLog || qrLog.criadoEm >= conectadoLog.criadoEm);

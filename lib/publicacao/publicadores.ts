@@ -6,6 +6,8 @@ import {
   mensagemErroMeta,
   type ErroGraphMeta,
 } from "@/lib/meta/credentials";
+import { ehJidCanalWhatsApp, ehJidWhatsApp } from "@/lib/whatsapp/jid";
+import { directPathDeGrupo, jpegParaWhatsApp, uploadMidiaCanalWhatsApp } from "@/lib/whatsapp/midia";
 import { getWhatsAppSocket } from "@/lib/whatsapp/session";
 import { legendaInstagram, urlJpegPublicaParaInstagram } from "./instagram-imagem";
 
@@ -256,26 +258,84 @@ class PublicadorTelegram implements Publicador {
 }
 
 /**
- * Grupo do WhatsApp via Baileys — ver aviso sobre biblioteca não-oficial em
- * lib/whatsapp/session.ts. O JID do grupo (identificador externo do canal) é
- * obtido rodando `npm run whatsapp:login`.
+ * Grupo (`@g.us`) ou canal de transmissão (`@newsletter`) via Baileys — ver
+ * aviso sobre biblioteca não-oficial em lib/whatsapp/session.ts.
+ *
+ * Canal de transmissão não usa o mesmo CDN nem o mesmo protobuf de grupo.
+ * O Baileys rc14 sobe em `/mms/*`, deixa `url` no proto e manda o nó
+ * `plaintext` sem `mediatype` — o envio “passa”, a foto some (ACK 479).
+ * O postinstall aplica `scripts/patch-baileys-canal-whatsapp.mjs`; daqui
+ * ainda forçamos o CDN `/newsletter/*` e recusamos `directPath` `/o1/`.
  */
 class PublicadorWhatsApp implements Publicador {
-  constructor(private readonly groupJid: string) {}
+  constructor(private readonly jid: string) {}
 
   async publicar(conteudo: ConteudoParaPublicar): Promise<ResultadoPublicacao> {
-    if (!this.groupJid) throw new Error("Canal do WhatsApp sem JID de grupo configurado (identificador externo).");
+    const jid = this.jid.trim();
+    if (!jid) throw new Error("Canal do WhatsApp sem JID configurado (identificador externo).");
+    if (!ehJidWhatsApp(jid)) {
+      throw new Error(
+        `JID do WhatsApp inválido ("${jid}"). Grupo termina em @g.us; canal de transmissão em @newsletter. Link whatsapp.com/channel/... não serve — rode npx tsx scripts/whatsapp-cadastrar-canal-transmissao.mts.`,
+      );
+    }
 
     const legenda = conteudo.texto;
     const sock = await getWhatsAppSocket();
+    const ehCanal = ehJidCanalWhatsApp(jid);
+    const opcoesEnvio = ehCanal ? ({ upload: uploadMidiaCanalWhatsApp(sock) } as Parameters<typeof sock.sendMessage>[2]) : undefined;
 
-    const resultado = conteudo.imagemUrl
-      ? await sock.sendMessage(this.groupJid, { image: { url: conteudo.imagemUrl }, caption: legenda })
-      : await sock.sendMessage(this.groupJid, { text: legenda });
+    try {
+      const resultado = conteudo.imagemUrl
+        ? await enviarImagemWhatsApp(sock, jid, conteudo.imagemUrl, legenda, opcoesEnvio, ehCanal)
+        : await sock.sendMessage(jid, { text: legenda });
 
-    const idExterno = resultado?.key?.id;
-    if (!idExterno) throw new Error("WhatsApp: envio não retornou message id.");
-
-    return { idExterno };
+      return idDoEnvio(resultado);
+    } catch (erro) {
+      const mensagem = erro instanceof Error ? erro.message : String(erro);
+      if (ehCanal && /forbidden|not-authorized|401|403/i.test(mensagem)) {
+        throw new Error(
+          `WhatsApp Canal: ${mensagem}. A sessão precisa ser dona/admin do canal, e o JID tem que terminar em @newsletter.`,
+        );
+      }
+      throw erro;
+    }
   }
+}
+
+async function enviarImagemWhatsApp(
+  sock: Awaited<ReturnType<typeof getWhatsAppSocket>>,
+  jid: string,
+  imagemUrl: string,
+  legenda: string,
+  opcoesEnvio: Parameters<typeof sock.sendMessage>[2],
+  ehCanal: boolean,
+) {
+  const foto = await jpegParaWhatsApp(imagemUrl);
+  const resultado = await sock.sendMessage(
+    jid,
+    {
+      image: foto.jpeg,
+      caption: legenda,
+      mimetype: "image/jpeg",
+      jpegThumbnail: foto.jpegThumbnail,
+      width: foto.width,
+      height: foto.height,
+    },
+    opcoesEnvio,
+  );
+
+  const directPath = resultado?.message?.imageMessage?.directPath;
+  if (ehCanal && directPathDeGrupo(directPath)) {
+    throw new Error(
+      "WhatsApp Canal: a foto subiu no CDN de grupo (/o1/) e o WhatsApp esconde o post (ACK 479). Na VPS rode `npm install` (aplica o patch do Baileys) e `pm2 restart affiliate-hub-workers`.",
+    );
+  }
+
+  return resultado;
+}
+
+function idDoEnvio(resultado: { key?: { id?: string | null } } | null | undefined): ResultadoPublicacao {
+  const idExterno = resultado?.key?.id;
+  if (!idExterno) throw new Error("WhatsApp: envio não retornou message id.");
+  return { idExterno };
 }
