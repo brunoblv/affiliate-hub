@@ -3,6 +3,7 @@ import { prisma } from "@/lib/database";
 import { PageHeader } from "@/components/admin/page-header";
 import { CanalForm } from "@/components/admin/canal-form";
 import { TestarConexaoButton } from "@/components/admin/testar-conexao-button";
+import { ExcluirCanalButton } from "@/components/admin/excluir-canal-button";
 import { updateCanalAction, testarConexaoAction } from "../actions";
 
 export default async function EditarCanalPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,6 +25,16 @@ export default async function EditarCanalPage({ params }: { params: Promise<{ id
         </p>
         <div className="mt-3">
           <TestarConexaoButton action={testar} />
+        </div>
+      </div>
+      <div className="max-w-xl border-t border-border pt-6">
+        <h2 className="text-sm font-medium">Excluir canal</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Remove o canal e toda a fila de publicação associada a ele. Use quando o grupo/canal foi apagado
+          na origem (WhatsApp, Telegram etc.) e não deve mais receber posts.
+        </p>
+        <div className="mt-3">
+          <ExcluirCanalButton id={canal.id} nome={canal.nome} />
         </div>
       </div>
     </div>

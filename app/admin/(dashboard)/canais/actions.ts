@@ -116,6 +116,11 @@ export async function updateCanalAction(id: string, _prev: CanalFormState, formD
   return { status: "success", message: "Alterações salvas." };
 }
 
+export async function deleteCanalAction(id: string): Promise<void> {
+  await prisma.canal.delete({ where: { id } });
+  revalidatePath("/admin/canais");
+}
+
 export interface ResultadoTeste {
   ok: boolean;
   mensagem: string;

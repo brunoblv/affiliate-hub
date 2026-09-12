@@ -20,23 +20,16 @@ export function IconeTelegram({ className }: { className?: string }) {
   );
 }
 
-export function IconeCanal({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path d="M4 11a8 8 0 0116 0M7 11a5 5 0 0110 0" strokeLinecap="round" />
-      <circle cx="12" cy="17" r="2" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-export function BotaoCanalWhatsapp({
+export function BotaoGrupoWhatsapp({
   href,
   className = "",
   tamanho = "grande",
+  posicao = "hero",
 }: {
   href: string;
   className?: string;
   tamanho?: "grande" | "barra";
+  posicao?: "hero" | "rodape";
 }) {
   const tamanhoClasse =
     tamanho === "barra"
@@ -48,34 +41,25 @@ export function BotaoCanalWhatsapp({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => window.fbq?.("track", "Contact")}
+      onClick={() => {
+        const dados = {
+          content_name: "Grupo de ofertas no WhatsApp",
+          content_category: "whatsapp_group",
+          button_location: posicao,
+        };
+
+        // Lead permite otimizar a campanha para este clique. O evento
+        // personalizado separa essa ação dos outros contatos do site.
+        window.fbq?.("track", "Lead", dados);
+        window.fbq?.("trackCustom", "JoinWhatsAppGroup", dados);
+      }}
       className={`inline-flex w-full max-w-lg items-center justify-center gap-3 rounded-full bg-[#25D366] font-bold tracking-wide text-white shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:bg-[#1fbe5a] active:translate-y-px ${tamanhoClasse} ${className}`}
     >
-      <IconeCanal className={tamanho === "barra" ? "size-5" : "size-6"} />
-      Seguir o canal no WhatsApp
+      <IconeWhatsApp className={tamanho === "barra" ? "size-5" : "size-6"} />
+      Entrar no grupo do WhatsApp
       <span aria-hidden="true" className="text-lg leading-none">
         →
       </span>
-    </a>
-  );
-}
-
-export function LinkGrupoSecundario({
-  href,
-  className = "",
-}: {
-  href: string;
-  className?: string;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() => window.fbq?.("track", "Contact")}
-      className={`inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground underline decoration-dotted underline-offset-4 transition hover:text-foreground ${className}`}
-    >
-      Prefere participar de um grupo? Entre aqui.
     </a>
   );
 }
@@ -181,10 +165,10 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
 }
 
 const BENEFICIOS = [
-  { icon: Tag, texto: "Ofertas e cupons da Shopee, TikTok Shop e Mercado Livre" },
-  { icon: Bell, texto: "Direto no WhatsApp que você já usa, sem app extra" },
-  { icon: Lock, texto: "Canal gratuito, sem custo pra entrar" },
-  { icon: Percent, texto: "Comunicação organizada: só as ofertas, sem conversa entre participantes" },
+  { icon: Tag, texto: "Ofertas da Shopee, TikTok Shop e Mercado Livre" },
+  { icon: Percent, texto: "Descontos e cupons quando a loja solta" },
+  { icon: Sparkles, texto: "Qualquer categoria — casa, tecnologia, moda e mais" },
+  { icon: Bell, texto: "Você vê a promoção na hora, no WhatsApp" },
 ];
 
 export function ListaBeneficiosGrupo() {
@@ -207,8 +191,8 @@ export function ListaBeneficiosGrupo() {
 
 const SELOS = [
   { icon: Lock, texto: "Gratuito" },
-  { icon: Users, texto: "Sem conversa entre participantes" },
-  { icon: Sparkles, texto: "Promoção que pode acabar rápido" },
+  { icon: Users, texto: "Ofertas ao longo da semana" },
+  { icon: Sparkles, texto: "Só oferta que vale a pena" },
 ];
 
 export function SelosConfiancaGrupo() {
