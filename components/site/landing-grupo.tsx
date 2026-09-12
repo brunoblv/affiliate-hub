@@ -29,7 +29,7 @@ export function IconeCanal({ className }: { className?: string }) {
   );
 }
 
-export function BotaoGrupoWhatsapp({
+export function BotaoCanalWhatsapp({
   href,
   className = "",
   tamanho = "grande",
@@ -51,8 +51,8 @@ export function BotaoGrupoWhatsapp({
       onClick={() => window.fbq?.("track", "Contact")}
       className={`inline-flex w-full max-w-lg items-center justify-center gap-3 rounded-full bg-[#25D366] font-bold tracking-wide text-white shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:bg-[#1fbe5a] active:translate-y-px ${tamanhoClasse} ${className}`}
     >
-      <IconeWhatsApp className={tamanho === "barra" ? "size-5" : "size-6"} />
-      Entrar no grupo do WhatsApp
+      <IconeCanal className={tamanho === "barra" ? "size-5" : "size-6"} />
+      Seguir o canal no WhatsApp
       <span aria-hidden="true" className="text-lg leading-none">
         →
       </span>
@@ -60,43 +60,47 @@ export function BotaoGrupoWhatsapp({
   );
 }
 
+export function LinkGrupoSecundario({
+  href,
+  className = "",
+}: {
+  href: string;
+  className?: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => window.fbq?.("track", "Contact")}
+      className={`inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground underline decoration-dotted underline-offset-4 transition hover:text-foreground ${className}`}
+    >
+      Prefere participar de um grupo? Entre aqui.
+    </a>
+  );
+}
+
 export function OutrosCanaisGrupo({
   telegram,
-  canalWhatsapp,
   className = "",
 }: {
   telegram?: string | null;
-  canalWhatsapp?: string | null;
   className?: string;
 }) {
-  if (!telegram && !canalWhatsapp) return null;
+  if (!telegram) return null;
 
   return (
     <div className={`flex w-full max-w-lg flex-wrap gap-2.5 ${className}`}>
-      {canalWhatsapp && (
-        <a
-          href={canalWhatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => window.fbq?.("track", "Contact")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:bg-secondary active:translate-y-px"
-        >
-          <IconeCanal className="size-4 text-[#25D366]" />
-          Canal no WhatsApp
-        </a>
-      )}
-      {telegram && (
-        <a
-          href={telegram}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => window.fbq?.("track", "Contact")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:bg-secondary active:translate-y-px"
-        >
-          <IconeTelegram className="size-4 text-[#229ED9]" />
-          Telegram
-        </a>
-      )}
+      <a
+        href={telegram}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => window.fbq?.("track", "Contact")}
+        className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:bg-secondary active:translate-y-px"
+      >
+        <IconeTelegram className="size-4 text-[#229ED9]" />
+        Telegram
+      </a>
     </div>
   );
 }
@@ -177,10 +181,10 @@ export function MockupCelularGrupo({ itens }: { itens: ItemMockupGrupo[] }) {
 }
 
 const BENEFICIOS = [
-  { icon: Tag, texto: "Ofertas da Shopee, TikTok Shop e Mercado Livre" },
-  { icon: Percent, texto: "Descontos e cupons quando a loja solta" },
-  { icon: Sparkles, texto: "Qualquer categoria — casa, tecnologia, moda e mais" },
-  { icon: Bell, texto: "Você vê a promoção na hora, no WhatsApp" },
+  { icon: Tag, texto: "Ofertas e cupons da Shopee, TikTok Shop e Mercado Livre" },
+  { icon: Bell, texto: "Direto no WhatsApp que você já usa, sem app extra" },
+  { icon: Lock, texto: "Canal gratuito, sem custo pra entrar" },
+  { icon: Percent, texto: "Comunicação organizada: só as ofertas, sem conversa entre participantes" },
 ];
 
 export function ListaBeneficiosGrupo() {
@@ -203,8 +207,8 @@ export function ListaBeneficiosGrupo() {
 
 const SELOS = [
   { icon: Lock, texto: "Gratuito" },
-  { icon: Users, texto: "Ofertas ao longo da semana" },
-  { icon: Sparkles, texto: "Só oferta que vale a pena" },
+  { icon: Users, texto: "Sem conversa entre participantes" },
+  { icon: Sparkles, texto: "Promoção que pode acabar rápido" },
 ];
 
 export function SelosConfiancaGrupo() {

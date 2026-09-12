@@ -10,13 +10,13 @@ export default function LandingGrupoLayout({ children }: { children: React.React
           <Link href="/" className="font-heading text-xl font-semibold tracking-tight text-foreground">
             Meu Novo Lar
           </Link>
-          <span className="text-[11px] font-bold tracking-[0.12em] text-muted-foreground">GRUPO DE OFERTAS</span>
+          <span className="text-[11px] font-bold tracking-[0.12em] text-muted-foreground">CANAL DE OFERTAS</span>
         </div>
       </header>
       <main className="flex-1">{children}</main>
       <footer className="bg-foreground px-5 py-8 text-center text-xs leading-relaxed text-secondary/70 sm:px-8">
         <p>
-          Alguns links compartilhados no grupo são de afiliado: se você comprar por eles, o Meu Novo Lar pode
+          Alguns links compartilhados no canal são de afiliado: se você comprar por eles, o Meu Novo Lar pode
           receber uma comissão, sem custo a mais pra você. Preço e estoque mudam na loja.
         </p>
         <p className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1">

@@ -5,7 +5,8 @@ import { getSiteUrl } from "@/lib/site-url";
 import { deduplicarCatalogo, descontoPercentual } from "@/lib/produtos";
 import { obterConfiguracaoVitrine } from "@/lib/vitrine/configuracao";
 import {
-  BotaoGrupoWhatsapp,
+  BotaoCanalWhatsapp,
+  LinkGrupoSecundario,
   ListaBeneficiosGrupo,
   MockupCelularGrupo,
   OutrosCanaisGrupo,
@@ -15,9 +16,9 @@ import {
 
 export const revalidate = 300;
 
-const TITULO = "Grupo de Ofertas no WhatsApp — Meu Novo Lar";
+const TITULO = "Canal de Ofertas no WhatsApp — Meu Novo Lar";
 const DESCRICAO =
-  "Grupo gratuito com ofertas da Shopee, TikTok Shop e Mercado Livre — de qualquer categoria, sem só ficar em casa.";
+  "Canal gratuito no WhatsApp com ofertas e cupons da Shopee, TikTok Shop e Mercado Livre — comunicação organizada, sem conversa entre participantes.";
 
 export const metadata: Metadata = {
   title: TITULO,
@@ -30,6 +31,11 @@ export const metadata: Metadata = {
     url: `${getSiteUrl()}/grupo`,
     locale: "pt_BR",
     type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: TITULO,
+    description: DESCRICAO,
   },
 };
 
@@ -100,7 +106,8 @@ async function ofertasDeExemplo(): Promise<ItemMockupGrupo[]> {
 
 export default async function LandingGrupoPage() {
   const [links, itens] = await Promise.all([resolverLinksGrupo(), ofertasDeExemplo()]);
-  const { whatsapp: href, telegram: hrefTelegram } = links;
+  const { whatsapp: hrefGrupo, telegram: hrefTelegram } = links;
+  const hrefCanal = CANAL_WHATSAPP_URL;
 
   return (
     <>
@@ -109,12 +116,12 @@ export default async function LandingGrupoPage() {
           <div>
             <p className="text-[11px] font-bold tracking-[0.16em] text-primary">OFERTAS DE QUALQUER CATEGORIA</p>
             <h1 className="mt-3 max-w-xl font-heading text-4xl leading-[1.12] font-semibold text-foreground sm:text-5xl">
-              Grupo de Ofertas no WhatsApp
+              Canal de Ofertas no WhatsApp
             </h1>
             <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-muted-foreground">
-              Promoções e cupons de qualquer categoria — casa, tecnologia, moda, beleza — direto no seu
-              celular. Oferta boa some rápido, então quem tá no grupo vê primeiro. Sem app extra: é o
-              WhatsApp que você já usa.
+              Ofertas e cupons de várias categorias — casa, tecnologia, moda, beleza — direto no seu
+              WhatsApp. Canal gratuito, sem app extra e sem bagunça de conversa entre participantes: é só
+              a oferta. Promoção boa some rápido, então quem segue o canal vê primeiro.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
@@ -133,10 +140,13 @@ export default async function LandingGrupoPage() {
             </div>
 
             <div className="mt-8">
-              <BotaoGrupoWhatsapp href={href} />
+              <BotaoCanalWhatsapp href={hrefCanal} />
             </div>
             <div className="mt-3">
-              <OutrosCanaisGrupo telegram={hrefTelegram} canalWhatsapp={CANAL_WHATSAPP_URL} />
+              <LinkGrupoSecundario href={hrefGrupo} />
+            </div>
+            <div className="mt-3">
+              <OutrosCanaisGrupo telegram={hrefTelegram} />
             </div>
             <div className="mt-4">
               <SelosConfiancaGrupo />
@@ -157,9 +167,9 @@ export default async function LandingGrupoPage() {
         <h2 className="font-heading text-2xl font-semibold text-foreground sm:text-3xl">Como funciona</h2>
         <ol className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
-            { n: "1", t: "Entra no grupo", d: "Um toque no botão verde abre o convite do WhatsApp. É grátis, sem compromisso." },
-            { n: "2", t: "Recebe os achados", d: "Quando encontramos uma oferta boa nas lojas, mandamos no grupo na hora." },
-            { n: "3", t: "Você decide", d: "Abre o link, confere na loja e compra só se fizer sentido pra você." },
+            { n: "1", t: "Segue o canal", d: "Um toque no botão verde abre o canal no WhatsApp. É grátis, sem compromisso." },
+            { n: "2", t: "Recebe os achados", d: "Quando encontramos uma oferta boa nas lojas, mandamos no canal na hora." },
+            { n: "3", t: "Você decide", d: "Abre o link, confere na loja e aproveita a oferta só se fizer sentido pra você." },
           ].map((passo) => (
             <li key={passo.n} className="rounded-2xl border border-border bg-card p-5">
               <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
@@ -174,12 +184,13 @@ export default async function LandingGrupoPage() {
         <div className="mt-12 rounded-2xl border border-sage/40 bg-secondary px-5 py-8 text-center sm:px-8">
           <h2 className="font-heading text-2xl font-semibold text-foreground">Quer receber os próximos achados?</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            O grupo é o canal rápido, de qualquer categoria. O site continua com o blog e a vitrine, se
-            você preferir olhar com calma.
+            O canal é a forma mais organizada de receber, de qualquer categoria. O site continua com o
+            blog e a vitrine, se você preferir olhar com calma.
           </p>
           <div className="mx-auto mt-6 flex flex-col items-center gap-3">
-            <BotaoGrupoWhatsapp href={href} />
-            <OutrosCanaisGrupo telegram={hrefTelegram} canalWhatsapp={CANAL_WHATSAPP_URL} />
+            <BotaoCanalWhatsapp href={hrefCanal} />
+            <LinkGrupoSecundario href={hrefGrupo} />
+            <OutrosCanaisGrupo telegram={hrefTelegram} />
           </div>
         </div>
       </section>
