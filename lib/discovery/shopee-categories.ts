@@ -1,0 +1,21 @@
+/** Categorias de nível 1 da Shopee (productCatId). Confirmadas na prática; a API não lista categorias. */
+export const SHOPEE_CATEGORIES: { id: number; label: string }[] = [
+  { id: 100636, label: "Casa e construção" },
+  { id: 100010, label: "Eletrodomésticos" },
+  { id: 100013, label: "Celulares e acessórios" },
+  { id: 100644, label: "Computadores e acessórios" },
+  { id: 100535, label: "Áudio" },
+  { id: 100634, label: "Games e consoles" },
+  { id: 100635, label: "Câmeras e drones" },
+  { id: 100001, label: "Saúde" },
+  { id: 100630, label: "Beleza" },
+  { id: 100637, label: "Esportes e ar livre" },
+  { id: 100632, label: "Mãe e bebê" },
+  { id: 100639, label: "Brinquedos e hobbies" },
+  { id: 100640, label: "Automotivo" },
+  { id: 100641, label: "Motos" },
+  { id: 100015, label: "Viagem e bagagem" },
+  { id: 100638, label: "Papelaria" },
+  { id: 100534, label: "Relógios" },
+  { id: 100009, label: "Acessórios de moda" },
+];

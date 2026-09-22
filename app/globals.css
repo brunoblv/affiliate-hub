@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+
+  --color-canvas: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-ink: #16181d;
+  --color-muted: #656b76;
+  --color-faint: #8a9099;
+  --color-ghost: #c2c6ce;
+  --color-line: #e5e7eb;
+  --color-line-soft: #f1f2f5;
+  --color-line-strong: #d3d5db;
+
+  --color-brand: #5b5ce2;
+  --color-brand-dark: #4647c7;
+  --color-brand-soft: #eeeeff;
+
+  --color-good: #168653;
+  --color-good-bg: #e7f4ee;
+
+  --color-warn: #f59e0b;
+  --color-warn-ink: #8a5b00;
+  --color-warn-bg: #fef6e7;
+  --color-warn-line: #f7e3b5;
+
+  --color-bad: #dc3545;
+  --color-bad-ink: #a32430;
+  --color-bad-bg: #fdecee;
+  --color-bad-line: #f5c6cb;
+
+  --radius-card: 14px;
+  --radius-control: 9px;
+
+  --shadow-card: 0 1px 2px rgba(22, 24, 29, 0.03);
+  --shadow-raised: 0 1px 2px rgba(22, 24, 29, 0.04);
+  --shadow-phone: 0 12px 40px rgba(22, 24, 29, 0.08);
+
+  --animate-shimmer: shimmer 1.4s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Visible keyboard focus everywhere — required by the accessibility brief. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@utility photo-placeholder {
+  background: repeating-linear-gradient(135deg, #f2f3f6 0 7px, #e9ebef 7px 14px);
+}
+
+@utility skeleton-sheen {
+  background: linear-gradient(90deg, #f1f2f5 25%, #e9ebef 37%, #f1f2f5 63%);
+  background-size: 400px 100%;
+  animation: var(--animate-shimmer);
+}

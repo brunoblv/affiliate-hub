@@ -1,0 +1,508 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Auth.js: @auth/prisma-adapter resolve os models pelo nome do client gerado
+// (user/account), então ficam em inglês. Sessão é JWT, sem model Session.
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts    Account[]
+  favorites   Favorite[]
+  priceAlerts PriceAlert[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// Produtos ainda vivem em lib/data.ts, então referenciamos por slug.
+model Favorite {
+  id           String   @id @default(cuid())
+  userId       String
+  productId    String
+  savedAtCents Int?
+  createdAt    DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
+
+model PriceAlert {
+  id                 String    @id @default(cuid())
+  userId             String
+  productId          String
+  targetCents        Int
+  /// Quando o aviso desta passagem pela meta foi enviado. Nulo = ainda não avisado
+  /// (ou o preço voltou a subir e o alerta foi rearmado).
+  notifiedAt         DateTime?
+  notifiedPriceCents Int?
+  createdAt          DateTime  @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("price_alerts")
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo: produto canônico -> variação -> oferta (por loja/vendedor)
+// Preço sempre em centavos inteiros.
+// ---------------------------------------------------------------------------
+
+enum CollectionMethod {
+  API
+  SCRAPER
+  MANUAL
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Availability {
+  IN_STOCK
+  OUT_OF_STOCK
+  UNKNOWN
+}
+
+enum OfferStatus {
+  ACTIVE
+  STALE
+  ERROR
+}
+
+enum ShippingKind {
+  FREE
+  PAID
+  CONDITIONAL
+  UNKNOWN
+}
+
+enum ItemCondition {
+  NEW
+  USED
+}
+
+model Niche {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  position    Int     @default(0)
+  active      Boolean @default(true)
+
+  categories Category[]
+  products   ProductNiche[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("niches")
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  nicheId  String
+  parentId String?
+  position Int     @default(0)
+
+  niche    Niche      @relation(fields: [nicheId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Store {
+  id        String           @id @default(cuid())
+  slug      String           @unique
+  name      String
+  method    CollectionMethod @default(MANUAL)
+  /// Chave do conector em lib/connectors (ex.: "shopee"). Nulo = só ofertas manuais.
+  connector String?
+  active    Boolean          @default(true)
+
+  offers Offer[]
+
+  createdAt DateTime @default(now())
+
+  @@map("stores")
+}
+
+model Product {
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  name       String
+  brand      String?
+  model      String?
+  gtin       String?
+  summary    String?
+  specs      Json?
+  /// nome + marca + modelo + gtin, sem acento e em minúsculas (busca RF-10).
+  searchText String        @default("")
+  status     ProductStatus @default(DRAFT)
+  categoryId String?
+  /// Última busca de correspondência no Mercado Livre (null = ainda não procurado).
+  mlMatchCheckedAt DateTime?
+
+  category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  niches      ProductNiche[]
+  variants    ProductVariant[]
+  images      ProductImage[]
+  favorites   Favorite[]
+  priceAlerts PriceAlert[]
+  content     ProductContent?
+  creatives   Creative[]
+  matchSuggestions MatchSuggestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("products")
+}
+
+model ProductNiche {
+  productId String
+  nicheId   String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  niche   Niche   @relation(fields: [nicheId], references: [id], onDelete: Cascade)
+
+  @@id([productId, nicheId])
+  @@map("product_niches")
+}
+
+/// Todo produto tem ao menos uma variação (a padrão), mesmo sem opções.
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  label      String
+  attributes Json?
+  isDefault  Boolean @default(false)
+
+  product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  offers  Offer[]
+  images  ProductImage[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id         String    @id @default(cuid())
+  productId  String
+  variantId  String?
+  url        String
+  alt        String?
+  position   Int       @default(0)
+  isCover    Boolean   @default(false)
+  /// De onde veio a foto (ex.: "manual", "shopee").
+  source     String?
+  /// Última checagem da URL e resultado. Foto quebrada some do site sem quebrar a página.
+  verifiedAt DateTime?
+  broken     Boolean   @default(false)
+
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Offer {
+  id                  String           @id @default(cuid())
+  variantId           String
+  storeId             String
+  sellerName          String
+  externalListingId   String?
+  externalVariantId   String?
+  /// Vendedor/loja no marketplace (ex.: shopId da Shopee).
+  externalSellerId    String?
+  originalUrl         String?
+  priceCents          Int?
+  previousPriceCents  Int?
+  installments        Int?
+  /// Total a prazo (parcelado), quando difere do à vista em priceCents.
+  installmentPriceCents Int?
+  /// Condição do preço à vista (ex.: "Pix", "NuPay").
+  priceCondition      String?
+  shippingKind        ShippingKind     @default(UNKNOWN)
+  shippingCents       Int?
+  condition           ItemCondition    @default(NEW)
+  availability        Availability     @default(UNKNOWN)
+  method              CollectionMethod @default(MANUAL)
+  status              OfferStatus      @default(ACTIVE)
+  active              Boolean          @default(true)
+  /// Última coleta bem-sucedida do preço.
+  priceCheckedAt      DateTime?
+  /// Última tentativa, com sucesso ou não.
+  lastAttemptAt       DateTime?
+  lastError           String?
+  consecutiveFailures Int              @default(0)
+  /// Valor coletado que destoa muito do anterior: fica aqui até um admin aprovar.
+  needsReview         Boolean          @default(false)
+  reviewReason        String?
+  pendingPriceCents   Int?
+
+  variant  ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  store    Store           @relation(fields: [storeId], references: [id])
+  links    AffiliateLink[]
+  prices   PricePoint[]
+  syncJobs SyncJob[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, externalListingId, variantId])
+  @@index([variantId])
+  @@map("offers")
+}
+
+/// Único lugar de onde sai URL pública de compra. Nunca cair para originalUrl.
+model AffiliateLink {
+  id        String  @id @default(cuid())
+  offerId   String
+  url       String
+  label     String?
+  shortCode String  @unique
+  active    Boolean @default(true)
+
+  offer  Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  clicks Click[]
+
+  createdAt DateTime @default(now())
+
+  @@index([offerId])
+  @@map("affiliate_links")
+}
+
+/// Clique no botão de uma loja. Não prova compra nem comissão (RF-12).
+model Click {
+  id        String   @id @default(cuid())
+  linkId    String?
+  offerId   String?
+  productId String?
+  storeId   String?
+  /// Caminho da página de origem (ex.: /produto/x), quando conhecido.
+  source    String?
+  createdAt DateTime @default(now())
+
+  link AffiliateLink? @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  @@index([offerId, createdAt])
+  @@index([productId, createdAt])
+  @@map("clicks")
+}
+
+model PricePoint {
+  id           String           @id @default(cuid())
+  offerId      String
+  priceCents   Int
+  availability Availability     @default(UNKNOWN)
+  source       CollectionMethod
+  observedAt   DateTime         @default(now())
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([offerId, observedAt])
+  @@map("price_points")
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  AUTO
+  REJECTED
+}
+
+/// Candidato do Mercado Livre (produto de catálogo) para um produto importado da Shopee.
+/// Alta confiança vira oferta sozinha (AUTO); o resto espera a escolha do admin (PENDING).
+model MatchSuggestion {
+  id         String      @id @default(cuid())
+  productId  String
+  catalogId  String
+  name       String
+  imageUrl   String?
+  priceCents Int?
+  score      Int
+  reasons    String[]
+  status     MatchStatus @default(PENDING)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([productId, catalogId])
+  @@index([status, score])
+  @@map("match_suggestions")
+}
+
+enum SyncJobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum SyncReason {
+  SCHEDULED
+  MANUAL
+  RETRY
+}
+
+/// Fila persistente de coleta de preço. Um job em andamento por oferta; lease
+/// (lockedUntil) permite retomar o trabalho de um worker que caiu.
+model SyncJob {
+  id           String        @id @default(cuid())
+  offerId      String
+  status       SyncJobStatus @default(QUEUED)
+  reason       SyncReason    @default(SCHEDULED)
+  scheduledFor DateTime      @default(now())
+  attempts     Int           @default(0)
+  lockedUntil  DateTime?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  /// Resultado resumido: preço coletado, mudança, revisão pendente...
+  result       Json?
+  error        String?
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([status, scheduledFor])
+  @@index([offerId, status])
+  @@map("sync_jobs")
+}
+
+model WorkerHeartbeat {
+  id         String   @id
+  startedAt  DateTime
+  lastSeenAt DateTime
+  info       Json?
+
+  @@map("worker_heartbeats")
+}
+
+enum ContentStatus {
+  PENDING
+  GENERATING
+  DRAFT
+  REVIEWED
+  PUBLISHED
+  FAILED
+}
+
+/// Conteúdo editorial do produto (RF-13). Preço nunca entra aqui: é bloco dinâmico do banco.
+model ProductContent {
+  id                  String        @id @default(cuid())
+  productId           String        @unique
+  status              ContentStatus @default(PENDING)
+  /// Material de referência colado pelo admin (ficha do fabricante, descrição da loja).
+  /// É a única fonte de fatos do texto gerado.
+  sourceMaterial      String?
+  /// Seções do texto (título, resumo, descrição, benefícios, público, uso, cuidados, FAQ, meta).
+  sections            Json?
+  /// Seções editadas à mão: a regeneração automática não as sobrescreve.
+  protectedKeys       String[]
+  /// Problemas achados na validação do texto (bloqueiam a publicação).
+  issues              Json?
+  /// Pendências de dados (ex.: "modo de uso sem fonte").
+  pendencies          Json?
+  model               String?
+  promptVersion       String?
+  /// Exatamente o que foi enviado ao modelo.
+  inputSnapshot       Json?
+  inputTokens         Int?
+  outputTokens        Int?
+  error               String?
+  generationStartedAt DateTime?
+  generatedAt         DateTime?
+  reviewedAt          DateTime?
+  publishedAt         DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("product_contents")
+}
+
+enum CreativeStatus {
+  PENDING_APPROVAL
+  APPROVED
+  PUBLISHED
+  INVALIDATED
+}
+
+/// Capa/criativo gerado (RF-15). O arquivo fica em disco; aqui ficam os dados de rastreio.
+model Creative {
+  id                String         @id @default(cuid())
+  productId         String
+  /// Formato: share (1200x630), feed (1080x1350), story (1080x1920), square (1080x1080).
+  format            String
+  template          String
+  templateVersion   Int
+  width             Int
+  height            Int
+  /// Caminho relativo dentro do diretório de criativos.
+  file              String
+  status            CreativeStatus @default(PENDING_APPROVAL)
+  withPrice         Boolean        @default(false)
+  /// Preço mostrado na imagem e quando foi observado (só quando withPrice).
+  priceCents        Int?
+  priceObservedAt   DateTime?
+  invalidatedReason String?
+  approvedAt        DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, status])
+  @@map("creatives")
+}
