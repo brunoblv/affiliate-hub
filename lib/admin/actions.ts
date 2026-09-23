@@ -130,6 +130,9 @@ export async function saveNiche(data: FormData) {
 export async function deleteNiche(data: FormData) {
   await requireAdmin();
   const id = text(data, "id");
+  if (await prisma.community.count({ where: { nicheId: id } })) {
+    fail("/admin/categorias", "O nicho tem comunidades associadas. Desative em vez de excluir.");
+  }
   if (await prisma.productNiche.count({ where: { nicheId: id } })) {
     fail("/admin/categorias", "O nicho tem produtos associados. Desative em vez de excluir.");
   }

@@ -202,6 +202,40 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
+export type EnumCommunityPlatformFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityPlatform | Prisma.EnumCommunityPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel> | $Enums.CommunityPlatform
+}
+
+export type EnumCommunityKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityKind | Prisma.EnumCommunityKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel> | $Enums.CommunityKind
+}
+
+export type EnumCommunityPlatformWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityPlatform | Prisma.EnumCommunityPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityPlatformWithAggregatesFilter<$PrismaModel> | $Enums.CommunityPlatform
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel>
+}
+
+export type EnumCommunityKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityKind | Prisma.EnumCommunityKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityKindWithAggregatesFilter<$PrismaModel> | $Enums.CommunityKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel>
+}
+
 export type EnumCollectionMethodFilter<$PrismaModel = never> = {
   equals?: $Enums.CollectionMethod | Prisma.EnumCollectionMethodFieldRefInput<$PrismaModel>
   in?: $Enums.CollectionMethod[] | Prisma.ListEnumCollectionMethodFieldRefInput<$PrismaModel>
@@ -639,6 +673,40 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type NestedEnumCommunityPlatformFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityPlatform | Prisma.EnumCommunityPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel> | $Enums.CommunityPlatform
+}
+
+export type NestedEnumCommunityKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityKind | Prisma.EnumCommunityKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel> | $Enums.CommunityKind
+}
+
+export type NestedEnumCommunityPlatformWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityPlatform | Prisma.EnumCommunityPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityPlatform[] | Prisma.ListEnumCommunityPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityPlatformWithAggregatesFilter<$PrismaModel> | $Enums.CommunityPlatform
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommunityPlatformFilter<$PrismaModel>
+}
+
+export type NestedEnumCommunityKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityKind | Prisma.EnumCommunityKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommunityKind[] | Prisma.ListEnumCommunityKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommunityKindWithAggregatesFilter<$PrismaModel> | $Enums.CommunityKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommunityKindFilter<$PrismaModel>
 }
 
 export type NestedEnumCollectionMethodFilter<$PrismaModel = never> = {

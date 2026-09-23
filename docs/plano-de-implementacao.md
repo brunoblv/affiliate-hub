@@ -1,6 +1,6 @@
 # Affiliate Hub — plano de implementação por fases
 
-Base: `Requisitos/Affiliate-Hub-Requisitos.md` (RF-xx). Atualizado em 2026-09-20.
+Base: `Requisitos/Affiliate-Hub-Requisitos.md` (RF-xx). Atualizado em 2026-09-22.
 
 Regra transversal: nada de número, produto ou selo inventado na interface. Sem dado, mostrar estado vazio. Nunca divulgar URL crua de loja: só o link de afiliado (`/go/[código]`).
 
@@ -14,7 +14,7 @@ Regra transversal: nada de número, produto ou selo inventado na interface. Sem 
 | 3 | Conta do usuário: favoritos e alertas | **Concluída** |
 | 4 | Coleta de preços (Shopee), worker, painel, aviso por e-mail | **Concluída** (falta 2ª loja e worker em produção) |
 | 5 | Conteúdo com Gemini, imagens e capas | **Concluída** |
-| 6 | Comunidades, distribuição, métricas, implantação | **Próxima** |
+| 6 | Comunidades, distribuição, métricas, implantação | **Em andamento:** 6a implementada; validar migração e fluxo no ambiente de execução |
 
 Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, fotos, capas; ou `npm run sync:once` para uma passada). Banco: container `affiliate-hub-postgres` (porta 5434, política de restart; se o banco não responder, o Docker Desktop provavelmente está fechado). Migrations: `prisma/migrations`, aplicadas com `npx prisma migrate deploy`.
 
@@ -67,7 +67,7 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 | 3 | Alterar preço de uma oferta não afeta as outras | Atendido |
 | 4 | Dois links de campanha do mesmo anúncio sem duplicar | **Parcial:** schema pronto, falta a tela |
 | 5 | Busca com/sem acento e filtro por nicho sem duplicar | Atendido |
-| 6 | Criar nicho, categorias e **canais** pelo admin | **Parcial:** nichos e categorias sim; canais na Fase 6 |
+| 6 | Criar nicho, categorias e **canais** pelo admin | Implementado; validação manual do fluxo de comunidades pendente |
 | 7 | Importar categorias externas sem correspondência para revisão | **Pendente** |
 | 8 | Ciclo diário; reiniciar worker sem duplicar | Atendido |
 | 9 | Falha de API, HTML alterado, cookie expirado | **Parcial:** API atendida; HTML e cookie dependem do coletor web |
@@ -75,7 +75,7 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 | 11 | Gemini sem popularidade inventada, sem preço, sem sobrescrever edição | Atendido |
 | 12 | Capas em todos os formatos; preço novo invalida | Atendido |
 | 13 | Cada botão usa seu link e registra a oferta certa | Atendido |
-| 14 | Grupos/canais por nicho; clique medido | **Pendente (Fase 6)** |
+| 14 | Grupos/canais por nicho; clique medido | Implementado na Fase 6a; validação integrada pendente |
 | 15 | Migração preserva códigos, históricos e relações | **Pendente (Fase 6)** |
 | 16 | Fluxo completo no celular | **Pendente:** layout responsivo existe, falta validar em aparelho |
 | 17 | meunovolar.com só com conteúdo editorial de casa | **Pendente (Fase 6, no repositório do blog)** |
@@ -90,6 +90,12 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 ### Fase 6 — Comunidades, distribuição, métricas e implantação
 
 **6a. Comunidades (RF-05)**
+- Implementada em 22/09: `/admin/comunidades` cadastra/edita os quatro tipos, permite vários destinos por nicho, ordem e desativação. Identificador de publicação opcional; nenhuma postagem é disparada pelo cadastro.
+- `/comunidades` lista destinos ativos; páginas de nicho e produto mostram convites contextuais (todos os nichos associados ao produto). Nicho inativo também oculta seus convites.
+- `/comunidades/entrar/[id]` valida o destino, redireciona sem cache e registra clique com nicho e origem local, sem IP ou identificação de usuário. Convite indisponível retorna à listagem com aviso. Contagens no admin são cliques, nunca adesões.
+- Migração aditiva: `20260922120000_comunidades`. Aplicar com `npx prisma migrate deploy` antes de executar o código; regenerar o client com `npx prisma generate`. Destinos com histórico são desativados, sem exclusão.
+- Testes permanentes: `node --import tsx --test lib/communities/validation.test.ts` cobre convites e rejeição de URLs inválidas (2 testes aprovados). `npx tsc --noEmit -p tsconfig.json` aprovado após regenerar o client.
+- Validação local: Docker fora de execução e PostgreSQL `localhost:5434` sem conexão. Migração **não aplicada**. O build compilou e verificou tipos, mas falhou no prerender de `/admin` por `ECONNREFUSED`. Após iniciar o banco: aplicar migrações, repetir build e validar cadastro/edição/desativação e registro de clique em navegador autenticado. Não houve publicação ou implantação.
 - Modelo de destinos por nicho: grupo/canal de WhatsApp e Telegram, com plataforma, tipo, nome, link público de entrada, status e vínculo ao nicho; mais de um destino do mesmo tipo por nicho.
 - Admin em "Comunidades"; CTAs contextuais nas páginas de nicho e de produto (sem exigir entrada para comparar preços); clique de entrada medido por nicho e destino (clique não é adesão confirmada).
 
@@ -116,7 +122,7 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 | Item | Origem | Observação |
 |---|---|---|
 | Testes automatizados no repositório | Todas | Os testes até aqui foram scripts descartáveis rodados na hora. Falta transformá-los em uma suíte permanente (ex.: Vitest) que rode no pipeline. **Recomendado antes da implantação.** |
-| Commit do código | Todas | O repositório ainda tem quase tudo como não rastreado; nada foi commitado. |
+| Commit do código | Todas | Base registrada em `40ae787`; a entrega 6a está no diretório de trabalho, sem novo commit. |
 | Segunda loja com coletor web (RF-07) | Fase 4 | Exige estudo por loja (estrutura da página, sessão, variação). A base de conectores está pronta. |
 | Importar produto por URL / por conector | Fase 1 | Criar o cadastro a partir da URL da Shopee (título, foto, categoria externa). |
 | Importação e mapeamento de categorias externas (RF-04) | Fase 1/4 | Fila de classificação com sugestão da IA e revisão humana. |

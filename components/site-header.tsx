@@ -36,7 +36,8 @@ export async function SiteHeader({ term = "" }: { term?: string }) {
           </div>
         </form>
 
-        <nav aria-label="Principal" className="ml-auto flex flex-none items-center gap-5 md:ml-0">
+        <nav aria-label="Principal" className="ml-auto flex flex-wrap items-center gap-3 md:ml-0">
+          <Link href="/comunidades" className="text-sm font-medium hover:text-brand">Comunidades</Link>
           <Link href="/categoria/celulares" className="text-sm font-medium hover:text-brand">
             Categorias
           </Link>

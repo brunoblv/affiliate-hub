@@ -402,6 +402,8 @@ export const ModelName = {
   Favorite: 'Favorite',
   PriceAlert: 'PriceAlert',
   Niche: 'Niche',
+  Community: 'Community',
+  CommunityClick: 'CommunityClick',
   Category: 'Category',
   Store: 'Store',
   Product: 'Product',
@@ -432,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "favorite" | "priceAlert" | "niche" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative"
+    modelProps: "user" | "account" | "favorite" | "priceAlert" | "niche" | "community" | "communityClick" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -803,6 +805,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.NicheCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.NicheCountAggregateOutputType> | number
+        }
+      }
+    }
+    Community: {
+      payload: Prisma.$CommunityPayload<ExtArgs>
+      fields: Prisma.CommunityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CommunityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CommunityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        findFirst: {
+          args: Prisma.CommunityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CommunityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        findMany: {
+          args: Prisma.CommunityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>[]
+        }
+        create: {
+          args: Prisma.CommunityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        createMany: {
+          args: Prisma.CommunityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CommunityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>[]
+        }
+        delete: {
+          args: Prisma.CommunityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        update: {
+          args: Prisma.CommunityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        deleteMany: {
+          args: Prisma.CommunityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CommunityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CommunityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>[]
+        }
+        upsert: {
+          args: Prisma.CommunityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityPayload>
+        }
+        aggregate: {
+          args: Prisma.CommunityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCommunity>
+        }
+        groupBy: {
+          args: Prisma.CommunityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CommunityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityCountAggregateOutputType> | number
+        }
+      }
+    }
+    CommunityClick: {
+      payload: Prisma.$CommunityClickPayload<ExtArgs>
+      fields: Prisma.CommunityClickFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CommunityClickFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CommunityClickFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        findFirst: {
+          args: Prisma.CommunityClickFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CommunityClickFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        findMany: {
+          args: Prisma.CommunityClickFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>[]
+        }
+        create: {
+          args: Prisma.CommunityClickCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        createMany: {
+          args: Prisma.CommunityClickCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CommunityClickCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>[]
+        }
+        delete: {
+          args: Prisma.CommunityClickDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        update: {
+          args: Prisma.CommunityClickUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        deleteMany: {
+          args: Prisma.CommunityClickDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CommunityClickUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CommunityClickUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>[]
+        }
+        upsert: {
+          args: Prisma.CommunityClickUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityClickPayload>
+        }
+        aggregate: {
+          args: Prisma.CommunityClickAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCommunityClick>
+        }
+        groupBy: {
+          args: Prisma.CommunityClickGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityClickGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CommunityClickCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityClickCountAggregateOutputType> | number
         }
       }
     }
@@ -2026,6 +2176,34 @@ export const NicheScalarFieldEnum = {
 export type NicheScalarFieldEnum = (typeof NicheScalarFieldEnum)[keyof typeof NicheScalarFieldEnum]
 
 
+export const CommunityScalarFieldEnum = {
+  id: 'id',
+  nicheId: 'nicheId',
+  name: 'name',
+  platform: 'platform',
+  kind: 'kind',
+  inviteUrl: 'inviteUrl',
+  publicationId: 'publicationId',
+  active: 'active',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CommunityScalarFieldEnum = (typeof CommunityScalarFieldEnum)[keyof typeof CommunityScalarFieldEnum]
+
+
+export const CommunityClickScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  nicheId: 'nicheId',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type CommunityClickScalarFieldEnum = (typeof CommunityClickScalarFieldEnum)[keyof typeof CommunityClickScalarFieldEnum]
+
+
 export const CategoryScalarFieldEnum = {
   id: 'id',
   slug: 'slug',
@@ -2367,6 +2545,34 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'CommunityPlatform'
+ */
+export type EnumCommunityPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommunityPlatform'>
+    
+
+
+/**
+ * Reference to a field of type 'CommunityPlatform[]'
+ */
+export type ListEnumCommunityPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommunityPlatform[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CommunityKind'
+ */
+export type EnumCommunityKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommunityKind'>
+    
+
+
+/**
+ * Reference to a field of type 'CommunityKind[]'
+ */
+export type ListEnumCommunityKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommunityKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'CollectionMethod'
  */
 export type EnumCollectionMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollectionMethod'>
@@ -2703,6 +2909,8 @@ export type GlobalOmitConfig = {
   favorite?: Prisma.FavoriteOmit
   priceAlert?: Prisma.PriceAlertOmit
   niche?: Prisma.NicheOmit
+  community?: Prisma.CommunityOmit
+  communityClick?: Prisma.CommunityClickOmit
   category?: Prisma.CategoryOmit
   store?: Prisma.StoreOmit
   product?: Prisma.ProductOmit

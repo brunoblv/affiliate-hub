@@ -56,6 +56,8 @@ export const ModelName = {
   Favorite: 'Favorite',
   PriceAlert: 'PriceAlert',
   Niche: 'Niche',
+  Community: 'Community',
+  CommunityClick: 'CommunityClick',
   Category: 'Category',
   Store: 'Store',
   Product: 'Product',
@@ -158,6 +160,34 @@ export const NicheScalarFieldEnum = {
 } as const
 
 export type NicheScalarFieldEnum = (typeof NicheScalarFieldEnum)[keyof typeof NicheScalarFieldEnum]
+
+
+export const CommunityScalarFieldEnum = {
+  id: 'id',
+  nicheId: 'nicheId',
+  name: 'name',
+  platform: 'platform',
+  kind: 'kind',
+  inviteUrl: 'inviteUrl',
+  publicationId: 'publicationId',
+  active: 'active',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CommunityScalarFieldEnum = (typeof CommunityScalarFieldEnum)[keyof typeof CommunityScalarFieldEnum]
+
+
+export const CommunityClickScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  nicheId: 'nicheId',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type CommunityClickScalarFieldEnum = (typeof CommunityClickScalarFieldEnum)[keyof typeof CommunityClickScalarFieldEnum]
 
 
 export const CategoryScalarFieldEnum = {

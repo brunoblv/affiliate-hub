@@ -6,5 +6,6 @@ export const adminNav = [
   { label: "Correspondências", href: "/admin/correspondencias" },
   { label: "Lojas", href: "/admin/lojas" },
   { label: "Categorias", href: "/admin/categorias" },
+  { label: "Comunidades", href: "/admin/comunidades" },
   { label: "Atualização de preços", href: "/admin/precos" },
 ];

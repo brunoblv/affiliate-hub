@@ -43,6 +43,16 @@ export type PriceAlert = Prisma.PriceAlertModel
  */
 export type Niche = Prisma.NicheModel
 /**
+ * Model Community
+ * 
+ */
+export type Community = Prisma.CommunityModel
+/**
+ * Model CommunityClick
+ * Clique de entrada, nunca confirmação de adesão. Nicho preservado no momento do clique.
+ */
+export type CommunityClick = Prisma.CommunityClickModel
+/**
  * Model Category
  * 
  */

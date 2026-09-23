@@ -132,11 +132,55 @@ model Niche {
 
   categories Category[]
   products   ProductNiche[]
+  communities Community[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("niches")
+}
+
+enum CommunityPlatform {
+  WHATSAPP
+  TELEGRAM
+}
+
+enum CommunityKind {
+  GROUP
+  CHANNEL
+}
+
+model Community {
+  id String @id @default(cuid())
+  nicheId String
+  name String
+  platform CommunityPlatform
+  kind CommunityKind
+  inviteUrl String
+  publicationId String?
+  active Boolean @default(false)
+  position Int @default(0)
+  niche Niche @relation(fields: [nicheId], references: [id], onDelete: Restrict)
+  clicks CommunityClick[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nicheId, active, position])
+  @@map("communities")
+}
+
+/// Clique de entrada, nunca confirmação de adesão. Nicho preservado no momento do clique.
+model CommunityClick {
+  id String @id @default(cuid())
+  communityId String
+  nicheId String
+  source String?
+  createdAt DateTime @default(now())
+  community Community @relation(fields: [communityId], references: [id], onDelete: Restrict)
+
+  @@index([communityId, createdAt])
+  @@index([nicheId, createdAt])
+  @@map("community_clicks")
 }
 
 model Category {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CommunityList } from "@/components/community-list";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
@@ -532,6 +533,7 @@ export default async function ProductPage({
             </dl>
           </aside>
         </div>
+        <CommunityList productId={product.id} />
       </main>
 
       {/* Mobile: the comparison CTA stays reachable without covering content. */}

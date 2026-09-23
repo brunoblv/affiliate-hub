@@ -63,6 +63,22 @@ export const ItemCondition = {
 export type ItemCondition = (typeof ItemCondition)[keyof typeof ItemCondition]
 
 
+export const CommunityPlatform = {
+  WHATSAPP: 'WHATSAPP',
+  TELEGRAM: 'TELEGRAM'
+} as const
+
+export type CommunityPlatform = (typeof CommunityPlatform)[keyof typeof CommunityPlatform]
+
+
+export const CommunityKind = {
+  GROUP: 'GROUP',
+  CHANNEL: 'CHANNEL'
+} as const
+
+export type CommunityKind = (typeof CommunityKind)[keyof typeof CommunityKind]
+
+
 export const MatchStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',

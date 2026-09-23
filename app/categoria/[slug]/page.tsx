@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CommunityList } from "@/components/community-list";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
@@ -84,6 +85,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
             </div>
           )}
         </section>
+        <CommunityList nicheId={niche.id} />
       </main>
 
       <SiteFooter />

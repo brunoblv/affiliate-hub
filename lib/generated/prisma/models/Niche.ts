@@ -258,6 +258,7 @@ export type NicheWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Niche"> | Date | string
   categories?: Prisma.CategoryListRelationFilter
   products?: Prisma.ProductNicheListRelationFilter
+  communities?: Prisma.CommunityListRelationFilter
 }
 
 export type NicheOrderByWithRelationInput = {
@@ -273,6 +274,7 @@ export type NicheOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   categories?: Prisma.CategoryOrderByRelationAggregateInput
   products?: Prisma.ProductNicheOrderByRelationAggregateInput
+  communities?: Prisma.CommunityOrderByRelationAggregateInput
 }
 
 export type NicheWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +293,7 @@ export type NicheWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Niche"> | Date | string
   categories?: Prisma.CategoryListRelationFilter
   products?: Prisma.ProductNicheListRelationFilter
+  communities?: Prisma.CommunityListRelationFilter
 }, "id" | "slug">
 
 export type NicheOrderByWithAggregationInput = {
@@ -340,6 +343,7 @@ export type NicheCreateInput = {
   updatedAt?: Date | string
   categories?: Prisma.CategoryCreateNestedManyWithoutNicheInput
   products?: Prisma.ProductNicheCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityCreateNestedManyWithoutNicheInput
 }
 
 export type NicheUncheckedCreateInput = {
@@ -355,6 +359,7 @@ export type NicheUncheckedCreateInput = {
   updatedAt?: Date | string
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutNicheInput
   products?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityUncheckedCreateNestedManyWithoutNicheInput
 }
 
 export type NicheUpdateInput = {
@@ -370,6 +375,7 @@ export type NicheUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.CategoryUpdateManyWithoutNicheNestedInput
   products?: Prisma.ProductNicheUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUpdateManyWithoutNicheNestedInput
 }
 
 export type NicheUncheckedUpdateInput = {
@@ -385,6 +391,7 @@ export type NicheUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutNicheNestedInput
   products?: Prisma.ProductNicheUncheckedUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUncheckedUpdateManyWithoutNicheNestedInput
 }
 
 export type NicheCreateManyInput = {
@@ -482,6 +489,20 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type NicheCreateNestedOneWithoutCommunitiesInput = {
+  create?: Prisma.XOR<Prisma.NicheCreateWithoutCommunitiesInput, Prisma.NicheUncheckedCreateWithoutCommunitiesInput>
+  connectOrCreate?: Prisma.NicheCreateOrConnectWithoutCommunitiesInput
+  connect?: Prisma.NicheWhereUniqueInput
+}
+
+export type NicheUpdateOneRequiredWithoutCommunitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.NicheCreateWithoutCommunitiesInput, Prisma.NicheUncheckedCreateWithoutCommunitiesInput>
+  connectOrCreate?: Prisma.NicheCreateOrConnectWithoutCommunitiesInput
+  upsert?: Prisma.NicheUpsertWithoutCommunitiesInput
+  connect?: Prisma.NicheWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NicheUpdateToOneWithWhereWithoutCommunitiesInput, Prisma.NicheUpdateWithoutCommunitiesInput>, Prisma.NicheUncheckedUpdateWithoutCommunitiesInput>
+}
+
 export type NicheCreateNestedOneWithoutCategoriesInput = {
   create?: Prisma.XOR<Prisma.NicheCreateWithoutCategoriesInput, Prisma.NicheUncheckedCreateWithoutCategoriesInput>
   connectOrCreate?: Prisma.NicheCreateOrConnectWithoutCategoriesInput
@@ -510,6 +531,82 @@ export type NicheUpdateOneRequiredWithoutProductsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.NicheUpdateToOneWithWhereWithoutProductsInput, Prisma.NicheUpdateWithoutProductsInput>, Prisma.NicheUncheckedUpdateWithoutProductsInput>
 }
 
+export type NicheCreateWithoutCommunitiesInput = {
+  id?: string
+  slug: string
+  name: string
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  position?: number
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  categories?: Prisma.CategoryCreateNestedManyWithoutNicheInput
+  products?: Prisma.ProductNicheCreateNestedManyWithoutNicheInput
+}
+
+export type NicheUncheckedCreateWithoutCommunitiesInput = {
+  id?: string
+  slug: string
+  name: string
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  position?: number
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutNicheInput
+  products?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutNicheInput
+}
+
+export type NicheCreateOrConnectWithoutCommunitiesInput = {
+  where: Prisma.NicheWhereUniqueInput
+  create: Prisma.XOR<Prisma.NicheCreateWithoutCommunitiesInput, Prisma.NicheUncheckedCreateWithoutCommunitiesInput>
+}
+
+export type NicheUpsertWithoutCommunitiesInput = {
+  update: Prisma.XOR<Prisma.NicheUpdateWithoutCommunitiesInput, Prisma.NicheUncheckedUpdateWithoutCommunitiesInput>
+  create: Prisma.XOR<Prisma.NicheCreateWithoutCommunitiesInput, Prisma.NicheUncheckedCreateWithoutCommunitiesInput>
+  where?: Prisma.NicheWhereInput
+}
+
+export type NicheUpdateToOneWithWhereWithoutCommunitiesInput = {
+  where?: Prisma.NicheWhereInput
+  data: Prisma.XOR<Prisma.NicheUpdateWithoutCommunitiesInput, Prisma.NicheUncheckedUpdateWithoutCommunitiesInput>
+}
+
+export type NicheUpdateWithoutCommunitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categories?: Prisma.CategoryUpdateManyWithoutNicheNestedInput
+  products?: Prisma.ProductNicheUpdateManyWithoutNicheNestedInput
+}
+
+export type NicheUncheckedUpdateWithoutCommunitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutNicheNestedInput
+  products?: Prisma.ProductNicheUncheckedUpdateManyWithoutNicheNestedInput
+}
+
 export type NicheCreateWithoutCategoriesInput = {
   id?: string
   slug: string
@@ -522,6 +619,7 @@ export type NicheCreateWithoutCategoriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   products?: Prisma.ProductNicheCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityCreateNestedManyWithoutNicheInput
 }
 
 export type NicheUncheckedCreateWithoutCategoriesInput = {
@@ -536,6 +634,7 @@ export type NicheUncheckedCreateWithoutCategoriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   products?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityUncheckedCreateNestedManyWithoutNicheInput
 }
 
 export type NicheCreateOrConnectWithoutCategoriesInput = {
@@ -566,6 +665,7 @@ export type NicheUpdateWithoutCategoriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   products?: Prisma.ProductNicheUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUpdateManyWithoutNicheNestedInput
 }
 
 export type NicheUncheckedUpdateWithoutCategoriesInput = {
@@ -580,6 +680,7 @@ export type NicheUncheckedUpdateWithoutCategoriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   products?: Prisma.ProductNicheUncheckedUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUncheckedUpdateManyWithoutNicheNestedInput
 }
 
 export type NicheCreateWithoutProductsInput = {
@@ -594,6 +695,7 @@ export type NicheCreateWithoutProductsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   categories?: Prisma.CategoryCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityCreateNestedManyWithoutNicheInput
 }
 
 export type NicheUncheckedCreateWithoutProductsInput = {
@@ -608,6 +710,7 @@ export type NicheUncheckedCreateWithoutProductsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutNicheInput
+  communities?: Prisma.CommunityUncheckedCreateNestedManyWithoutNicheInput
 }
 
 export type NicheCreateOrConnectWithoutProductsInput = {
@@ -638,6 +741,7 @@ export type NicheUpdateWithoutProductsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.CategoryUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUpdateManyWithoutNicheNestedInput
 }
 
 export type NicheUncheckedUpdateWithoutProductsInput = {
@@ -652,6 +756,7 @@ export type NicheUncheckedUpdateWithoutProductsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutNicheNestedInput
+  communities?: Prisma.CommunityUncheckedUpdateManyWithoutNicheNestedInput
 }
 
 
@@ -662,11 +767,13 @@ export type NicheUncheckedUpdateWithoutProductsInput = {
 export type NicheCountOutputType = {
   categories: number
   products: number
+  communities: number
 }
 
 export type NicheCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   categories?: boolean | NicheCountOutputTypeCountCategoriesArgs
   products?: boolean | NicheCountOutputTypeCountProductsArgs
+  communities?: boolean | NicheCountOutputTypeCountCommunitiesArgs
 }
 
 /**
@@ -693,6 +800,13 @@ export type NicheCountOutputTypeCountProductsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.ProductNicheWhereInput
 }
 
+/**
+ * NicheCountOutputType without action
+ */
+export type NicheCountOutputTypeCountCommunitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CommunityWhereInput
+}
+
 
 export type NicheSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -707,6 +821,7 @@ export type NicheSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updatedAt?: boolean
   categories?: boolean | Prisma.Niche$categoriesArgs<ExtArgs>
   products?: boolean | Prisma.Niche$productsArgs<ExtArgs>
+  communities?: boolean | Prisma.Niche$communitiesArgs<ExtArgs>
   _count?: boolean | Prisma.NicheCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["niche"]>
 
@@ -753,6 +868,7 @@ export type NicheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
 export type NicheInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   categories?: boolean | Prisma.Niche$categoriesArgs<ExtArgs>
   products?: boolean | Prisma.Niche$productsArgs<ExtArgs>
+  communities?: boolean | Prisma.Niche$communitiesArgs<ExtArgs>
   _count?: boolean | Prisma.NicheCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type NicheIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -763,6 +879,7 @@ export type $NichePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     categories: Prisma.$CategoryPayload<ExtArgs>[]
     products: Prisma.$ProductNichePayload<ExtArgs>[]
+    communities: Prisma.$CommunityPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1171,6 +1288,7 @@ export interface Prisma__NicheClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   categories<T extends Prisma.Niche$categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Niche$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   products<T extends Prisma.Niche$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Niche$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductNichePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  communities<T extends Prisma.Niche$communitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Niche$communitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommunityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1648,6 +1766,30 @@ export type Niche$productsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ProductNicheScalarFieldEnum | Prisma.ProductNicheScalarFieldEnum[]
+}
+
+/**
+ * Niche.communities
+ */
+export type Niche$communitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Community
+   */
+  select?: Prisma.CommunitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Community
+   */
+  omit?: Prisma.CommunityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommunityInclude<ExtArgs> | null
+  where?: Prisma.CommunityWhereInput
+  orderBy?: Prisma.CommunityOrderByWithRelationInput | Prisma.CommunityOrderByWithRelationInput[]
+  cursor?: Prisma.CommunityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CommunityScalarFieldEnum | Prisma.CommunityScalarFieldEnum[]
 }
 
 /**
