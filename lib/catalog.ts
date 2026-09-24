@@ -16,6 +16,9 @@ import type { Cents } from "@/lib/format";
 import type { Category, Offer, Product, Spec, Store, Variant } from "@/lib/types";
 import { asSections } from "@/lib/content/validate";
 import type { ContentSections } from "@/lib/content/types";
+import { historicalOfferIds } from "@/lib/adsense/quality-data";
+import { canonicalHistoryOfferId, evaluateProductQuality } from "@/lib/adsense/quality";
+import { aggregateVariantHistory, type OfferObservation } from "@/lib/history/variant";
 
 // ---------------------------------------------------------------------------
 // Consultas
@@ -63,7 +66,7 @@ export interface CatalogProduct {
   offers: Offer[];
   /** Lojas que aparecem nas ofertas acima. */
   stores: Store[];
-  niche: { slug: string; name: string } | null;
+  niche: { id: string; slug: string; name: string } | null;
   categoryName: string | null;
   createdAt: Date;
   /** Texto editorial PUBLICADO (nunca rascunho). */
@@ -196,7 +199,7 @@ function mapProduct(row: ProductRow, now: number): CatalogProduct {
         row.variants.flatMap((variant) => variant.offers.map((offer) => [offer.store.id, mapStore(offer.store)] as const)),
       ).values(),
     ],
-    niche: niche ? { slug: niche.slug, name: niche.name } : null,
+    niche: niche ? { id: niche.id, slug: niche.slug, name: niche.name } : null,
     categoryName: row.category?.name ?? null,
     createdAt: row.createdAt,
     content: null,
@@ -467,6 +470,48 @@ export async function getOfferHistory(offerId: string): Promise<PricePointView[]
   return (await loadSeries([offerId], since)).get(offerId) ?? [];
 }
 
+/** Daily minimum among currently public offers of the selected variation and item condition. */
+export async function getVariantPriceHistory(
+  variantId: string | undefined,
+  offerIds: string[],
+  selectedOfferId: string | undefined,
+): Promise<{ points: PricePointView[]; itemCondition: "NEW" | "USED"; priceCondition: string | null } | null> {
+  if (!variantId || !selectedOfferId || offerIds.length === 0) return null;
+  const offers = await prisma.offer.findMany({
+    where: { id: { in: offerIds }, variantId },
+    select: { id: true, condition: true, priceCondition: true },
+  });
+  const selected = offers.find((offer) => offer.id === selectedOfferId);
+  if (!selected) return null;
+  const comparable = offers.filter((offer) => offer.condition === selected.condition);
+  const offerById = new Map(comparable.map((offer) => [offer.id, offer]));
+  const since = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000);
+  const rows = await prisma.pricePoint.findMany({
+    where: { offerId: { in: comparable.map((offer) => offer.id) }, observedAt: { gte: since } },
+    select: {
+      offerId: true, variantId: true, itemCondition: true, priceCents: true,
+      priceCondition: true, availability: true, observedAt: true,
+    },
+    orderBy: { observedAt: "asc" },
+  });
+  const observations: OfferObservation[] = rows.flatMap((row) => {
+    const offer = offerById.get(row.offerId);
+    return offer ? [{
+      offerId: row.offerId, variantId: row.variantId, itemCondition: row.itemCondition,
+      priceCondition: row.priceCondition, availability: row.availability,
+      t: row.observedAt.getTime(), cents: row.priceCents,
+    }] : [];
+  });
+  const priceCondition = selected.priceCondition;
+  return {
+    points: aggregateVariantHistory(observations, {
+      variantId, itemCondition: selected.condition, priceCondition,
+    }),
+    itemCondition: selected.condition,
+    priceCondition,
+  };
+}
+
 async function loadCandidates(take: number): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: { status: "PUBLISHED", ...HAS_PUBLIC_OFFER },
@@ -566,12 +611,31 @@ export async function listFeatured(limit: number): Promise<Product[]> {
 // ---------------------------------------------------------------------------
 
 export async function listSitemapEntries() {
-  const [products, niches] = await Promise.all([
+  const [rows, niches] = await Promise.all([
     prisma.product.findMany({
       where: { status: "PUBLISHED", ...HAS_PUBLIC_OFFER },
-      select: { slug: true, updatedAt: true },
+      include: productInclude,
     }),
     prisma.niche.findMany({ where: { active: true }, select: { slug: true, updatedAt: true } }),
   ]);
+  const ids = rows.map((row) => row.id);
+  const [contents, historicalIds] = await Promise.all([
+    prisma.productContent.findMany({
+      where: { productId: { in: ids }, status: "PUBLISHED" },
+      select: { productId: true, sections: true },
+    }),
+    historicalOfferIds(ids),
+  ]);
+  const contentByProduct = new Map(contents.map((content) => [content.productId, content.sections]));
+  const now = Date.now();
+  const products = rows.filter((row) => {
+    const sections = contentByProduct.get(row.id);
+    const found: CatalogProduct = {
+      ...mapProduct(row, now),
+      content: sections ? asSections(sections) : null,
+    };
+    const mainOfferId = canonicalHistoryOfferId(found);
+    return evaluateProductQuality(found, Boolean(mainOfferId && historicalIds.has(mainOfferId))).seoEligible;
+  }).map(({ slug, updatedAt }) => ({ slug, updatedAt }));
   return { products, niches };
 }

@@ -5,6 +5,7 @@ import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
 import { productSearchText } from "@/lib/search-text";
 import { slugify } from "@/lib/slug";
 import type { FetchResult } from "@/lib/connectors";
+import { observedCommercialContext } from "@/lib/connectors/commercial-context";
 
 const newShortCode = () => randomBytes(5).toString("base64url").toLowerCase().replace(/[^a-z0-9]/g, "x");
 
@@ -31,6 +32,7 @@ export async function attachFetchedOffer(input: {
   fallbackAffiliateUrl?: string | null;
 }) {
   const { result } = input;
+  const { installments, ...context } = observedCommercialContext(result.commercialContext);
   const offer = await prisma.offer.create({
     data: {
       variantId: input.variantId,
@@ -41,6 +43,9 @@ export async function attachFetchedOffer(input: {
       originalUrl: input.originalUrl,
       availability: result.availability ?? "UNKNOWN",
       priceCents: result.priceCents,
+      ...context,
+      installments,
+      shippingKind: context.shippingKind ?? "UNKNOWN",
       previousPriceCents: result.previousPriceCents,
       priceCheckedAt: result.observedAt,
       lastAttemptAt: result.observedAt,
@@ -48,7 +53,11 @@ export async function attachFetchedOffer(input: {
     },
   });
   await prisma.pricePoint.create({
-    data: { offerId: offer.id, priceCents: result.priceCents, availability: offer.availability, source: "API" },
+    data: {
+      offerId: offer.id, variantId: offer.variantId, itemCondition: offer.condition,
+      priceCents: result.priceCents, ...context,
+      availability: result.availability ?? "UNKNOWN", source: "API", observedAt: result.observedAt,
+    },
   });
 
   const affiliateUrl = result.affiliateUrl ?? input.fallbackAffiliateUrl ?? null;

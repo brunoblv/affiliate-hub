@@ -1,6 +1,6 @@
 # Affiliate Hub — plano de implementação por fases
 
-Base: `Requisitos/Affiliate-Hub-Requisitos.md` (RF-xx). Atualizado em 2026-09-22.
+Base: `Requisitos/Affiliate-Hub-Requisitos.md` (RF-xx). Atualizado em 2026-09-23.
 
 Regra transversal: nada de número, produto ou selo inventado na interface. Sem dado, mostrar estado vazio. Nunca divulgar URL crua de loja: só o link de afiliado (`/go/[código]`).
 
@@ -14,7 +14,7 @@ Regra transversal: nada de número, produto ou selo inventado na interface. Sem 
 | 3 | Conta do usuário: favoritos e alertas | **Concluída** |
 | 4 | Coleta de preços (Shopee), worker, painel, aviso por e-mail | **Concluída** (falta 2ª loja e worker em produção) |
 | 5 | Conteúdo com Gemini, imagens e capas | **Concluída** |
-| 6 | Comunidades, distribuição, métricas, implantação | **Em andamento:** 6a implementada; validar migração e fluxo no ambiente de execução |
+| 6 | Comunidades, distribuição, métricas, implantação | **Em andamento:** 6a, 6b inicial (Telegram) e 6c implementadas; migrações/validação integrada pendentes; próximo bloco: 6d |
 
 Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, fotos, capas; ou `npm run sync:once` para uma passada). Banco: container `affiliate-hub-postgres` (porta 5434, política de restart; se o banco não responder, o Docker Desktop provavelmente está fechado). Migrations: `prisma/migrations`, aplicadas com `npx prisma migrate deploy`.
 
@@ -100,11 +100,18 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 - Admin em "Comunidades"; CTAs contextuais nas páginas de nicho e de produto (sem exigir entrada para comparar preços); clique de entrada medido por nicho e destino (clique não é adesão confirmada).
 
 **6b. Distribuição**
+- Entrega inicial em 23/09: `/admin/distribuicao` prepara prévia, aprova e agenda ofertas individuais para Telegram; escolha explícita de oferta/link, comunidade do nicho e capa aprovada opcional. Registro de tentativas e reconciliação manual de resultados incertos.
+- Worker com fila persistente/reserva serializada, teto de 3 ofertas/dia por chat, intervalo de 1 hora e dedup por produto/título em 7 dias. Revalida preço, estoque, afiliação, destino e capa antes do envio. Timeout/interrupção não causam reenvio automático; 429 explícito respeita espera e limite de tentativas.
+- Distribuição permanece **desabilitada por padrão**; nenhuma mensagem real enviada na implementação. WhatsApp/Facebook e configuração de limites por destino ainda pendentes. Facebook exige também mix semanal e link em comentário antes de habilitação.
+- Migração aditiva `20260923120000_distribuicao`; Prisma Client regenerado. 14 testes locais (incluindo comunidades) e typecheck aprovados. Docker segue parado: migrações, concorrência no PostgreSQL e fluxo autenticado ainda não validados. Operação/configuração em [distribuicao.md](distribuicao.md).
 - Publicação de ofertas nos destinos com horários, limites, prevenção de duplicação e histórico de falhas, seguindo `docs/hub/regras-postagem-facebook.md` e reaproveitando **código** (não imports) do meu-novo-lar.
 - Uso das capas aprovadas; marcar a capa como **publicada** com o preço do momento; conferir a validade do preço antes de publicar.
 - Vincular cada publicação a nicho, produto e oferta usada.
 
 **6c. Métricas (RF-12)**
+- Implementada em 23/09: eventos de busca/sem resultado e visualização de produto via página visível, com token assinado e deduplicação por ID. Sem cookies analíticos ou identificação de visitante; prefetch/HEAD não contam novos cliques.
+- `/admin/metricas`: períodos de 7/30/90 dias, totais, taxa sem resultado, série diária e top 10 de termos/produtos/ofertas/comunidades, incluindo os cliques existentes. Sem alegar visitantes únicos, vendas, receita ou adesão.
+- Migração aditiva `20260923180000_metricas`, client regenerado e testes em `lib/metrics/metrics.test.ts`. Banco local segue indisponível (Docker parado): aplicação das migrações, agregações SQL e fluxo no navegador pendentes. Definições e limites em [metricas.md](metricas.md).
 - Buscas, buscas sem resultado, visualização de produto, clique por oferta, clique em comunidade; painel no admin.
 - Comissão só quando houver confirmação/importação correspondente.
 
@@ -121,8 +128,8 @@ Como rodar localmente: `npm run dev` (site), `npm run worker` (coleta, alertas, 
 
 | Item | Origem | Observação |
 |---|---|---|
-| Testes automatizados no repositório | Todas | Os testes até aqui foram scripts descartáveis rodados na hora. Falta transformá-los em uma suíte permanente (ex.: Vitest) que rode no pipeline. **Recomendado antes da implantação.** |
-| Commit do código | Todas | Base registrada em `40ae787`; a entrega 6a está no diretório de trabalho, sem novo commit. |
+| Testes automatizados no repositório | Todas | Suíte permanente de comunidades/distribuição/métricas adicionada (20 testes com Node/tsx, aprovados). Falta ampliar cobertura de catálogo/coleta e integrar ao pipeline. |
+| Commit do código | Todas | Comunidades registradas em `b751839`; entregas 6b inicial e 6c estão no diretório de trabalho, sem novo commit. |
 | Segunda loja com coletor web (RF-07) | Fase 4 | Exige estudo por loja (estrutura da página, sessão, variação). A base de conectores está pronta. |
 | Importar produto por URL / por conector | Fase 1 | Criar o cadastro a partir da URL da Shopee (título, foto, categoria externa). |
 | Importação e mapeamento de categorias externas (RF-04) | Fase 1/4 | Fila de classificação com sugestão da IA e revisão humana. |

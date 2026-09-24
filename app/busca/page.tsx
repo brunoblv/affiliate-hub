@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MetricView } from "@/components/metric-view";
+import { createMetricToken } from "@/lib/metrics/token";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -73,6 +75,7 @@ export default async function SearchPage({
 
   return (
     <>
+      {page <= 1 ? <MetricView eventKey={JSON.stringify(params)} token={createMetricToken({ kind: "SEARCH", term, resultCount: results.total, nicheId: niches.find((item) => item.slug === asList(params.categoria)[0])?.id })} /> : null}
       <SiteHeader term={term} />
 
       <main

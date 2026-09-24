@@ -244,6 +244,9 @@ export async function setProductStatus(data: FormData) {
 
 export async function deleteProduct(data: FormData) {
   await requireAdmin();
+  if (await prisma.publication.count({ where: { productId: text(data, "id") } })) {
+    fail("/admin/produtos", "O produto tem histórico de distribuição. Arquive em vez de excluir.");
+  }
   await prisma.product.delete({ where: { id: text(data, "id") } });
   revalidatePath("/admin/produtos");
   redirect("/admin/produtos");
@@ -366,7 +369,14 @@ export async function saveOffer(data: FormData) {
   // Um ponto por mudança de preço: o histórico fica intacto para as demais ofertas.
   if (priceChanged && priceCents !== null) {
     await prisma.pricePoint.create({
-      data: { offerId, priceCents, availability: fields.availability, source: "MANUAL" },
+      data: {
+        offerId, variantId: fields.variantId, itemCondition: fields.condition,
+        priceCents, availability: fields.availability, source: "MANUAL",
+        priceCondition: fields.priceCondition,
+        installmentPriceCents: fields.installmentPriceCents,
+        shippingKind: fields.shippingKind,
+        shippingCents: fields.shippingCents,
+      },
     });
   }
 

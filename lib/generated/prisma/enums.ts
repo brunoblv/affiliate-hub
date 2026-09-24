@@ -128,3 +128,24 @@ export const CreativeStatus = {
 } as const
 
 export type CreativeStatus = (typeof CreativeStatus)[keyof typeof CreativeStatus]
+
+
+export const PublicationStatus = {
+  DRAFT: 'DRAFT',
+  QUEUED: 'QUEUED',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN',
+  CANCELED: 'CANCELED'
+} as const
+
+export type PublicationStatus = (typeof PublicationStatus)[keyof typeof PublicationStatus]
+
+
+export const MetricKind = {
+  SEARCH: 'SEARCH',
+  PRODUCT_VIEW: 'PRODUCT_VIEW'
+} as const
+
+export type MetricKind = (typeof MetricKind)[keyof typeof MetricKind]

@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import { polyline } from "@/lib/chart";
-import { moneyShort, type Cents } from "@/lib/format";
+import { moneyShort } from "@/lib/format";
+import { analyzePriceHistory, type HistoryAnalysis, type Observation } from "@/lib/history/analysis";
 
-export interface HistoryPoint {
-  /** epoch ms */
-  t: number;
-  cents: Cents;
-}
+export type HistoryPoint = Observation;
 
 type RangeKey = "30d" | "90d" | "6m" | "1a";
 
-const RANGES: { key: RangeKey; days: number; short: string; start: string }[] = [
-  { key: "30d", days: 30, short: "30 dias", start: "30 dias atrás" },
-  { key: "90d", days: 90, short: "90 dias", start: "90 dias atrás" },
-  { key: "6m", days: 182, short: "6 meses", start: "6 meses atrás" },
-  { key: "1a", days: 365, short: "1 ano", start: "1 ano atrás" },
+const RANGES: { key: RangeKey; days: number; short: string }[] = [
+  { key: "30d", days: 30, short: "30 dias" },
+  { key: "90d", days: 90, short: "90 dias" },
+  { key: "6m", days: 182, short: "6 meses" },
+  { key: "1a", days: 365, short: "1 ano" },
 ];
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -24,22 +21,23 @@ const W = 900;
 const H = 260;
 const PAD = 18;
 
-/**
- * Preço da mesma oferta ao longo do tempo. O preço só é registrado quando muda,
- * então o gráfico é em degraus e a média é ponderada pelo tempo em cada preço.
- * `nowMs` vem do servidor para não divergir entre servidor e navegador.
- */
-export function PriceHistory({ points, nowMs }: { points: HistoryPoint[]; nowMs: number }) {
+/** Observações diárias comparáveis; dias sem coleta não entram na média. */
+export function PriceHistory({
+  points, nowMs, currentCents, maxAgeMs, offerLabel,
+}: {
+  points: HistoryPoint[];
+  nowMs: number;
+  currentCents: number | null;
+  maxAgeMs: number;
+  offerLabel: string | null;
+}) {
   const [range, setRange] = useState<RangeKey>("30d");
   const config = RANGES.find((item) => item.key === range)!;
   const from = nowMs - config.days * DAY;
 
-  const before = points.filter((point) => point.t < from).at(-1);
-  const inside = points.filter((point) => point.t >= from);
-  const known = [...(before ? [{ t: from, cents: before.cents }] : []), ...inside];
-  const last = known.at(-1);
-  const series = last ? [...known, { t: nowMs, cents: last.cents }] : [];
-  const distinct = new Set(series.map((point) => point.cents)).size;
+  const analysis = analyzePriceHistory({ points, from, now: nowMs, currentCents, maxAgeMs });
+  const difference = analysis.differenceFromAveragePercent;
+  const relativeAverage = difference === 0 ? "igual a" : difference !== null && difference < 0 ? "abaixo de" : "acima de";
 
   return (
     <section aria-labelledby="historico">
@@ -73,54 +71,88 @@ export function PriceHistory({ points, nowMs }: { points: HistoryPoint[]; nowMs:
       </div>
 
       <div className="rounded-[14px] border border-line bg-surface p-5">
-        {series.length < 2 ? (
+        {offerLabel ? (
+          <p className="mb-4 text-xs text-muted">
+            {offerLabel}. Baseado nas ofertas monitoradas atualmente.
+          </p>
+        ) : null}
+        {analysis.observations.length < 2 ? (
           <p className="py-10 text-center text-sm text-muted">
-            O histórico desta oferta ainda está sendo formado. Ele aparece aqui conforme o preço for
-            atualizado.
+            O histórico desta variação ainda está sendo formado. São necessárias coletas em dias diferentes
+            para mostrar a evolução do preço.
           </p>
         ) : (
-          <Chart series={series} label={config.start} rangeLabel={config.short} distinct={distinct} />
+          <Chart analysis={analysis} rangeLabel={config.short} maxGapMs={maxAgeMs * 1.5} />
         )}
       </div>
+
+      <section aria-labelledby="preco-bom" className="mt-5 rounded-[14px] border border-line bg-surface p-5">
+        <h3 id="preco-bom" className="text-lg font-bold">O preço está bom?</h3>
+        {analysis.assessment === "insufficient" ? (
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Ainda não há observações suficientes para avaliar este preço. Foram registrados {analysis.observedDays}
+            {" "}dia(s) com coleta neste período; a análise exige pelo menos sete dias observados distribuídos
+            por uma semana e um preço verificado recentemente.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            {currentCents === null ? "" : `O preço atual é ${moneyShort(currentCents)}. `}
+            A média dos {analysis.observedDays} dias observados em {config.short} foi {moneyShort(analysis.average!)}
+            {", "}e o menor valor observado foi {moneyShort(analysis.lowest!)}. O preço atual está
+            {" "}{Math.abs(difference!)}% {relativeAverage} essa média.
+            {analysis.assessment === "low" ? " Está baixo em relação ao histórico disponível." :
+              analysis.assessment === "high" ? " Está alto em relação ao histórico disponível." :
+                " Está próximo da média do histórico disponível."}
+          </p>
+        )}
+      </section>
+
+      {analysis.recentChanges.length > 0 ? (
+        <section aria-labelledby="mudancas-preco" className="mt-5 rounded-[14px] border border-line bg-surface p-5">
+          <h3 id="mudancas-preco" className="text-lg font-bold">Alterações recentes</h3>
+          <ul className="mt-3 space-y-2 text-sm">
+            {analysis.recentChanges.map((change) => (
+              <li key={change.t} className="flex justify-between gap-3 border-t border-line-soft pt-2">
+                <time dateTime={new Date(change.t).toISOString()}>
+                  {new Date(change.t).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short", year: "numeric" })}
+                </time>
+                <span>{moneyShort(change.cents)} ({change.percent > 0 ? "+" : ""}{change.percent}%)</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </section>
   );
 }
 
 function Chart({
-  series,
-  label,
+  analysis,
   rangeLabel,
-  distinct,
+  maxGapMs,
 }: {
-  series: HistoryPoint[];
-  label: string;
+  analysis: HistoryAnalysis;
   rangeLabel: string;
-  distinct: number;
+  maxGapMs: number;
 }) {
+  const series = analysis.observations;
   const t0 = series[0].t;
   const span = series[series.length - 1].t - t0 || 1;
-  const prices = series.map((point) => point.cents);
-  const lowest = Math.min(...prices);
-  const highest = Math.max(...prices);
-  const current = prices[prices.length - 1];
+  const lowest = analysis.lowest!;
+  const highest = analysis.highest!;
   const priceSpan = highest - lowest || 1;
 
   const x = (t: number) => ((t - t0) / span) * W;
   const y = (cents: number) => PAD + (1 - (cents - lowest) / priceSpan) * (H - PAD * 2);
 
-  // Degraus: mantém o preço até o instante da próxima mudança.
+  // Não liga pontos separados por um intervalo maior que a validade da coleta.
   const path = series
     .map((point, index) =>
-      index === 0
+      index === 0 || point.t - series[index - 1].t > maxGapMs
         ? `M ${x(point.t).toFixed(1)} ${y(point.cents).toFixed(1)}`
-        : `L ${x(point.t).toFixed(1)} ${y(series[index - 1].cents).toFixed(1)} L ${x(point.t).toFixed(1)} ${y(point.cents).toFixed(1)}`,
+        : `L ${x(point.t).toFixed(1)} ${y(point.cents).toFixed(1)}`,
     )
     .join(" ");
-
-  let weighted = 0;
-  for (let i = 1; i < series.length; i++) weighted += series[i - 1].cents * (series[i].t - series[i - 1].t);
-  const average = Math.round(weighted / span);
-  const nearLow = highest > lowest && (current - lowest) / priceSpan <= 0.1;
 
   return (
     <>
@@ -131,18 +163,18 @@ function Chart({
         fill="none"
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Variação do preço em ${rangeLabel}: mínima ${moneyShort(lowest)}, média ${moneyShort(average)}, máxima ${moneyShort(highest)}.`}
+        aria-label={`Menores preços observados em ${rangeLabel}: mínima ${moneyShort(lowest)}, média dos dias observados ${moneyShort(analysis.average!)}, máxima ${moneyShort(highest)}.`}
       >
         {[20, 80, 140, 200].map((line) => (
           <line key={line} x1="0" y1={line} x2={W} y2={line} stroke="#F1F2F5" strokeWidth="1" />
         ))}
-        <path d={`${path} L ${W} ${H} L 0 ${H} Z`} fill="#EEEEFF" stroke="none" />
         <path d={path} stroke="#5B5CE2" strokeWidth="2.4" fill="none" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        {series.map((point) => <circle key={`${point.t}-${point.cents}`} cx={x(point.t)} cy={y(point.cents)} r="2.5" fill="#5B5CE2" />)}
       </svg>
 
       <div className="mt-2 flex justify-between text-xs text-muted">
-        <span>{label}</span>
-        <span>Hoje</span>
+        <span>{new Date(series[0].t).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
+        <span>{new Date(series.at(-1)!.t).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
       </div>
 
       <dl className="mt-5 grid grid-cols-3 gap-3.5 border-t border-line pt-5">
@@ -152,7 +184,7 @@ function Chart({
         </div>
         <div className="flex flex-col gap-0.5">
           <dt className="text-xs text-muted">Preço médio</dt>
-          <dd className="text-[19px] font-bold">{moneyShort(average)}</dd>
+          <dd className="text-[19px] font-bold">{moneyShort(analysis.average!)}</dd>
         </div>
         <div className="flex flex-col gap-0.5">
           <dt className="text-xs text-muted">Maior preço</dt>
@@ -160,15 +192,10 @@ function Chart({
         </div>
       </dl>
 
-      {distinct === 1 ? (
-        <p className="mt-4 rounded-[10px] bg-canvas px-3.5 py-2.5 text-[13px] text-muted">
-          O preço não mudou neste período.
-        </p>
-      ) : nearLow ? (
-        <p className="mt-4 rounded-[10px] bg-good-bg px-3.5 py-2.5 text-[13px] font-semibold text-good">
-          Preço atual próximo da mínima do período.
-        </p>
-      ) : null}
+      <p className="mt-3 text-xs text-muted">
+        {analysis.observedDays} dia(s) com coleta em {rangeLabel}. Dias sem verificação não entram na média;
+        os trechos sem dados ficam interrompidos no gráfico.
+      </p>
     </>
   );
 }

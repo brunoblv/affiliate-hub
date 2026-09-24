@@ -124,13 +124,11 @@ function OfferRow({ offer, store, best }: { offer: Offer; store: Store; best: bo
         </span>
         {offer.priceCondition ? <span className="text-[11px] text-muted">{offer.priceCondition}</span> : null}
         {installmentText ? <span className="text-xs text-muted">ou {installmentText}</span> : null}
-        {stale || failed || unavailable ? (
-          <OfferWarning unavailable={unavailable} failed={failed} minutesAgo={offer.collectedMinutesAgo} />
-        ) : (
+        {!stale && !failed && !unavailable ? (
           <span className="text-[11px] text-muted">
             Coletado há {elapsed(offer.collectedMinutesAgo)}
           </span>
-        )}
+        ) : null}
       </div>
 
       {unavailable || failed ? (
@@ -141,28 +139,6 @@ function OfferRow({ offer, store, best }: { offer: Offer; store: Store; best: bo
         <OfferLink offer={offer} highlighted={best} />
       )}
     </div>
-  );
-}
-
-function OfferWarning({
-  unavailable,
-  failed,
-  minutesAgo,
-}: {
-  unavailable: boolean;
-  failed: boolean;
-  minutesAgo: number;
-}) {
-  if (failed) {
-    return <span className="text-[11px] font-semibold text-bad-ink">Falha na última coleta</span>;
-  }
-  if (unavailable) {
-    return <span className="text-[11px] font-semibold text-muted">Indisponível na loja</span>;
-  }
-  return (
-    <span className="text-[11px] font-semibold text-warn-ink">
-      Desatualizado há {elapsed(minutesAgo)}
-    </span>
   );
 }
 

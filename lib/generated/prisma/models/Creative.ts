@@ -309,6 +309,7 @@ export type CreativeWhereInput = {
   approvedAt?: Prisma.DateTimeNullableFilter<"Creative"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Creative"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  publications?: Prisma.PublicationListRelationFilter
 }
 
 export type CreativeOrderByWithRelationInput = {
@@ -328,6 +329,7 @@ export type CreativeOrderByWithRelationInput = {
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   product?: Prisma.ProductOrderByWithRelationInput
+  publications?: Prisma.PublicationOrderByRelationAggregateInput
 }
 
 export type CreativeWhereUniqueInput = Prisma.AtLeast<{
@@ -350,6 +352,7 @@ export type CreativeWhereUniqueInput = Prisma.AtLeast<{
   approvedAt?: Prisma.DateTimeNullableFilter<"Creative"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Creative"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  publications?: Prisma.PublicationListRelationFilter
 }, "id">
 
 export type CreativeOrderByWithAggregationInput = {
@@ -412,6 +415,7 @@ export type CreativeCreateInput = {
   approvedAt?: Date | string | null
   createdAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutCreativesInput
+  publications?: Prisma.PublicationCreateNestedManyWithoutCreativeInput
 }
 
 export type CreativeUncheckedCreateInput = {
@@ -430,6 +434,7 @@ export type CreativeUncheckedCreateInput = {
   invalidatedReason?: string | null
   approvedAt?: Date | string | null
   createdAt?: Date | string
+  publications?: Prisma.PublicationUncheckedCreateNestedManyWithoutCreativeInput
 }
 
 export type CreativeUpdateInput = {
@@ -448,6 +453,7 @@ export type CreativeUpdateInput = {
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutCreativesNestedInput
+  publications?: Prisma.PublicationUpdateManyWithoutCreativeNestedInput
 }
 
 export type CreativeUncheckedUpdateInput = {
@@ -466,6 +472,7 @@ export type CreativeUncheckedUpdateInput = {
   invalidatedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  publications?: Prisma.PublicationUncheckedUpdateManyWithoutCreativeNestedInput
 }
 
 export type CreativeCreateManyInput = {
@@ -599,6 +606,11 @@ export type CreativeSumOrderByAggregateInput = {
   priceCents?: Prisma.SortOrder
 }
 
+export type CreativeNullableScalarRelationFilter = {
+  is?: Prisma.CreativeWhereInput | null
+  isNot?: Prisma.CreativeWhereInput | null
+}
+
 export type CreativeCreateNestedManyWithoutProductInput = {
   create?: Prisma.XOR<Prisma.CreativeCreateWithoutProductInput, Prisma.CreativeUncheckedCreateWithoutProductInput> | Prisma.CreativeCreateWithoutProductInput[] | Prisma.CreativeUncheckedCreateWithoutProductInput[]
   connectOrCreate?: Prisma.CreativeCreateOrConnectWithoutProductInput | Prisma.CreativeCreateOrConnectWithoutProductInput[]
@@ -645,6 +657,22 @@ export type EnumCreativeStatusFieldUpdateOperationsInput = {
   set?: $Enums.CreativeStatus
 }
 
+export type CreativeCreateNestedOneWithoutPublicationsInput = {
+  create?: Prisma.XOR<Prisma.CreativeCreateWithoutPublicationsInput, Prisma.CreativeUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.CreativeCreateOrConnectWithoutPublicationsInput
+  connect?: Prisma.CreativeWhereUniqueInput
+}
+
+export type CreativeUpdateOneWithoutPublicationsNestedInput = {
+  create?: Prisma.XOR<Prisma.CreativeCreateWithoutPublicationsInput, Prisma.CreativeUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.CreativeCreateOrConnectWithoutPublicationsInput
+  upsert?: Prisma.CreativeUpsertWithoutPublicationsInput
+  disconnect?: Prisma.CreativeWhereInput | boolean
+  delete?: Prisma.CreativeWhereInput | boolean
+  connect?: Prisma.CreativeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CreativeUpdateToOneWithWhereWithoutPublicationsInput, Prisma.CreativeUpdateWithoutPublicationsInput>, Prisma.CreativeUncheckedUpdateWithoutPublicationsInput>
+}
+
 export type CreativeCreateWithoutProductInput = {
   id?: string
   format: string
@@ -660,6 +688,7 @@ export type CreativeCreateWithoutProductInput = {
   invalidatedReason?: string | null
   approvedAt?: Date | string | null
   createdAt?: Date | string
+  publications?: Prisma.PublicationCreateNestedManyWithoutCreativeInput
 }
 
 export type CreativeUncheckedCreateWithoutProductInput = {
@@ -677,6 +706,7 @@ export type CreativeUncheckedCreateWithoutProductInput = {
   invalidatedReason?: string | null
   approvedAt?: Date | string | null
   createdAt?: Date | string
+  publications?: Prisma.PublicationUncheckedCreateNestedManyWithoutCreativeInput
 }
 
 export type CreativeCreateOrConnectWithoutProductInput = {
@@ -726,6 +756,94 @@ export type CreativeScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Creative"> | Date | string
 }
 
+export type CreativeCreateWithoutPublicationsInput = {
+  id?: string
+  format: string
+  template: string
+  templateVersion: number
+  width: number
+  height: number
+  file: string
+  status?: $Enums.CreativeStatus
+  withPrice?: boolean
+  priceCents?: number | null
+  priceObservedAt?: Date | string | null
+  invalidatedReason?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  product: Prisma.ProductCreateNestedOneWithoutCreativesInput
+}
+
+export type CreativeUncheckedCreateWithoutPublicationsInput = {
+  id?: string
+  productId: string
+  format: string
+  template: string
+  templateVersion: number
+  width: number
+  height: number
+  file: string
+  status?: $Enums.CreativeStatus
+  withPrice?: boolean
+  priceCents?: number | null
+  priceObservedAt?: Date | string | null
+  invalidatedReason?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type CreativeCreateOrConnectWithoutPublicationsInput = {
+  where: Prisma.CreativeWhereUniqueInput
+  create: Prisma.XOR<Prisma.CreativeCreateWithoutPublicationsInput, Prisma.CreativeUncheckedCreateWithoutPublicationsInput>
+}
+
+export type CreativeUpsertWithoutPublicationsInput = {
+  update: Prisma.XOR<Prisma.CreativeUpdateWithoutPublicationsInput, Prisma.CreativeUncheckedUpdateWithoutPublicationsInput>
+  create: Prisma.XOR<Prisma.CreativeCreateWithoutPublicationsInput, Prisma.CreativeUncheckedCreateWithoutPublicationsInput>
+  where?: Prisma.CreativeWhereInput
+}
+
+export type CreativeUpdateToOneWithWhereWithoutPublicationsInput = {
+  where?: Prisma.CreativeWhereInput
+  data: Prisma.XOR<Prisma.CreativeUpdateWithoutPublicationsInput, Prisma.CreativeUncheckedUpdateWithoutPublicationsInput>
+}
+
+export type CreativeUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  format?: Prisma.StringFieldUpdateOperationsInput | string
+  template?: Prisma.StringFieldUpdateOperationsInput | string
+  templateVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  file?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumCreativeStatusFieldUpdateOperationsInput | $Enums.CreativeStatus
+  withPrice?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  priceObservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invalidatedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.ProductUpdateOneRequiredWithoutCreativesNestedInput
+}
+
+export type CreativeUncheckedUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  format?: Prisma.StringFieldUpdateOperationsInput | string
+  template?: Prisma.StringFieldUpdateOperationsInput | string
+  templateVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  file?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumCreativeStatusFieldUpdateOperationsInput | $Enums.CreativeStatus
+  withPrice?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  priceObservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invalidatedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type CreativeCreateManyProductInput = {
   id?: string
   format: string
@@ -758,6 +876,7 @@ export type CreativeUpdateWithoutProductInput = {
   invalidatedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  publications?: Prisma.PublicationUpdateManyWithoutCreativeNestedInput
 }
 
 export type CreativeUncheckedUpdateWithoutProductInput = {
@@ -775,6 +894,7 @@ export type CreativeUncheckedUpdateWithoutProductInput = {
   invalidatedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  publications?: Prisma.PublicationUncheckedUpdateManyWithoutCreativeNestedInput
 }
 
 export type CreativeUncheckedUpdateManyWithoutProductInput = {
@@ -795,6 +915,35 @@ export type CreativeUncheckedUpdateManyWithoutProductInput = {
 }
 
 
+/**
+ * Count Type CreativeCountOutputType
+ */
+
+export type CreativeCountOutputType = {
+  publications: number
+}
+
+export type CreativeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  publications?: boolean | CreativeCountOutputTypeCountPublicationsArgs
+}
+
+/**
+ * CreativeCountOutputType without action
+ */
+export type CreativeCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CreativeCountOutputType
+   */
+  select?: Prisma.CreativeCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * CreativeCountOutputType without action
+ */
+export type CreativeCountOutputTypeCountPublicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicationWhereInput
+}
+
 
 export type CreativeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -813,6 +962,8 @@ export type CreativeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   approvedAt?: boolean
   createdAt?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  publications?: boolean | Prisma.Creative$publicationsArgs<ExtArgs>
+  _count?: boolean | Prisma.CreativeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["creative"]>
 
 export type CreativeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -874,6 +1025,8 @@ export type CreativeSelectScalar = {
 export type CreativeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "format" | "template" | "templateVersion" | "width" | "height" | "file" | "status" | "withPrice" | "priceCents" | "priceObservedAt" | "invalidatedReason" | "approvedAt" | "createdAt", ExtArgs["result"]["creative"]>
 export type CreativeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  publications?: boolean | Prisma.Creative$publicationsArgs<ExtArgs>
+  _count?: boolean | Prisma.CreativeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CreativeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -886,6 +1039,7 @@ export type $CreativePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   name: "Creative"
   objects: {
     product: Prisma.$ProductPayload<ExtArgs>
+    publications: Prisma.$PublicationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1307,6 +1461,7 @@ readonly fields: CreativeFieldRefs;
 export interface Prisma__CreativeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  publications<T extends Prisma.Creative$publicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Creative$publicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1749,6 +1904,30 @@ export type CreativeDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many Creatives to delete.
    */
   limit?: number
+}
+
+/**
+ * Creative.publications
+ */
+export type Creative$publicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Publication
+   */
+  select?: Prisma.PublicationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Publication
+   */
+  omit?: Prisma.PublicationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicationInclude<ExtArgs> | null
+  where?: Prisma.PublicationWhereInput
+  orderBy?: Prisma.PublicationOrderByWithRelationInput | Prisma.PublicationOrderByWithRelationInput[]
+  cursor?: Prisma.PublicationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicationScalarFieldEnum | Prisma.PublicationScalarFieldEnum[]
 }
 
 /**

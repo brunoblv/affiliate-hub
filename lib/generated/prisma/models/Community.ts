@@ -266,6 +266,7 @@ export type CommunityWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Community"> | Date | string
   niche?: Prisma.XOR<Prisma.NicheScalarRelationFilter, Prisma.NicheWhereInput>
   clicks?: Prisma.CommunityClickListRelationFilter
+  publications?: Prisma.PublicationListRelationFilter
 }
 
 export type CommunityOrderByWithRelationInput = {
@@ -282,6 +283,7 @@ export type CommunityOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   niche?: Prisma.NicheOrderByWithRelationInput
   clicks?: Prisma.CommunityClickOrderByRelationAggregateInput
+  publications?: Prisma.PublicationOrderByRelationAggregateInput
 }
 
 export type CommunityWhereUniqueInput = Prisma.AtLeast<{
@@ -301,6 +303,7 @@ export type CommunityWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Community"> | Date | string
   niche?: Prisma.XOR<Prisma.NicheScalarRelationFilter, Prisma.NicheWhereInput>
   clicks?: Prisma.CommunityClickListRelationFilter
+  publications?: Prisma.PublicationListRelationFilter
 }, "id">
 
 export type CommunityOrderByWithAggregationInput = {
@@ -352,6 +355,7 @@ export type CommunityCreateInput = {
   updatedAt?: Date | string
   niche: Prisma.NicheCreateNestedOneWithoutCommunitiesInput
   clicks?: Prisma.CommunityClickCreateNestedManyWithoutCommunityInput
+  publications?: Prisma.PublicationCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityUncheckedCreateInput = {
@@ -367,6 +371,7 @@ export type CommunityUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   clicks?: Prisma.CommunityClickUncheckedCreateNestedManyWithoutCommunityInput
+  publications?: Prisma.PublicationUncheckedCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityUpdateInput = {
@@ -382,6 +387,7 @@ export type CommunityUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niche?: Prisma.NicheUpdateOneRequiredWithoutCommunitiesNestedInput
   clicks?: Prisma.CommunityClickUpdateManyWithoutCommunityNestedInput
+  publications?: Prisma.PublicationUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityUncheckedUpdateInput = {
@@ -397,6 +403,7 @@ export type CommunityUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clicks?: Prisma.CommunityClickUncheckedUpdateManyWithoutCommunityNestedInput
+  publications?: Prisma.PublicationUncheckedUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityCreateManyInput = {
@@ -569,6 +576,20 @@ export type CommunityUpdateOneRequiredWithoutClicksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CommunityUpdateToOneWithWhereWithoutClicksInput, Prisma.CommunityUpdateWithoutClicksInput>, Prisma.CommunityUncheckedUpdateWithoutClicksInput>
 }
 
+export type CommunityCreateNestedOneWithoutPublicationsInput = {
+  create?: Prisma.XOR<Prisma.CommunityCreateWithoutPublicationsInput, Prisma.CommunityUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.CommunityCreateOrConnectWithoutPublicationsInput
+  connect?: Prisma.CommunityWhereUniqueInput
+}
+
+export type CommunityUpdateOneRequiredWithoutPublicationsNestedInput = {
+  create?: Prisma.XOR<Prisma.CommunityCreateWithoutPublicationsInput, Prisma.CommunityUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.CommunityCreateOrConnectWithoutPublicationsInput
+  upsert?: Prisma.CommunityUpsertWithoutPublicationsInput
+  connect?: Prisma.CommunityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CommunityUpdateToOneWithWhereWithoutPublicationsInput, Prisma.CommunityUpdateWithoutPublicationsInput>, Prisma.CommunityUncheckedUpdateWithoutPublicationsInput>
+}
+
 export type CommunityCreateWithoutNicheInput = {
   id?: string
   name: string
@@ -581,6 +602,7 @@ export type CommunityCreateWithoutNicheInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   clicks?: Prisma.CommunityClickCreateNestedManyWithoutCommunityInput
+  publications?: Prisma.PublicationCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityUncheckedCreateWithoutNicheInput = {
@@ -595,6 +617,7 @@ export type CommunityUncheckedCreateWithoutNicheInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   clicks?: Prisma.CommunityClickUncheckedCreateNestedManyWithoutCommunityInput
+  publications?: Prisma.PublicationUncheckedCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityCreateOrConnectWithoutNicheInput = {
@@ -652,6 +675,7 @@ export type CommunityCreateWithoutClicksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   niche: Prisma.NicheCreateNestedOneWithoutCommunitiesInput
+  publications?: Prisma.PublicationCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityUncheckedCreateWithoutClicksInput = {
@@ -666,6 +690,7 @@ export type CommunityUncheckedCreateWithoutClicksInput = {
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  publications?: Prisma.PublicationUncheckedCreateNestedManyWithoutCommunityInput
 }
 
 export type CommunityCreateOrConnectWithoutClicksInput = {
@@ -696,6 +721,7 @@ export type CommunityUpdateWithoutClicksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niche?: Prisma.NicheUpdateOneRequiredWithoutCommunitiesNestedInput
+  publications?: Prisma.PublicationUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityUncheckedUpdateWithoutClicksInput = {
@@ -710,6 +736,83 @@ export type CommunityUncheckedUpdateWithoutClicksInput = {
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  publications?: Prisma.PublicationUncheckedUpdateManyWithoutCommunityNestedInput
+}
+
+export type CommunityCreateWithoutPublicationsInput = {
+  id?: string
+  name: string
+  platform: $Enums.CommunityPlatform
+  kind: $Enums.CommunityKind
+  inviteUrl: string
+  publicationId?: string | null
+  active?: boolean
+  position?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  niche: Prisma.NicheCreateNestedOneWithoutCommunitiesInput
+  clicks?: Prisma.CommunityClickCreateNestedManyWithoutCommunityInput
+}
+
+export type CommunityUncheckedCreateWithoutPublicationsInput = {
+  id?: string
+  nicheId: string
+  name: string
+  platform: $Enums.CommunityPlatform
+  kind: $Enums.CommunityKind
+  inviteUrl: string
+  publicationId?: string | null
+  active?: boolean
+  position?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clicks?: Prisma.CommunityClickUncheckedCreateNestedManyWithoutCommunityInput
+}
+
+export type CommunityCreateOrConnectWithoutPublicationsInput = {
+  where: Prisma.CommunityWhereUniqueInput
+  create: Prisma.XOR<Prisma.CommunityCreateWithoutPublicationsInput, Prisma.CommunityUncheckedCreateWithoutPublicationsInput>
+}
+
+export type CommunityUpsertWithoutPublicationsInput = {
+  update: Prisma.XOR<Prisma.CommunityUpdateWithoutPublicationsInput, Prisma.CommunityUncheckedUpdateWithoutPublicationsInput>
+  create: Prisma.XOR<Prisma.CommunityCreateWithoutPublicationsInput, Prisma.CommunityUncheckedCreateWithoutPublicationsInput>
+  where?: Prisma.CommunityWhereInput
+}
+
+export type CommunityUpdateToOneWithWhereWithoutPublicationsInput = {
+  where?: Prisma.CommunityWhereInput
+  data: Prisma.XOR<Prisma.CommunityUpdateWithoutPublicationsInput, Prisma.CommunityUncheckedUpdateWithoutPublicationsInput>
+}
+
+export type CommunityUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  platform?: Prisma.EnumCommunityPlatformFieldUpdateOperationsInput | $Enums.CommunityPlatform
+  kind?: Prisma.EnumCommunityKindFieldUpdateOperationsInput | $Enums.CommunityKind
+  inviteUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  niche?: Prisma.NicheUpdateOneRequiredWithoutCommunitiesNestedInput
+  clicks?: Prisma.CommunityClickUpdateManyWithoutCommunityNestedInput
+}
+
+export type CommunityUncheckedUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nicheId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  platform?: Prisma.EnumCommunityPlatformFieldUpdateOperationsInput | $Enums.CommunityPlatform
+  kind?: Prisma.EnumCommunityKindFieldUpdateOperationsInput | $Enums.CommunityKind
+  inviteUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clicks?: Prisma.CommunityClickUncheckedUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityCreateManyNicheInput = {
@@ -737,6 +840,7 @@ export type CommunityUpdateWithoutNicheInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clicks?: Prisma.CommunityClickUpdateManyWithoutCommunityNestedInput
+  publications?: Prisma.PublicationUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityUncheckedUpdateWithoutNicheInput = {
@@ -751,6 +855,7 @@ export type CommunityUncheckedUpdateWithoutNicheInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clicks?: Prisma.CommunityClickUncheckedUpdateManyWithoutCommunityNestedInput
+  publications?: Prisma.PublicationUncheckedUpdateManyWithoutCommunityNestedInput
 }
 
 export type CommunityUncheckedUpdateManyWithoutNicheInput = {
@@ -773,10 +878,12 @@ export type CommunityUncheckedUpdateManyWithoutNicheInput = {
 
 export type CommunityCountOutputType = {
   clicks: number
+  publications: number
 }
 
 export type CommunityCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   clicks?: boolean | CommunityCountOutputTypeCountClicksArgs
+  publications?: boolean | CommunityCountOutputTypeCountPublicationsArgs
 }
 
 /**
@@ -796,6 +903,13 @@ export type CommunityCountOutputTypeCountClicksArgs<ExtArgs extends runtime.Type
   where?: Prisma.CommunityClickWhereInput
 }
 
+/**
+ * CommunityCountOutputType without action
+ */
+export type CommunityCountOutputTypeCountPublicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicationWhereInput
+}
+
 
 export type CommunitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -811,6 +925,7 @@ export type CommunitySelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   updatedAt?: boolean
   niche?: boolean | Prisma.NicheDefaultArgs<ExtArgs>
   clicks?: boolean | Prisma.Community$clicksArgs<ExtArgs>
+  publications?: boolean | Prisma.Community$publicationsArgs<ExtArgs>
   _count?: boolean | Prisma.CommunityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["community"]>
 
@@ -862,6 +977,7 @@ export type CommunityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type CommunityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   niche?: boolean | Prisma.NicheDefaultArgs<ExtArgs>
   clicks?: boolean | Prisma.Community$clicksArgs<ExtArgs>
+  publications?: boolean | Prisma.Community$publicationsArgs<ExtArgs>
   _count?: boolean | Prisma.CommunityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CommunityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -876,6 +992,7 @@ export type $CommunityPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     niche: Prisma.$NichePayload<ExtArgs>
     clicks: Prisma.$CommunityClickPayload<ExtArgs>[]
+    publications: Prisma.$PublicationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1285,6 +1402,7 @@ export interface Prisma__CommunityClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   niche<T extends Prisma.NicheDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NicheDefaultArgs<ExtArgs>>): Prisma.Prisma__NicheClient<runtime.Types.Result.GetResult<Prisma.$NichePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   clicks<T extends Prisma.Community$clicksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Community$clicksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommunityClickPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  publications<T extends Prisma.Community$publicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Community$publicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1747,6 +1865,30 @@ export type Community$clicksArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.CommunityClickScalarFieldEnum | Prisma.CommunityClickScalarFieldEnum[]
+}
+
+/**
+ * Community.publications
+ */
+export type Community$publicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Publication
+   */
+  select?: Prisma.PublicationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Publication
+   */
+  omit?: Prisma.PublicationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicationInclude<ExtArgs> | null
+  where?: Prisma.PublicationWhereInput
+  orderBy?: Prisma.PublicationOrderByWithRelationInput | Prisma.PublicationOrderByWithRelationInput[]
+  cursor?: Prisma.PublicationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicationScalarFieldEnum | Prisma.PublicationScalarFieldEnum[]
 }
 
 /**

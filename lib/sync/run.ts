@@ -68,7 +68,7 @@ export async function processJob(jobId: string, overrides: Partial<RunDeps> = {}
 
     const outcome =
       result.kind === "ok"
-        ? await applySuccess(offer, result, deps.now(), deps.config)
+        ? await applySuccess(offer, result, deps.now(), deps.config, jobId)
         : await applyFailure(offer, { kind: "not_found" }, deps.now(), deps.config);
     await finish("DONE", { outcome: outcome.kind, ...outcome });
     return outcome;

@@ -72,7 +72,10 @@ export const ModelName = {
   SyncJob: 'SyncJob',
   WorkerHeartbeat: 'WorkerHeartbeat',
   ProductContent: 'ProductContent',
-  Creative: 'Creative'
+  Creative: 'Creative',
+  Publication: 'Publication',
+  PublicationAttempt: 'PublicationAttempt',
+  MetricEvent: 'MetricEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -334,7 +337,14 @@ export type ClickScalarFieldEnum = (typeof ClickScalarFieldEnum)[keyof typeof Cl
 export const PricePointScalarFieldEnum = {
   id: 'id',
   offerId: 'offerId',
+  variantId: 'variantId',
+  itemCondition: 'itemCondition',
   priceCents: 'priceCents',
+  priceCondition: 'priceCondition',
+  installmentPriceCents: 'installmentPriceCents',
+  shippingKind: 'shippingKind',
+  shippingCents: 'shippingCents',
+  syncJobId: 'syncJobId',
   availability: 'availability',
   source: 'source',
   observedAt: 'observedAt'
@@ -432,6 +442,60 @@ export const CreativeScalarFieldEnum = {
 } as const
 
 export type CreativeScalarFieldEnum = (typeof CreativeScalarFieldEnum)[keyof typeof CreativeScalarFieldEnum]
+
+
+export const PublicationScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  nicheId: 'nicheId',
+  productId: 'productId',
+  offerId: 'offerId',
+  linkId: 'linkId',
+  creativeId: 'creativeId',
+  contentType: 'contentType',
+  title: 'title',
+  text: 'text',
+  targetId: 'targetId',
+  priceCents: 'priceCents',
+  priceObservedAt: 'priceObservedAt',
+  fingerprint: 'fingerprint',
+  status: 'status',
+  scheduledFor: 'scheduledFor',
+  startedAt: 'startedAt',
+  sentAt: 'sentAt',
+  externalId: 'externalId',
+  error: 'error',
+  attemptCount: 'attemptCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PublicationScalarFieldEnum = (typeof PublicationScalarFieldEnum)[keyof typeof PublicationScalarFieldEnum]
+
+
+export const PublicationAttemptScalarFieldEnum = {
+  id: 'id',
+  publicationId: 'publicationId',
+  status: 'status',
+  detail: 'detail',
+  externalId: 'externalId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicationAttemptScalarFieldEnum = (typeof PublicationAttemptScalarFieldEnum)[keyof typeof PublicationAttemptScalarFieldEnum]
+
+
+export const MetricEventScalarFieldEnum = {
+  id: 'id',
+  kind: 'kind',
+  productId: 'productId',
+  nicheId: 'nicheId',
+  term: 'term',
+  resultCount: 'resultCount',
+  createdAt: 'createdAt'
+} as const
+
+export type MetricEventScalarFieldEnum = (typeof MetricEventScalarFieldEnum)[keyof typeof MetricEventScalarFieldEnum]
 
 
 export const SortOrder = {

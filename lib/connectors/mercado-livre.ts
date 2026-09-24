@@ -104,6 +104,7 @@ interface CatalogItem {
   price: number;
   original_price: number | null;
   condition?: string;
+  shipping?: { free_shipping?: boolean };
 }
 
 /** "143.91" (reais, número) -> 14391 centavos. Nunca ponto flutuante na conta. */
@@ -132,6 +133,10 @@ async function fetchOffer(ref: OfferRef): Promise<FetchResult> {
   return {
     kind: "ok",
     priceCents,
+    commercialContext: {
+      // Sem CEP, o indicador do anúncio não garante gratuidade para todo comprador.
+      shippingKind: winner.shipping?.free_shipping === true ? "CONDITIONAL" : "UNKNOWN",
+    },
     previousPriceCents: original && original > priceCents ? original : null,
     availability: "IN_STOCK",
     title: product?.name ?? null,

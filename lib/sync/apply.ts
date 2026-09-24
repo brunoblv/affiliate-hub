@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
 import type { FetchResult } from "@/lib/connectors/types";
+import { observedCommercialContext } from "@/lib/connectors/commercial-context";
 import type { SyncConfig } from "./config";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
 
@@ -31,7 +32,7 @@ const pct = (from: number, to: number) => Math.round((Math.abs(to - from) / from
 
 /**
  * Aplica uma coleta bem-sucedida. Regras (RF-08):
- * - histórico só ganha ponto quando o preço muda, e a oferta só toca a si mesma;
+ * - cada consulta bem-sucedida ganha uma observação, mesmo sem alteração do preço;
  * - variação abrupta não é publicada: o valor antigo fica e o novo aguarda revisão;
  * - o link de afiliado já cadastrado nunca é sobrescrito.
  */
@@ -40,6 +41,7 @@ export async function applySuccess(
   result: Extract<FetchResult, { kind: "ok" }>,
   now: Date,
   config: SyncConfig,
+  jobId?: string,
 ): Promise<Outcome> {
   const previous = offer.priceCents;
   const suspicious = previous !== null && previous > 0 && Math.abs(result.priceCents - previous) / previous > config.maxPriceChange;
@@ -60,6 +62,7 @@ export async function applySuccess(
   }
 
   const changed = previous !== result.priceCents;
+  const { installments, ...context } = observedCommercialContext(result.commercialContext);
   const productHasImage = offer.variant.product.images.length > 0;
 
   await prisma.$transaction(async (tx) => {
@@ -67,8 +70,11 @@ export async function applySuccess(
       where: { id: offer.id },
       data: {
         priceCents: result.priceCents,
+        ...context,
+        installments,
+        shippingKind: context.shippingKind ?? "UNKNOWN",
         previousPriceCents: result.previousPriceCents,
-        priceCheckedAt: now,
+        priceCheckedAt: result.observedAt,
         lastAttemptAt: now,
         lastError: null,
         consecutiveFailures: 0,
@@ -80,17 +86,20 @@ export async function applySuccess(
         ...(result.availability ? { availability: result.availability } : {}),
       },
     });
-    if (changed) {
-      await tx.pricePoint.create({
-        data: {
+    await tx.pricePoint.createMany({
+      data: [{
           offerId: offer.id,
+          variantId: offer.variantId,
+          itemCondition: offer.condition,
           priceCents: result.priceCents,
-          availability: result.availability ?? offer.availability,
+          ...context,
+          availability: result.availability ?? "UNKNOWN",
           source: "API",
-          observedAt: now,
-        },
-      });
-    }
+          observedAt: result.observedAt,
+          syncJobId: jobId ?? null,
+        }],
+      skipDuplicates: Boolean(jobId),
+    });
     if (offer.links.length === 0 && result.affiliateUrl) {
       await tx.affiliateLink.create({
         data: { offerId: offer.id, url: result.affiliateUrl, shortCode: newShortCode(), label: "Coletado pelo conector" },
@@ -164,7 +173,10 @@ export async function approvePending(offerId: string, now = new Date()): Promise
       },
     }),
     prisma.pricePoint.create({
-      data: { offerId, priceCents: offer.pendingPriceCents, availability: offer.availability, source: "API", observedAt: now },
+      data: {
+        offerId, variantId: offer.variantId, itemCondition: offer.condition,
+        priceCents: offer.pendingPriceCents, availability: offer.availability, source: "API", observedAt: now,
+      },
     }),
   ]);
   await invalidateOutdatedCreatives();

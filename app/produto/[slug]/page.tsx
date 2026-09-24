@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MetricView } from "@/components/metric-view";
+import { createMetricToken } from "@/lib/metrics/token";
 import { CommunityList } from "@/components/community-list";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -6,14 +8,17 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { OfferList } from "@/components/offer-list";
 import { PriceHistory } from "@/components/price-history";
+import { AdSlot } from "@/components/ad-slot";
 import { ProductTile } from "@/components/product-card";
 import { ProductImage } from "@/components/photo";
 import { DropBadge } from "@/components/price";
-import { NoOffers, StaleNotice, UnpublishedContent } from "@/components/states";
+import { NoOffers, UnpublishedContent } from "@/components/states";
 import { BellIcon, HeartIcon } from "@/components/icons";
-import { getOfferHistory, getProductBySlug, listRelated } from "@/lib/catalog";
+import { getProductBySlug, getVariantPriceHistory, listRelated } from "@/lib/catalog";
+import { historicalOfferIdsForProduct } from "@/lib/adsense/quality-data";
+import { canonicalHistoryOfferId, evaluateProductQuality } from "@/lib/adsense/quality";
 import { groupByStore, isEligible, summarize } from "@/lib/pricing";
-import { elapsed, installmentLabel, integer, money } from "@/lib/format";
+import { elapsed, freshnessLimitMinutes, installmentLabel, integer, money } from "@/lib/format";
 import { asText, type RawParams } from "@/lib/query";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -28,12 +33,14 @@ export async function generateMetadata({
   const found = await getProductBySlug(slug);
   if (!found) return { title: "Produto não encontrado", robots: { index: false } };
   const { product, content } = found;
+  const historicalOfferIds = await historicalOfferIdsForProduct(product.id);
+  const mainOfferId = canonicalHistoryOfferId(found);
+  const quality = evaluateProductQuality(found, Boolean(mainOfferId && historicalOfferIds.has(mainOfferId)));
   return {
     title: content?.metaTitle || product.name,
     description: content?.metaDescription || product.summary || undefined,
     alternates: { canonical: `/produto/${product.slug}` },
-    // Sem oferta atual não há página útil para indexar (seção 12).
-    robots: product.prices.offerCount === 0 ? { index: false, follow: true } : undefined,
+    robots: quality.seoEligible ? undefined : { index: false, follow: true },
   };
 }
 
@@ -50,6 +57,7 @@ export default async function ProductPage({
   if (!found) notFound();
 
   const { product, niche, categoryName, content } = found;
+  const historicalOfferIds = await historicalOfferIdsForProduct(product.id);
 
   // Comparação sempre dentro de UMA variação (30 ml não concorre com 60 ml).
   const requested = product.variants.find((variant) => variant.id === asText(query.variacao));
@@ -69,6 +77,8 @@ export default async function ProductPage({
   const storeOf = (id: string) => found.stores.find((store) => store.id === id)!;
   const eligible = variantOffers.filter(isEligible);
   const best = eligible[0] ?? null;
+  const historyOffer = best ?? variantOffers[0] ?? null;
+  const quality = evaluateProductQuality(found, Boolean(best && historicalOfferIds.has(best.id)));
   const groups = groupByStore(variantOffers, storeOf);
   const {
     lowestCents,
@@ -86,7 +96,7 @@ export default async function ProductPage({
 
   const [related, history] = await Promise.all([
     listRelated(product),
-    best ? getOfferHistory(best.id) : Promise.resolve([]),
+    getVariantPriceHistory(selected?.id, variantOffers.map((offer) => offer.id), historyOffer?.id),
   ]);
   const nowMs = Date.now();
 
@@ -106,6 +116,7 @@ export default async function ProductPage({
   return (
     <>
       <SiteHeader />
+      <MetricView eventKey={product.id} token={createMetricToken({ kind: "PRODUCT_VIEW", productId: product.id, nicheId: niche?.id })} />
 
       <main id="conteudo" className="mx-auto max-w-[1280px] px-4 pb-32 pt-5 sm:px-8 lg:pb-24">
         <nav aria-label="Trilha" className="py-2 pb-5 text-[13px] text-muted">
@@ -315,14 +326,6 @@ export default async function ProductPage({
                 <OfferList groups={groups} bestOfferId={best?.id ?? null} />
               )}
 
-              {eligible.length > 0 && eligible.length < variantOffers.length ? (
-                <div className="mt-3.5">
-                  <StaleNotice
-                    label={`${variantOffers.length - eligible.length} oferta(s) fora da comparação por estoque, erro de coleta ou preço vencido.`}
-                  />
-                </div>
-              ) : null}
-
               <p className="mt-3.5 text-xs text-muted">
                 Os preços são coletados automaticamente e podem variar. Confirme o valor final na
                 loja. Ganhamos comissão sobre compras feitas por estes links; isso não altera a
@@ -330,7 +333,15 @@ export default async function ProductPage({
               </p>
             </section>
 
-            <PriceHistory points={history} nowMs={nowMs} />
+            <AdSlot slot="productAfterPrices" route={`/produto/${product.slug}`} adsEligible={quality.adsEligible} />
+            <PriceHistory
+              points={history?.points ?? []}
+              nowMs={nowMs}
+              currentCents={best?.priceCents ?? null}
+              maxAgeMs={(historyOffer ? freshnessLimitMinutes(historyOffer.method) : 60 * 24) * 60_000}
+              offerLabel={history ? `Menor preço observado por dia entre ofertas ${history.itemCondition === "USED" ? "usadas" : "novas"} desta variação${history.priceCondition ? ` com condição ${history.priceCondition}` : " sem condição de pagamento informada"}` : null}
+            />
+            <AdSlot slot="productAfterHistory" route={`/produto/${product.slug}`} adsEligible={quality.adsEligible} />
 
             <section aria-labelledby="sobre">
               <h2 id="sobre" className="mb-4 text-[22px] font-bold tracking-[-0.025em]">

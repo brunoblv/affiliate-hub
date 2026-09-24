@@ -153,3 +153,18 @@ export type ProductContent = Prisma.ProductContentModel
  * Capa/criativo gerado (RF-15). O arquivo fica em disco; aqui ficam os dados de rastreio.
  */
 export type Creative = Prisma.CreativeModel
+/**
+ * Model Publication
+ * IDs de catálogo e dados aprovados são snapshots preservados mesmo após retirada do produto.
+ */
+export type Publication = Prisma.PublicationModel
+/**
+ * Model PublicationAttempt
+ * 
+ */
+export type PublicationAttempt = Prisma.PublicationAttemptModel
+/**
+ * Model MetricEvent
+ * Eventos de páginas visíveis, sem identificação do visitante. IDs do catálogo são snapshots.
+ */
+export type MetricEvent = Prisma.MetricEventModel

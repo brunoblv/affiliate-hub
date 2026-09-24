@@ -28,16 +28,27 @@ export type AggregatePricePoint = {
 
 export type PricePointAvgAggregateOutputType = {
   priceCents: number | null
+  installmentPriceCents: number | null
+  shippingCents: number | null
 }
 
 export type PricePointSumAggregateOutputType = {
   priceCents: number | null
+  installmentPriceCents: number | null
+  shippingCents: number | null
 }
 
 export type PricePointMinAggregateOutputType = {
   id: string | null
   offerId: string | null
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
   priceCents: number | null
+  priceCondition: string | null
+  installmentPriceCents: number | null
+  shippingKind: $Enums.ShippingKind | null
+  shippingCents: number | null
+  syncJobId: string | null
   availability: $Enums.Availability | null
   source: $Enums.CollectionMethod | null
   observedAt: Date | null
@@ -46,7 +57,14 @@ export type PricePointMinAggregateOutputType = {
 export type PricePointMaxAggregateOutputType = {
   id: string | null
   offerId: string | null
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
   priceCents: number | null
+  priceCondition: string | null
+  installmentPriceCents: number | null
+  shippingKind: $Enums.ShippingKind | null
+  shippingCents: number | null
+  syncJobId: string | null
   availability: $Enums.Availability | null
   source: $Enums.CollectionMethod | null
   observedAt: Date | null
@@ -55,7 +73,14 @@ export type PricePointMaxAggregateOutputType = {
 export type PricePointCountAggregateOutputType = {
   id: number
   offerId: number
+  variantId: number
+  itemCondition: number
   priceCents: number
+  priceCondition: number
+  installmentPriceCents: number
+  shippingKind: number
+  shippingCents: number
+  syncJobId: number
   availability: number
   source: number
   observedAt: number
@@ -65,16 +90,27 @@ export type PricePointCountAggregateOutputType = {
 
 export type PricePointAvgAggregateInputType = {
   priceCents?: true
+  installmentPriceCents?: true
+  shippingCents?: true
 }
 
 export type PricePointSumAggregateInputType = {
   priceCents?: true
+  installmentPriceCents?: true
+  shippingCents?: true
 }
 
 export type PricePointMinAggregateInputType = {
   id?: true
   offerId?: true
+  variantId?: true
+  itemCondition?: true
   priceCents?: true
+  priceCondition?: true
+  installmentPriceCents?: true
+  shippingKind?: true
+  shippingCents?: true
+  syncJobId?: true
   availability?: true
   source?: true
   observedAt?: true
@@ -83,7 +119,14 @@ export type PricePointMinAggregateInputType = {
 export type PricePointMaxAggregateInputType = {
   id?: true
   offerId?: true
+  variantId?: true
+  itemCondition?: true
   priceCents?: true
+  priceCondition?: true
+  installmentPriceCents?: true
+  shippingKind?: true
+  shippingCents?: true
+  syncJobId?: true
   availability?: true
   source?: true
   observedAt?: true
@@ -92,7 +135,14 @@ export type PricePointMaxAggregateInputType = {
 export type PricePointCountAggregateInputType = {
   id?: true
   offerId?: true
+  variantId?: true
+  itemCondition?: true
   priceCents?: true
+  priceCondition?: true
+  installmentPriceCents?: true
+  shippingKind?: true
+  shippingCents?: true
+  syncJobId?: true
   availability?: true
   source?: true
   observedAt?: true
@@ -188,7 +238,14 @@ export type PricePointGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type PricePointGroupByOutputType = {
   id: string
   offerId: string
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition: string | null
+  installmentPriceCents: number | null
+  shippingKind: $Enums.ShippingKind | null
+  shippingCents: number | null
+  syncJobId: string | null
   availability: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt: Date
@@ -220,7 +277,14 @@ export type PricePointWhereInput = {
   NOT?: Prisma.PricePointWhereInput | Prisma.PricePointWhereInput[]
   id?: Prisma.StringFilter<"PricePoint"> | string
   offerId?: Prisma.StringFilter<"PricePoint"> | string
+  variantId?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PricePoint"> | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFilter<"PricePoint"> | number
+  priceCondition?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  installmentPriceCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
+  shippingKind?: Prisma.EnumShippingKindNullableFilter<"PricePoint"> | $Enums.ShippingKind | null
+  shippingCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
+  syncJobId?: Prisma.StringNullableFilter<"PricePoint"> | string | null
   availability?: Prisma.EnumAvailabilityFilter<"PricePoint"> | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFilter<"PricePoint"> | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFilter<"PricePoint"> | Date | string
@@ -230,7 +294,14 @@ export type PricePointWhereInput = {
 export type PricePointOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   offerId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrderInput | Prisma.SortOrder
+  itemCondition?: Prisma.SortOrderInput | Prisma.SortOrder
   priceCents?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   availability?: Prisma.SortOrder
   source?: Prisma.SortOrder
   observedAt?: Prisma.SortOrder
@@ -239,21 +310,35 @@ export type PricePointOrderByWithRelationInput = {
 
 export type PricePointWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  syncJobId?: string
   AND?: Prisma.PricePointWhereInput | Prisma.PricePointWhereInput[]
   OR?: Prisma.PricePointWhereInput[]
   NOT?: Prisma.PricePointWhereInput | Prisma.PricePointWhereInput[]
   offerId?: Prisma.StringFilter<"PricePoint"> | string
+  variantId?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PricePoint"> | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFilter<"PricePoint"> | number
+  priceCondition?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  installmentPriceCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
+  shippingKind?: Prisma.EnumShippingKindNullableFilter<"PricePoint"> | $Enums.ShippingKind | null
+  shippingCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
   availability?: Prisma.EnumAvailabilityFilter<"PricePoint"> | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFilter<"PricePoint"> | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFilter<"PricePoint"> | Date | string
   offer?: Prisma.XOR<Prisma.OfferScalarRelationFilter, Prisma.OfferWhereInput>
-}, "id">
+}, "id" | "syncJobId">
 
 export type PricePointOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   offerId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrderInput | Prisma.SortOrder
+  itemCondition?: Prisma.SortOrderInput | Prisma.SortOrder
   priceCents?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingKind?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   availability?: Prisma.SortOrder
   source?: Prisma.SortOrder
   observedAt?: Prisma.SortOrder
@@ -270,7 +355,14 @@ export type PricePointScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PricePointScalarWhereWithAggregatesInput | Prisma.PricePointScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"PricePoint"> | string
   offerId?: Prisma.StringWithAggregatesFilter<"PricePoint"> | string
+  variantId?: Prisma.StringNullableWithAggregatesFilter<"PricePoint"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableWithAggregatesFilter<"PricePoint"> | $Enums.ItemCondition | null
   priceCents?: Prisma.IntWithAggregatesFilter<"PricePoint"> | number
+  priceCondition?: Prisma.StringNullableWithAggregatesFilter<"PricePoint"> | string | null
+  installmentPriceCents?: Prisma.IntNullableWithAggregatesFilter<"PricePoint"> | number | null
+  shippingKind?: Prisma.EnumShippingKindNullableWithAggregatesFilter<"PricePoint"> | $Enums.ShippingKind | null
+  shippingCents?: Prisma.IntNullableWithAggregatesFilter<"PricePoint"> | number | null
+  syncJobId?: Prisma.StringNullableWithAggregatesFilter<"PricePoint"> | string | null
   availability?: Prisma.EnumAvailabilityWithAggregatesFilter<"PricePoint"> | $Enums.Availability
   source?: Prisma.EnumCollectionMethodWithAggregatesFilter<"PricePoint"> | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeWithAggregatesFilter<"PricePoint"> | Date | string
@@ -278,7 +370,14 @@ export type PricePointScalarWhereWithAggregatesInput = {
 
 export type PricePointCreateInput = {
   id?: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -288,7 +387,14 @@ export type PricePointCreateInput = {
 export type PricePointUncheckedCreateInput = {
   id?: string
   offerId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -296,7 +402,14 @@ export type PricePointUncheckedCreateInput = {
 
 export type PricePointUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -306,7 +419,14 @@ export type PricePointUpdateInput = {
 export type PricePointUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   offerId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -315,7 +435,14 @@ export type PricePointUncheckedUpdateInput = {
 export type PricePointCreateManyInput = {
   id?: string
   offerId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -323,7 +450,14 @@ export type PricePointCreateManyInput = {
 
 export type PricePointUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -332,7 +466,14 @@ export type PricePointUpdateManyMutationInput = {
 export type PricePointUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   offerId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -351,7 +492,14 @@ export type PricePointOrderByRelationAggregateInput = {
 export type PricePointCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   offerId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
   priceCents?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrder
+  shippingKind?: Prisma.SortOrder
+  shippingCents?: Prisma.SortOrder
+  syncJobId?: Prisma.SortOrder
   availability?: Prisma.SortOrder
   source?: Prisma.SortOrder
   observedAt?: Prisma.SortOrder
@@ -359,12 +507,21 @@ export type PricePointCountOrderByAggregateInput = {
 
 export type PricePointAvgOrderByAggregateInput = {
   priceCents?: Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrder
+  shippingCents?: Prisma.SortOrder
 }
 
 export type PricePointMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   offerId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
   priceCents?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrder
+  shippingKind?: Prisma.SortOrder
+  shippingCents?: Prisma.SortOrder
+  syncJobId?: Prisma.SortOrder
   availability?: Prisma.SortOrder
   source?: Prisma.SortOrder
   observedAt?: Prisma.SortOrder
@@ -373,7 +530,14 @@ export type PricePointMaxOrderByAggregateInput = {
 export type PricePointMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   offerId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
   priceCents?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrder
+  shippingKind?: Prisma.SortOrder
+  shippingCents?: Prisma.SortOrder
+  syncJobId?: Prisma.SortOrder
   availability?: Prisma.SortOrder
   source?: Prisma.SortOrder
   observedAt?: Prisma.SortOrder
@@ -381,6 +545,8 @@ export type PricePointMinOrderByAggregateInput = {
 
 export type PricePointSumOrderByAggregateInput = {
   priceCents?: Prisma.SortOrder
+  installmentPriceCents?: Prisma.SortOrder
+  shippingCents?: Prisma.SortOrder
 }
 
 export type PricePointCreateNestedManyWithoutOfferInput = {
@@ -425,9 +591,24 @@ export type PricePointUncheckedUpdateManyWithoutOfferNestedInput = {
   deleteMany?: Prisma.PricePointScalarWhereInput | Prisma.PricePointScalarWhereInput[]
 }
 
+export type NullableEnumItemConditionFieldUpdateOperationsInput = {
+  set?: $Enums.ItemCondition | null
+}
+
+export type NullableEnumShippingKindFieldUpdateOperationsInput = {
+  set?: $Enums.ShippingKind | null
+}
+
 export type PricePointCreateWithoutOfferInput = {
   id?: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -435,7 +616,14 @@ export type PricePointCreateWithoutOfferInput = {
 
 export type PricePointUncheckedCreateWithoutOfferInput = {
   id?: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -473,7 +661,14 @@ export type PricePointScalarWhereInput = {
   NOT?: Prisma.PricePointScalarWhereInput | Prisma.PricePointScalarWhereInput[]
   id?: Prisma.StringFilter<"PricePoint"> | string
   offerId?: Prisma.StringFilter<"PricePoint"> | string
+  variantId?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PricePoint"> | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFilter<"PricePoint"> | number
+  priceCondition?: Prisma.StringNullableFilter<"PricePoint"> | string | null
+  installmentPriceCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
+  shippingKind?: Prisma.EnumShippingKindNullableFilter<"PricePoint"> | $Enums.ShippingKind | null
+  shippingCents?: Prisma.IntNullableFilter<"PricePoint"> | number | null
+  syncJobId?: Prisma.StringNullableFilter<"PricePoint"> | string | null
   availability?: Prisma.EnumAvailabilityFilter<"PricePoint"> | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFilter<"PricePoint"> | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFilter<"PricePoint"> | Date | string
@@ -481,7 +676,14 @@ export type PricePointScalarWhereInput = {
 
 export type PricePointCreateManyOfferInput = {
   id?: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
   priceCents: number
+  priceCondition?: string | null
+  installmentPriceCents?: number | null
+  shippingKind?: $Enums.ShippingKind | null
+  shippingCents?: number | null
+  syncJobId?: string | null
   availability?: $Enums.Availability
   source: $Enums.CollectionMethod
   observedAt?: Date | string
@@ -489,7 +691,14 @@ export type PricePointCreateManyOfferInput = {
 
 export type PricePointUpdateWithoutOfferInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -497,7 +706,14 @@ export type PricePointUpdateWithoutOfferInput = {
 
 export type PricePointUncheckedUpdateWithoutOfferInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -505,7 +721,14 @@ export type PricePointUncheckedUpdateWithoutOfferInput = {
 
 export type PricePointUncheckedUpdateManyWithoutOfferInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
   priceCents?: Prisma.IntFieldUpdateOperationsInput | number
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  shippingKind?: Prisma.NullableEnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind | null
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
   source?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   observedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -516,7 +739,14 @@ export type PricePointUncheckedUpdateManyWithoutOfferInput = {
 export type PricePointSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   offerId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
   priceCents?: boolean
+  priceCondition?: boolean
+  installmentPriceCents?: boolean
+  shippingKind?: boolean
+  shippingCents?: boolean
+  syncJobId?: boolean
   availability?: boolean
   source?: boolean
   observedAt?: boolean
@@ -526,7 +756,14 @@ export type PricePointSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type PricePointSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   offerId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
   priceCents?: boolean
+  priceCondition?: boolean
+  installmentPriceCents?: boolean
+  shippingKind?: boolean
+  shippingCents?: boolean
+  syncJobId?: boolean
   availability?: boolean
   source?: boolean
   observedAt?: boolean
@@ -536,7 +773,14 @@ export type PricePointSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
 export type PricePointSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   offerId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
   priceCents?: boolean
+  priceCondition?: boolean
+  installmentPriceCents?: boolean
+  shippingKind?: boolean
+  shippingCents?: boolean
+  syncJobId?: boolean
   availability?: boolean
   source?: boolean
   observedAt?: boolean
@@ -546,13 +790,20 @@ export type PricePointSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
 export type PricePointSelectScalar = {
   id?: boolean
   offerId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
   priceCents?: boolean
+  priceCondition?: boolean
+  installmentPriceCents?: boolean
+  shippingKind?: boolean
+  shippingCents?: boolean
+  syncJobId?: boolean
   availability?: boolean
   source?: boolean
   observedAt?: boolean
 }
 
-export type PricePointOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "offerId" | "priceCents" | "availability" | "source" | "observedAt", ExtArgs["result"]["pricePoint"]>
+export type PricePointOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "offerId" | "variantId" | "itemCondition" | "priceCents" | "priceCondition" | "installmentPriceCents" | "shippingKind" | "shippingCents" | "syncJobId" | "availability" | "source" | "observedAt", ExtArgs["result"]["pricePoint"]>
 export type PricePointInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   offer?: boolean | Prisma.OfferDefaultArgs<ExtArgs>
 }
@@ -571,7 +822,23 @@ export type $PricePointPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     offerId: string
+    /**
+     * Identidade comparável no momento da observação. Pontos legados ficam null.
+     */
+    variantId: string | null
+    itemCondition: $Enums.ItemCondition | null
     priceCents: number
+    /**
+     * Condições observadas no momento da coleta; null significa que a fonte não informou.
+     */
+    priceCondition: string | null
+    installmentPriceCents: number | null
+    shippingKind: $Enums.ShippingKind | null
+    shippingCents: number | null
+    /**
+     * Impede que a retomada de um job grave duas observações para a mesma coleta.
+     */
+    syncJobId: string | null
     availability: $Enums.Availability
     source: $Enums.CollectionMethod
     observedAt: Date
@@ -1001,7 +1268,14 @@ export interface Prisma__PricePointClient<T, Null = never, ExtArgs extends runti
 export interface PricePointFieldRefs {
   readonly id: Prisma.FieldRef<"PricePoint", 'String'>
   readonly offerId: Prisma.FieldRef<"PricePoint", 'String'>
+  readonly variantId: Prisma.FieldRef<"PricePoint", 'String'>
+  readonly itemCondition: Prisma.FieldRef<"PricePoint", 'ItemCondition'>
   readonly priceCents: Prisma.FieldRef<"PricePoint", 'Int'>
+  readonly priceCondition: Prisma.FieldRef<"PricePoint", 'String'>
+  readonly installmentPriceCents: Prisma.FieldRef<"PricePoint", 'Int'>
+  readonly shippingKind: Prisma.FieldRef<"PricePoint", 'ShippingKind'>
+  readonly shippingCents: Prisma.FieldRef<"PricePoint", 'Int'>
+  readonly syncJobId: Prisma.FieldRef<"PricePoint", 'String'>
   readonly availability: Prisma.FieldRef<"PricePoint", 'Availability'>
   readonly source: Prisma.FieldRef<"PricePoint", 'CollectionMethod'>
   readonly observedAt: Prisma.FieldRef<"PricePoint", 'DateTime'>

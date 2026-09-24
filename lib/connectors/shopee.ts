@@ -149,6 +149,8 @@ async function fetchOffer(ref: OfferRef): Promise<FetchResult> {
   return {
     kind: "ok",
     priceCents,
+    // Esta consulta não informa pagamento, parcelamento nem frete por destino.
+    commercialContext: {},
     previousPriceCents,
     availability: null,
     title: node.productName ?? null,

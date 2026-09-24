@@ -16,6 +16,7 @@ import { evaluateAlerts } from "@/lib/alerts/notify";
 import { isMailConfigured } from "@/lib/mail";
 import { verifyImages } from "@/lib/images/check";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
+import { processPublication } from "@/lib/distribution/run";
 
 const once = process.argv.includes("--once");
 const startedAt = new Date();
@@ -90,6 +91,12 @@ async function main() {
     }
 
     const worked = await drainBatch();
+    try {
+      const distribution = await processPublication();
+      if (distribution !== "idle" && distribution !== "disabled") log("distribuição", { resultado: distribution });
+    } catch {
+      log("falha na distribuição; confira o painel antes de reenviar");
+    }
 
     // Fotos: confere as vencidas de tempos em tempos (URL de loja expira).
     if (Date.now() - lastImages > 30 * 60 * 1000) {

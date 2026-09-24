@@ -13,11 +13,21 @@ export interface OfferRef {
   originalUrl: string | null;
 }
 
+/** Somente condições observadas nesta coleta, nunca herdadas de um preço anterior. */
+export interface CommercialContext {
+  priceCondition?: string | null;
+  installments?: number | null;
+  installmentPriceCents?: number | null;
+  shippingKind?: "FREE" | "PAID" | "CONDITIONAL" | "UNKNOWN" | null;
+  shippingCents?: number | null;
+}
+
 export type FetchResult =
   | {
       kind: "ok";
       /** Centavos inteiros, sempre > 0. */
       priceCents: number;
+      commercialContext?: CommercialContext;
       /** Preço de referência informado pela loja, quando há desconto. */
       previousPriceCents: number | null;
       /** null = a fonte não informa; não sobrescreve o que já está cadastrado. */

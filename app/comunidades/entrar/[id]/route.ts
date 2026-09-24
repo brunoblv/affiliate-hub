@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { countClick } from "@/lib/metrics/click";
 import { communityInvite } from "@/lib/communities/validation";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -16,7 +17,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const referrer = new URL(request.headers.get("referer") ?? "");
     if (referrer.origin === new URL(request.url).origin) source = referrer.pathname.slice(0, 512);
   } catch { /* Origem desconhecida: não inventar atribuição. */ }
-  after(async () => {
+  if (countClick(request)) after(async () => {
     try { await prisma.communityClick.create({ data: { communityId: id, nicheId: community.nicheId, source } }); }
     catch { console.error("[comunidade] falha ao registrar clique"); }
   });

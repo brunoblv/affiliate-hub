@@ -45,6 +45,7 @@ export async function deleteCreative(data: FormData) {
   const creative = await prisma.creative.findUniqueOrThrow({ where: { id } });
   // Capa publicada é registro do que foi ao ar: não se apaga.
   if (creative.status === "PUBLISHED") fail(creative.productId, "Capa já publicada não pode ser removida.");
+  if (await prisma.publication.count({ where: { creativeId: id } })) fail(creative.productId, "Capa vinculada ao histórico de distribuição não pode ser removida.");
   await prisma.creative.delete({ where: { id } });
   await deleteCreativeFile(creative.file);
   done(creative.productId, "Capa removida.");

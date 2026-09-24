@@ -418,7 +418,10 @@ export const ModelName = {
   SyncJob: 'SyncJob',
   WorkerHeartbeat: 'WorkerHeartbeat',
   ProductContent: 'ProductContent',
-  Creative: 'Creative'
+  Creative: 'Creative',
+  Publication: 'Publication',
+  PublicationAttempt: 'PublicationAttempt',
+  MetricEvent: 'MetricEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "favorite" | "priceAlert" | "niche" | "community" | "communityClick" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative"
+    modelProps: "user" | "account" | "favorite" | "priceAlert" | "niche" | "community" | "communityClick" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative" | "publication" | "publicationAttempt" | "metricEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2066,6 +2069,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Publication: {
+      payload: Prisma.$PublicationPayload<ExtArgs>
+      fields: Prisma.PublicationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        findMany: {
+          args: Prisma.PublicationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>[]
+        }
+        create: {
+          args: Prisma.PublicationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        createMany: {
+          args: Prisma.PublicationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        update: {
+          args: Prisma.PublicationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublication>
+        }
+        groupBy: {
+          args: Prisma.PublicationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicationCountAggregateOutputType> | number
+        }
+      }
+    }
+    PublicationAttempt: {
+      payload: Prisma.$PublicationAttemptPayload<ExtArgs>
+      fields: Prisma.PublicationAttemptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicationAttemptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicationAttemptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicationAttemptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicationAttemptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        findMany: {
+          args: Prisma.PublicationAttemptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>[]
+        }
+        create: {
+          args: Prisma.PublicationAttemptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        createMany: {
+          args: Prisma.PublicationAttemptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicationAttemptCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicationAttemptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        update: {
+          args: Prisma.PublicationAttemptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicationAttemptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicationAttemptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicationAttemptUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicationAttemptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicationAttemptPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicationAttemptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicationAttempt>
+        }
+        groupBy: {
+          args: Prisma.PublicationAttemptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicationAttemptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicationAttemptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicationAttemptCountAggregateOutputType> | number
+        }
+      }
+    }
+    MetricEvent: {
+      payload: Prisma.$MetricEventPayload<ExtArgs>
+      fields: Prisma.MetricEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MetricEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MetricEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        findFirst: {
+          args: Prisma.MetricEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MetricEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        findMany: {
+          args: Prisma.MetricEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>[]
+        }
+        create: {
+          args: Prisma.MetricEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        createMany: {
+          args: Prisma.MetricEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MetricEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>[]
+        }
+        delete: {
+          args: Prisma.MetricEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        update: {
+          args: Prisma.MetricEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.MetricEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MetricEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MetricEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.MetricEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MetricEventPayload>
+        }
+        aggregate: {
+          args: Prisma.MetricEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMetricEvent>
+        }
+        groupBy: {
+          args: Prisma.MetricEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MetricEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MetricEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MetricEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2348,7 +2573,14 @@ export type ClickScalarFieldEnum = (typeof ClickScalarFieldEnum)[keyof typeof Cl
 export const PricePointScalarFieldEnum = {
   id: 'id',
   offerId: 'offerId',
+  variantId: 'variantId',
+  itemCondition: 'itemCondition',
   priceCents: 'priceCents',
+  priceCondition: 'priceCondition',
+  installmentPriceCents: 'installmentPriceCents',
+  shippingKind: 'shippingKind',
+  shippingCents: 'shippingCents',
+  syncJobId: 'syncJobId',
   availability: 'availability',
   source: 'source',
   observedAt: 'observedAt'
@@ -2446,6 +2678,60 @@ export const CreativeScalarFieldEnum = {
 } as const
 
 export type CreativeScalarFieldEnum = (typeof CreativeScalarFieldEnum)[keyof typeof CreativeScalarFieldEnum]
+
+
+export const PublicationScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  nicheId: 'nicheId',
+  productId: 'productId',
+  offerId: 'offerId',
+  linkId: 'linkId',
+  creativeId: 'creativeId',
+  contentType: 'contentType',
+  title: 'title',
+  text: 'text',
+  targetId: 'targetId',
+  priceCents: 'priceCents',
+  priceObservedAt: 'priceObservedAt',
+  fingerprint: 'fingerprint',
+  status: 'status',
+  scheduledFor: 'scheduledFor',
+  startedAt: 'startedAt',
+  sentAt: 'sentAt',
+  externalId: 'externalId',
+  error: 'error',
+  attemptCount: 'attemptCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PublicationScalarFieldEnum = (typeof PublicationScalarFieldEnum)[keyof typeof PublicationScalarFieldEnum]
+
+
+export const PublicationAttemptScalarFieldEnum = {
+  id: 'id',
+  publicationId: 'publicationId',
+  status: 'status',
+  detail: 'detail',
+  externalId: 'externalId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicationAttemptScalarFieldEnum = (typeof PublicationAttemptScalarFieldEnum)[keyof typeof PublicationAttemptScalarFieldEnum]
+
+
+export const MetricEventScalarFieldEnum = {
+  id: 'id',
+  kind: 'kind',
+  productId: 'productId',
+  nicheId: 'nicheId',
+  term: 'term',
+  resultCount: 'resultCount',
+  createdAt: 'createdAt'
+} as const
+
+export type MetricEventScalarFieldEnum = (typeof MetricEventScalarFieldEnum)[keyof typeof MetricEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2741,6 +3027,34 @@ export type ListEnumCreativeStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'PublicationStatus'
+ */
+export type EnumPublicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PublicationStatus[]'
+ */
+export type ListEnumPublicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicationStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MetricKind'
+ */
+export type EnumMetricKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MetricKind'>
+    
+
+
+/**
+ * Reference to a field of type 'MetricKind[]'
+ */
+export type ListEnumMetricKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MetricKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2926,6 +3240,9 @@ export type GlobalOmitConfig = {
   workerHeartbeat?: Prisma.WorkerHeartbeatOmit
   productContent?: Prisma.ProductContentOmit
   creative?: Prisma.CreativeOmit
+  publication?: Prisma.PublicationOmit
+  publicationAttempt?: Prisma.PublicationAttemptOmit
+  metricEvent?: Prisma.MetricEventOmit
 }
 
 /* Types for Logging */

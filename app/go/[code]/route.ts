@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { countClick } from "@/lib/metrics/click";
 
 /**
  * Redirecionamento de afiliado (RF-12).
@@ -35,7 +36,7 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
   }
 
   const source = originPath(request);
-  after(async () => {
+  if (countClick(request)) after(async () => {
     try {
       await prisma.click.create({
         data: {
@@ -53,6 +54,8 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
 
   redirect(link.url);
 }
+
+export function HEAD() { return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } }); }
 
 /** Caminho da página de onde veio o clique, só se for do próprio site. */
 function originPath(request: Request): string | null {

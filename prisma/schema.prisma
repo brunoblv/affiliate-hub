@@ -162,6 +162,7 @@ model Community {
   position Int @default(0)
   niche Niche @relation(fields: [nicheId], references: [id], onDelete: Restrict)
   clicks CommunityClick[]
+  publications Publication[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -180,6 +181,7 @@ model CommunityClick {
 
   @@index([communityId, createdAt])
   @@index([nicheId, createdAt])
+  @@index([createdAt])
   @@map("community_clicks")
 }
 
@@ -378,13 +380,24 @@ model Click {
 
   @@index([offerId, createdAt])
   @@index([productId, createdAt])
+  @@index([createdAt])
   @@map("clicks")
 }
 
 model PricePoint {
   id           String           @id @default(cuid())
   offerId      String
+  /// Identidade comparável no momento da observação. Pontos legados ficam null.
+  variantId    String?
+  itemCondition ItemCondition?
   priceCents   Int
+  /// Condições observadas no momento da coleta; null significa que a fonte não informou.
+  priceCondition String?
+  installmentPriceCents Int?
+  shippingKind ShippingKind?
+  shippingCents Int?
+  /// Impede que a retomada de um job grave duas observações para a mesma coleta.
+  syncJobId String? @unique
   availability Availability     @default(UNKNOWN)
   source       CollectionMethod
   observedAt   DateTime         @default(now())
@@ -544,9 +557,90 @@ model Creative {
   approvedAt        DateTime?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  publications Publication[]
 
   createdAt DateTime @default(now())
 
   @@index([productId, status])
   @@map("creatives")
+}
+
+enum PublicationStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  UNCERTAIN
+  CANCELED
+}
+
+/// IDs de catálogo e dados aprovados são snapshots preservados mesmo após retirada do produto.
+model Publication {
+  id String @id @default(cuid())
+  communityId String
+  nicheId String
+  productId String
+  offerId String
+  linkId String
+  creativeId String?
+  contentType String @default("oferta_individual")
+  title String
+  text String
+  targetId String
+  priceCents Int
+  priceObservedAt DateTime
+  /// Fingerprint dos dados comerciais e destino que o admin aprovou.
+  fingerprint String
+  status PublicationStatus @default(DRAFT)
+  scheduledFor DateTime?
+  startedAt DateTime?
+  sentAt DateTime?
+  externalId String?
+  error String?
+  attemptCount Int @default(0)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Restrict)
+  creative Creative? @relation(fields: [creativeId], references: [id], onDelete: Restrict)
+  attempts PublicationAttempt[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([targetId, scheduledFor])
+  @@index([productId, createdAt])
+  @@map("publications")
+}
+
+model PublicationAttempt {
+  id String @id @default(cuid())
+  publicationId String
+  status PublicationStatus
+  detail String?
+  externalId String?
+  createdAt DateTime @default(now())
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Restrict)
+
+  @@index([publicationId, createdAt])
+  @@map("publication_attempts")
+}
+
+enum MetricKind {
+  SEARCH
+  PRODUCT_VIEW
+}
+
+/// Eventos de páginas visíveis, sem identificação do visitante. IDs do catálogo são snapshots.
+model MetricEvent {
+  id String @id
+  kind MetricKind
+  productId String?
+  nicheId String?
+  term String?
+  resultCount Int?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt, kind])
+  @@index([kind, term, createdAt])
+  @@index([productId, createdAt])
+  @@map("metric_events")
 }
