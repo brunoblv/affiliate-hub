@@ -38,6 +38,21 @@ export type Favorite = Prisma.FavoriteModel
  */
 export type PriceAlert = Prisma.PriceAlertModel
 /**
+ * Model PushSubscription
+ * 
+ */
+export type PushSubscription = Prisma.PushSubscriptionModel
+/**
+ * Model PushDelivery
+ * 
+ */
+export type PushDelivery = Prisma.PushDeliveryModel
+/**
+ * Model PriceAlertDelivery
+ * 
+ */
+export type PriceAlertDelivery = Prisma.PriceAlertDeliveryModel
+/**
  * Model Niche
  * 
  */

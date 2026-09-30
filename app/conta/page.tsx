@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getProductsByIds } from "@/lib/catalog";
+import { getCatalogProductsByIds } from "@/lib/catalog";
+import { alertContextLabel, alertLowest, alertProductPath, confirmedAlertContext } from "@/lib/alerts/context";
 import { money, moneyShort } from "@/lib/format";
 import { asText, type RawParams } from "@/lib/query";
 import { deleteAccount, deleteAlert, saveAlert, toggleFavorite } from "@/lib/user/actions";
@@ -11,6 +12,7 @@ import { isMailConfigured } from "@/lib/mail";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProductImage } from "@/components/photo";
+import { PushSettings } from "@/components/push-settings";
 
 export const metadata: Metadata = {
   title: "Favoritos e alertas",
@@ -36,12 +38,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     prisma.priceAlert.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),
     prisma.favorite.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),
   ]);
-  const products = await getProductsByIds([
+  const catalog = await getCatalogProductsByIds([
     ...new Set([...alerts.map((a) => a.productId), ...favorites.map((f) => f.productId)]),
   ]);
+  const products = new Map([...catalog].map(([id, found]) => [id, found.product]));
 
   const reached = alerts.filter((alert) => {
-    const lowest = products.get(alert.productId)?.prices.lowestCents;
+    const lowest = alertLowest(catalog.get(alert.productId), confirmedAlertContext(alert));
     return lowest != null && lowest <= alert.targetCents;
   });
   const cheaper = favorites.filter((favorite) => {
@@ -77,6 +80,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </nav>
 
         <div className="flex flex-col gap-10">
+          <PushSettings />
           <section>
             <h1 className="text-[30px] font-extrabold tracking-[-0.035em]">
               Olá{user.name ? `, ${user.name.split(" ")[0]}` : ""}
@@ -93,7 +97,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             ) : null}
             <dl className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-3.5">
               <Stat value={favorites.length} label="favoritos" />
-              <Stat value={alerts.length} label="alertas ativos" />
+              <Stat value={alerts.filter((alert) => confirmedAlertContext(alert) && !["FAILED", "UNCERTAIN"].includes(alert.deliveryStatus)).length} label="alertas ativos" />
               <Stat value={cheaper.length} label="favoritos que ficaram mais baratos" accent="text-good" />
               <Stat value={reached.length} label="alertas com preço atingido" accent="text-good" />
             </dl>
@@ -109,7 +113,9 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
                 {alerts.map((alert) => {
                   const product = products.get(alert.productId);
-                  const lowest = product?.prices.lowestCents ?? null;
+                  const context = confirmedAlertContext(alert);
+                  const lowest = alertLowest(catalog.get(alert.productId), context);
+                  const variant = product?.variants.find((item) => item.id === context?.variantId);
                   const back = "/conta#alertas";
                   const hit = lowest !== null && lowest <= alert.targetCents;
                   return (
@@ -120,9 +126,14 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                       {product ? (
                         <div className="flex min-w-[220px] flex-1 items-center gap-3">
                           <ProductImage product={product} className="h-10 w-10 flex-none" rounded="rounded-lg" />
-                          <Link href={`/produto/${product.slug}`} className="text-sm font-semibold hover:text-brand">
-                            {product.name}
-                          </Link>
+                          <div>
+                            <Link href={alertProductPath(product.slug, context)} className="text-sm font-semibold hover:text-brand">
+                              {product.name}
+                            </Link>
+                            <p className="mt-1 text-xs text-muted">
+                              {context ? alertContextLabel(variant?.label ?? "Variação indisponível", context) : "Confirme a variação e a condição para ativar este alerta."}
+                            </p>
+                          </div>
                         </div>
                       ) : (
                         <span className="min-w-[220px] flex-1 text-sm text-muted">Produto indisponível no momento</span>
@@ -133,8 +144,9 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                         <strong>{lowest === null ? "Sem oferta atual" : money(lowest)}</strong>
                       </div>
 
-                      <form action={saveAlert} className="flex items-end gap-2">
+                      {context ? <form action={saveAlert} className="flex flex-wrap items-end gap-2">
                         <input type="hidden" name="productId" value={alert.productId} />
+                        <input type="hidden" name="alertId" value={alert.id} />
                         <input type="hidden" name="voltar" value={back} />
                         <label className="flex flex-col gap-1 text-[13px]">
                           <span className="text-muted">Desejado (R$)</span>
@@ -145,19 +157,32 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                             className="h-9 w-[110px] rounded-lg border border-line bg-surface px-2.5 text-[13px] font-semibold outline-none focus:border-brand"
                           />
                         </label>
+                        {["FAILED", "UNCERTAIN"].includes(alert.deliveryStatus) ? (
+                          <label className="flex items-center gap-2 text-xs">
+                            <input type="checkbox" name="reactivate" value="yes" />
+                            Reativar os avisos
+                          </label>
+                        ) : null}
                         <button type="submit" className={linkButton}>
                           Atualizar
                         </button>
-                      </form>
+                      </form> : product ? (
+                        <Link href={`/produto/${product.slug}?${new URLSearchParams({ confirmarAlerta: alert.id })}#alerta`} className={linkButton}>
+                          Escolher opção · meta {money(alert.targetCents)}
+                        </Link>
+                      ) : null}
 
                       <span
                         className={`rounded-md px-2.5 py-1.5 text-xs font-semibold ${
                           hit ? "bg-good-bg text-good" : "bg-warn-bg text-warn-ink"
                         }`}
                       >
-                        {lowest === null ? "Aguardando oferta" : hit ? "Preço atingido" : "Aguardando queda"}
+                        {!context ? "Confirmação pendente" : lowest === null ? "Aguardando oferta" : hit ? "Preço atingido" : "Aguardando queda"}
                       </span>
-                      {alert.notifiedAt ? (
+                      {context && alert.deliveryStatus === "SENDING" ? <span className="text-xs text-muted">Aviso em processamento</span> : null}
+                      {context && alert.deliveryStatus === "UNCERTAIN" ? <span className="text-xs text-muted">Envio não confirmado. Confira seu e-mail antes de reativar.</span> : null}
+                      {context && alert.deliveryStatus === "FAILED" ? <span className="text-xs text-muted">Falha no envio. Reative para tentar novamente.</span> : null}
+                      {context && alert.notifiedAt ? (
                         <span className="text-xs text-muted">
                           Avisado por e-mail em {alert.notifiedAt.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                         </span>
@@ -177,7 +202,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             )}
             <p className="mt-3 text-xs text-muted">
               {isMailConfigured()
-                ? `Quando o menor preço chegar à sua meta, avisamos por e-mail (${user.email}), uma vez por queda.`
+                ? `Quando o preço da variação e condição escolhidas chegar à sua meta, avisamos por e-mail (${user.email}), uma vez por queda. O frete não entra na meta.`
                 : "O status aparece aqui. O aviso por e-mail ainda não está ativo neste ambiente."}
             </p>
           </section>

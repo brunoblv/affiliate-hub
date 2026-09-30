@@ -181,6 +181,7 @@ export type ProductVariantWhereInput = {
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   offers?: Prisma.OfferListRelationFilter
   images?: Prisma.ProductImageListRelationFilter
+  priceAlerts?: Prisma.PriceAlertListRelationFilter
 }
 
 export type ProductVariantOrderByWithRelationInput = {
@@ -192,6 +193,7 @@ export type ProductVariantOrderByWithRelationInput = {
   product?: Prisma.ProductOrderByWithRelationInput
   offers?: Prisma.OfferOrderByRelationAggregateInput
   images?: Prisma.ProductImageOrderByRelationAggregateInput
+  priceAlerts?: Prisma.PriceAlertOrderByRelationAggregateInput
 }
 
 export type ProductVariantWhereUniqueInput = Prisma.AtLeast<{
@@ -206,6 +208,7 @@ export type ProductVariantWhereUniqueInput = Prisma.AtLeast<{
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   offers?: Prisma.OfferListRelationFilter
   images?: Prisma.ProductImageListRelationFilter
+  priceAlerts?: Prisma.PriceAlertListRelationFilter
 }, "id">
 
 export type ProductVariantOrderByWithAggregationInput = {
@@ -238,6 +241,7 @@ export type ProductVariantCreateInput = {
   product: Prisma.ProductCreateNestedOneWithoutVariantsInput
   offers?: Prisma.OfferCreateNestedManyWithoutVariantInput
   images?: Prisma.ProductImageCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantUncheckedCreateInput = {
@@ -248,6 +252,7 @@ export type ProductVariantUncheckedCreateInput = {
   isDefault?: boolean
   offers?: Prisma.OfferUncheckedCreateNestedManyWithoutVariantInput
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantUpdateInput = {
@@ -258,6 +263,7 @@ export type ProductVariantUpdateInput = {
   product?: Prisma.ProductUpdateOneRequiredWithoutVariantsNestedInput
   offers?: Prisma.OfferUpdateManyWithoutVariantNestedInput
   images?: Prisma.ProductImageUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantUncheckedUpdateInput = {
@@ -268,6 +274,7 @@ export type ProductVariantUncheckedUpdateInput = {
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   offers?: Prisma.OfferUncheckedUpdateManyWithoutVariantNestedInput
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantCreateManyInput = {
@@ -291,6 +298,11 @@ export type ProductVariantUncheckedUpdateManyInput = {
   label?: Prisma.StringFieldUpdateOperationsInput | string
   attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type ProductVariantNullableScalarRelationFilter = {
+  is?: Prisma.ProductVariantWhereInput | null
+  isNot?: Prisma.ProductVariantWhereInput | null
 }
 
 export type ProductVariantListRelationFilter = {
@@ -325,14 +337,25 @@ export type ProductVariantMinOrderByAggregateInput = {
   isDefault?: Prisma.SortOrder
 }
 
-export type ProductVariantNullableScalarRelationFilter = {
-  is?: Prisma.ProductVariantWhereInput | null
-  isNot?: Prisma.ProductVariantWhereInput | null
-}
-
 export type ProductVariantScalarRelationFilter = {
   is?: Prisma.ProductVariantWhereInput
   isNot?: Prisma.ProductVariantWhereInput
+}
+
+export type ProductVariantCreateNestedOneWithoutPriceAlertsInput = {
+  create?: Prisma.XOR<Prisma.ProductVariantCreateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedCreateWithoutPriceAlertsInput>
+  connectOrCreate?: Prisma.ProductVariantCreateOrConnectWithoutPriceAlertsInput
+  connect?: Prisma.ProductVariantWhereUniqueInput
+}
+
+export type ProductVariantUpdateOneWithoutPriceAlertsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductVariantCreateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedCreateWithoutPriceAlertsInput>
+  connectOrCreate?: Prisma.ProductVariantCreateOrConnectWithoutPriceAlertsInput
+  upsert?: Prisma.ProductVariantUpsertWithoutPriceAlertsInput
+  disconnect?: Prisma.ProductVariantWhereInput | boolean
+  delete?: Prisma.ProductVariantWhereInput | boolean
+  connect?: Prisma.ProductVariantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductVariantUpdateToOneWithWhereWithoutPriceAlertsInput, Prisma.ProductVariantUpdateWithoutPriceAlertsInput>, Prisma.ProductVariantUncheckedUpdateWithoutPriceAlertsInput>
 }
 
 export type ProductVariantCreateNestedManyWithoutProductInput = {
@@ -407,6 +430,62 @@ export type ProductVariantUpdateOneRequiredWithoutOffersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductVariantUpdateToOneWithWhereWithoutOffersInput, Prisma.ProductVariantUpdateWithoutOffersInput>, Prisma.ProductVariantUncheckedUpdateWithoutOffersInput>
 }
 
+export type ProductVariantCreateWithoutPriceAlertsInput = {
+  id?: string
+  label: string
+  attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isDefault?: boolean
+  product: Prisma.ProductCreateNestedOneWithoutVariantsInput
+  offers?: Prisma.OfferCreateNestedManyWithoutVariantInput
+  images?: Prisma.ProductImageCreateNestedManyWithoutVariantInput
+}
+
+export type ProductVariantUncheckedCreateWithoutPriceAlertsInput = {
+  id?: string
+  productId: string
+  label: string
+  attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isDefault?: boolean
+  offers?: Prisma.OfferUncheckedCreateNestedManyWithoutVariantInput
+  images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutVariantInput
+}
+
+export type ProductVariantCreateOrConnectWithoutPriceAlertsInput = {
+  where: Prisma.ProductVariantWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductVariantCreateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedCreateWithoutPriceAlertsInput>
+}
+
+export type ProductVariantUpsertWithoutPriceAlertsInput = {
+  update: Prisma.XOR<Prisma.ProductVariantUpdateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedUpdateWithoutPriceAlertsInput>
+  create: Prisma.XOR<Prisma.ProductVariantCreateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedCreateWithoutPriceAlertsInput>
+  where?: Prisma.ProductVariantWhereInput
+}
+
+export type ProductVariantUpdateToOneWithWhereWithoutPriceAlertsInput = {
+  where?: Prisma.ProductVariantWhereInput
+  data: Prisma.XOR<Prisma.ProductVariantUpdateWithoutPriceAlertsInput, Prisma.ProductVariantUncheckedUpdateWithoutPriceAlertsInput>
+}
+
+export type ProductVariantUpdateWithoutPriceAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  product?: Prisma.ProductUpdateOneRequiredWithoutVariantsNestedInput
+  offers?: Prisma.OfferUpdateManyWithoutVariantNestedInput
+  images?: Prisma.ProductImageUpdateManyWithoutVariantNestedInput
+}
+
+export type ProductVariantUncheckedUpdateWithoutPriceAlertsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  offers?: Prisma.OfferUncheckedUpdateManyWithoutVariantNestedInput
+  images?: Prisma.ProductImageUncheckedUpdateManyWithoutVariantNestedInput
+}
+
 export type ProductVariantCreateWithoutProductInput = {
   id?: string
   label: string
@@ -414,6 +493,7 @@ export type ProductVariantCreateWithoutProductInput = {
   isDefault?: boolean
   offers?: Prisma.OfferCreateNestedManyWithoutVariantInput
   images?: Prisma.ProductImageCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantUncheckedCreateWithoutProductInput = {
@@ -423,6 +503,7 @@ export type ProductVariantUncheckedCreateWithoutProductInput = {
   isDefault?: boolean
   offers?: Prisma.OfferUncheckedCreateNestedManyWithoutVariantInput
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantCreateOrConnectWithoutProductInput = {
@@ -469,6 +550,7 @@ export type ProductVariantCreateWithoutImagesInput = {
   isDefault?: boolean
   product: Prisma.ProductCreateNestedOneWithoutVariantsInput
   offers?: Prisma.OfferCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantUncheckedCreateWithoutImagesInput = {
@@ -478,6 +560,7 @@ export type ProductVariantUncheckedCreateWithoutImagesInput = {
   attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isDefault?: boolean
   offers?: Prisma.OfferUncheckedCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantCreateOrConnectWithoutImagesInput = {
@@ -503,6 +586,7 @@ export type ProductVariantUpdateWithoutImagesInput = {
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateOneRequiredWithoutVariantsNestedInput
   offers?: Prisma.OfferUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantUncheckedUpdateWithoutImagesInput = {
@@ -512,6 +596,7 @@ export type ProductVariantUncheckedUpdateWithoutImagesInput = {
   attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   offers?: Prisma.OfferUncheckedUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantCreateWithoutOffersInput = {
@@ -521,6 +606,7 @@ export type ProductVariantCreateWithoutOffersInput = {
   isDefault?: boolean
   product: Prisma.ProductCreateNestedOneWithoutVariantsInput
   images?: Prisma.ProductImageCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantUncheckedCreateWithoutOffersInput = {
@@ -530,6 +616,7 @@ export type ProductVariantUncheckedCreateWithoutOffersInput = {
   attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isDefault?: boolean
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutVariantInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutVariantInput
 }
 
 export type ProductVariantCreateOrConnectWithoutOffersInput = {
@@ -555,6 +642,7 @@ export type ProductVariantUpdateWithoutOffersInput = {
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   product?: Prisma.ProductUpdateOneRequiredWithoutVariantsNestedInput
   images?: Prisma.ProductImageUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantUncheckedUpdateWithoutOffersInput = {
@@ -564,6 +652,7 @@ export type ProductVariantUncheckedUpdateWithoutOffersInput = {
   attributes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantCreateManyProductInput = {
@@ -580,6 +669,7 @@ export type ProductVariantUpdateWithoutProductInput = {
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   offers?: Prisma.OfferUpdateManyWithoutVariantNestedInput
   images?: Prisma.ProductImageUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantUncheckedUpdateWithoutProductInput = {
@@ -589,6 +679,7 @@ export type ProductVariantUncheckedUpdateWithoutProductInput = {
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   offers?: Prisma.OfferUncheckedUpdateManyWithoutVariantNestedInput
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutVariantNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutVariantNestedInput
 }
 
 export type ProductVariantUncheckedUpdateManyWithoutProductInput = {
@@ -606,11 +697,13 @@ export type ProductVariantUncheckedUpdateManyWithoutProductInput = {
 export type ProductVariantCountOutputType = {
   offers: number
   images: number
+  priceAlerts: number
 }
 
 export type ProductVariantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   offers?: boolean | ProductVariantCountOutputTypeCountOffersArgs
   images?: boolean | ProductVariantCountOutputTypeCountImagesArgs
+  priceAlerts?: boolean | ProductVariantCountOutputTypeCountPriceAlertsArgs
 }
 
 /**
@@ -637,6 +730,13 @@ export type ProductVariantCountOutputTypeCountImagesArgs<ExtArgs extends runtime
   where?: Prisma.ProductImageWhereInput
 }
 
+/**
+ * ProductVariantCountOutputType without action
+ */
+export type ProductVariantCountOutputTypeCountPriceAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PriceAlertWhereInput
+}
+
 
 export type ProductVariantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -647,6 +747,7 @@ export type ProductVariantSelect<ExtArgs extends runtime.Types.Extensions.Intern
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   offers?: boolean | Prisma.ProductVariant$offersArgs<ExtArgs>
   images?: boolean | Prisma.ProductVariant$imagesArgs<ExtArgs>
+  priceAlerts?: boolean | Prisma.ProductVariant$priceAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductVariantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["productVariant"]>
 
@@ -681,6 +782,7 @@ export type ProductVariantInclude<ExtArgs extends runtime.Types.Extensions.Inter
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   offers?: boolean | Prisma.ProductVariant$offersArgs<ExtArgs>
   images?: boolean | Prisma.ProductVariant$imagesArgs<ExtArgs>
+  priceAlerts?: boolean | Prisma.ProductVariant$priceAlertsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductVariantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductVariantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -696,6 +798,7 @@ export type $ProductVariantPayload<ExtArgs extends runtime.Types.Extensions.Inte
     product: Prisma.$ProductPayload<ExtArgs>
     offers: Prisma.$OfferPayload<ExtArgs>[]
     images: Prisma.$ProductImagePayload<ExtArgs>[]
+    priceAlerts: Prisma.$PriceAlertPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1100,6 +1203,7 @@ export interface Prisma__ProductVariantClient<T, Null = never, ExtArgs extends r
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   offers<T extends Prisma.ProductVariant$offersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductVariant$offersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OfferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   images<T extends Prisma.ProductVariant$imagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductVariant$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  priceAlerts<T extends Prisma.ProductVariant$priceAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductVariant$priceAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1580,6 +1684,30 @@ export type ProductVariant$imagesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ProductImageScalarFieldEnum | Prisma.ProductImageScalarFieldEnum[]
+}
+
+/**
+ * ProductVariant.priceAlerts
+ */
+export type ProductVariant$priceAlertsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceAlert
+   */
+  select?: Prisma.PriceAlertSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PriceAlert
+   */
+  omit?: Prisma.PriceAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PriceAlertInclude<ExtArgs> | null
+  where?: Prisma.PriceAlertWhereInput
+  orderBy?: Prisma.PriceAlertOrderByWithRelationInput | Prisma.PriceAlertOrderByWithRelationInput[]
+  cursor?: Prisma.PriceAlertWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PriceAlertScalarFieldEnum | Prisma.PriceAlertScalarFieldEnum[]
 }
 
 /**

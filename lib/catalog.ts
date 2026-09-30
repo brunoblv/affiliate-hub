@@ -12,7 +12,9 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { normalize } from "@/lib/search-text";
 import { cheapestFirst, isEligible, summarize } from "@/lib/pricing";
-import type { Cents } from "@/lib/format";
+import { freshnessLimitMinutes, type Cents } from "@/lib/format";
+import { selectComparison } from "@/lib/comparison";
+import { analyzeDeal } from "@/lib/history/deals";
 import type { Category, Offer, Product, Spec, Store, Variant } from "@/lib/types";
 import { asSections } from "@/lib/content/validate";
 import type { ContentSections } from "@/lib/content/types";
@@ -97,6 +99,7 @@ function mapOffer(row: OfferRow, productId: string, now: number): Offer | null {
   const checkedAt = (row.priceCheckedAt ?? row.updatedAt).getTime();
   return {
     id: row.id,
+    condition: row.condition,
     productId,
     variantId: row.variantId,
     storeId: row.storeId,
@@ -327,13 +330,19 @@ export const getProductBySlug = cache(async (slug: string): Promise<CatalogProdu
 
 /** Produtos publicados por id (favoritos e alertas). Ids despublicados ficam de fora do mapa. */
 export async function getProductsByIds(ids: string[]): Promise<Map<string, Product>> {
+  const found = await getCatalogProductsByIds(ids);
+  return new Map([...found].map(([id, item]) => [id, item.product]));
+}
+
+/** Leitura em lote com ofertas, para avaliar alertas sem perder o contexto comercial. */
+export async function getCatalogProductsByIds(ids: string[]): Promise<Map<string, CatalogProduct>> {
   if (!ids.length) return new Map();
   const rows = await prisma.product.findMany({
     where: { id: { in: ids }, status: "PUBLISHED" },
     include: productInclude,
   });
   const now = Date.now();
-  return new Map(rows.map((row) => [row.id, mapProduct(row, now).product]));
+  return new Map(rows.map((row) => [row.id, mapProduct(row, now)]));
 }
 
 /** Outros produtos do mesmo nicho, os que têm oferta atual primeiro. */
@@ -487,7 +496,7 @@ export async function getVariantPriceHistory(
   const offerById = new Map(comparable.map((offer) => [offer.id, offer]));
   const since = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000);
   const rows = await prisma.pricePoint.findMany({
-    where: { offerId: { in: comparable.map((offer) => offer.id) }, observedAt: { gte: since } },
+    where: { offerId: { in: comparable.map((offer) => offer.id) }, observedAt: { gte: since, lte: new Date() } },
     select: {
       offerId: true, variantId: true, itemCondition: true, priceCents: true,
       priceCondition: true, availability: true, observedAt: true,
@@ -512,96 +521,96 @@ export async function getVariantPriceHistory(
   };
 }
 
-async function loadCandidates(take: number): Promise<Product[]> {
-  const rows = await prisma.product.findMany({
-    where: { status: "PUBLISHED", ...HAS_PUBLIC_OFFER },
-    orderBy: { updatedAt: "desc" },
-    take,
-    include: productInclude,
-  });
-  const now = Date.now();
-  return rows.map((row) => mapProduct(row, now).product).filter((p) => p.prices.lowestCents !== null);
-}
-
 export interface DropView {
   product: Product;
-  /** Preços em ordem cronológica, da mesma oferta. */
+  /** Mínimos diários comparáveis, sem preencher dias ausentes. */
   series: Cents[];
   fromCents: Cents;
   toCents: Cents;
 }
 
-async function withHistory(days: number, take: number): Promise<{ product: Product; series: Cents[] }[]> {
-  const products = await loadCandidates(take);
-  // Oferta de referência: a mais barata elegível de cada produto.
-  const bestOffer = new Map<string, string>();
+const loadDealCandidates = cache(async () => {
   const rows = await prisma.product.findMany({
-    where: { id: { in: products.map((p) => p.id) } },
+    where: { status: "PUBLISHED", ...HAS_PUBLIC_OFFER },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
     include: productInclude,
   });
   const now = Date.now();
-  for (const row of rows) {
-    const best = mapProduct(row, now).offers.find(isEligible);
-    if (best) bestOffer.set(row.id, best.id);
-  }
-  const since = new Date(now - days * 24 * 60 * 60 * 1000);
-  const series = await loadSeries([...bestOffer.values()], since);
-  return products.map((product) => ({
-    product,
-    series: (series.get(bestOffer.get(product.id) ?? "") ?? []).map((point) => point.cents),
-  }));
-}
+  return rows.flatMap((row) => {
+    const found = mapProduct(row, now);
+    const selection = selectComparison(found.product.variants, found.offers);
+    if (!selection.best || !selection.variant) return [];
+    const { best, variant, offers } = selection;
+    const product: Product = {
+      ...found.product,
+      prices: { ...summarize(offers), previousCents: null },
+      deal: { variantId: variant.id, condition: best.condition,
+        label: `${variant.label} · ${best.condition === "USED" ? "Usado" : "Novo"}${best.priceCondition ? ` · ${best.priceCondition}` : ""}`,
+        observedDays: 0 },
+    };
+    return [{ product, best, offers }];
+  });
+});
 
-/** Produtos cujo menor preço atual está abaixo do preço mais antigo dos últimos 30 dias. */
+/** Uma consulta de observações para todos os candidatos, sem uma consulta por produto. */
+const dealsWithHistory = cache(async () => {
+  const candidates = await loadDealCandidates();
+  const now = Date.now();
+  const offerIds = candidates.flatMap(({ offers }) => offers.map((offer) => offer.id));
+  if (!offerIds.length) return [];
+  const rows = await prisma.pricePoint.findMany({
+    where: { offerId: { in: offerIds }, observedAt: {
+      // Inclui o dia limítrofe inteiro antes de agregar, como no gráfico de 30 dias.
+      gte: new Date(now - 31 * 24 * 60 * 60 * 1000), lte: new Date(now),
+    } },
+    select: { offerId: true, variantId: true, itemCondition: true, priceCondition: true,
+      availability: true, observedAt: true, priceCents: true },
+  });
+  const byOffer = new Map<string, OfferObservation[]>();
+  for (const row of rows) {
+    const points = byOffer.get(row.offerId) ?? [];
+    points.push({ ...row, t: row.observedAt.getTime(), cents: row.priceCents });
+    byOffer.set(row.offerId, points);
+  }
+  return candidates.map(({ product, best, offers }) => {
+    const points = aggregateVariantHistory(offers.flatMap((offer) => byOffer.get(offer.id) ?? []), {
+      variantId: best.variantId, itemCondition: best.condition, priceCondition: best.priceCondition,
+    });
+    const result = analyzeDeal(points, best.priceCents, now, freshnessLimitMinutes(best.method) * 60_000);
+    return { ...result, product: { ...product, deal: { ...product.deal!, observedDays: result.analysis.observedDays } } };
+  });
+});
+
 export async function listDrops(limit: number): Promise<DropView[]> {
-  const items = await withHistory(30, 60);
-  return items
-    .flatMap(({ product, series }) => {
-      const to = product.prices.lowestCents;
-      const from = series[0];
-      return to !== null && from !== undefined && from > to
-        ? [{ product, series: [...series, to], fromCents: from, toCents: to }]
-        : [];
-    })
-    .sort((a, b) => b.fromCents - b.toCents - (a.fromCents - a.toCents))
+  return (await dealsWithHistory())
+    .flatMap(({ product, analysis, dropFrom }) => dropFrom === null ? [] : [{
+      product, series: analysis.observations.map((point) => point.cents),
+      fromCents: dropFrom, toCents: product.prices.lowestCents!,
+    }])
+    .sort((a, b) => (b.fromCents - b.toCents) / b.fromCents - (a.fromCents - a.toCents) / a.fromCents)
     .slice(0, limit);
 }
 
 export type DealKind = "destaque" | "quedas" | "minima" | "novas";
 
 export const DEAL_KINDS: { slug: DealKind; label: string }[] = [
-  { slug: "destaque", label: "Em destaque" },
+  { slug: "destaque", label: "Abaixo da média" },
   { slug: "quedas", label: "Maiores quedas" },
-  { slug: "minima", label: "Menor preço registrado" },
+  { slug: "minima", label: "Menor preço em 30 dias" },
   { slug: "novas", label: "Novas ofertas" },
 ];
 
-const discount = (p: Product) =>
-  p.prices.previousCents && p.prices.lowestCents && p.prices.previousCents > p.prices.lowestCents
-    ? (p.prices.previousCents - p.prices.lowestCents) / p.prices.previousCents
-    : 0;
-
 export async function listDeals(kind: DealKind, limit = 48): Promise<Product[]> {
+  if (kind === "novas") return (await loadDealCandidates()).slice(0, limit).map(({ product }) => product);
   if (kind === "quedas") return (await listDrops(limit)).map((drop) => drop.product);
-
-  if (kind === "minima") {
-    const items = await withHistory(366, 120);
-    return items
-      .filter(({ product, series }) => {
-        const lowest = product.prices.lowestCents;
-        // Só faz sentido com histórico: ao menos 3 registros e preço que já variou.
-        return lowest !== null && series.length >= 3 && Math.min(...series) === lowest && Math.max(...series) > lowest;
-      })
-      .map(({ product }) => product)
-      .slice(0, limit);
-  }
-
-  const products = await loadCandidates(limit * 2);
-  if (kind === "novas") return products.slice(0, limit);
-  return [...products].sort((a, b) => discount(b) - discount(a)).slice(0, limit);
+  const items = await dealsWithHistory();
+  return items
+    .filter((item) => kind === "minima" ? item.atMinimum : item.analysis.assessment === "low")
+    .sort((a, b) => (a.analysis.differenceFromAveragePercent ?? 0) - (b.analysis.differenceFromAveragePercent ?? 0))
+    .slice(0, limit).map(({ product }) => product);
 }
 
-/** Vitrine da home: maior desconto sobre o preço de referência da loja; depois os mais recentes. */
+/** Destaques com cobertura suficiente e preço abaixo da média diária observada. */
 export async function listFeatured(limit: number): Promise<Product[]> {
   return listDeals("destaque", limit);
 }

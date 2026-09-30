@@ -19,6 +19,7 @@ model User {
   accounts    Account[]
   favorites   Favorite[]
   priceAlerts PriceAlert[]
+  pushSubscriptions PushSubscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,6 +66,17 @@ model PriceAlert {
   id                 String    @id @default(cuid())
   userId             String
   productId          String
+  /// Nulos nos alertas legados: exigem confirmação explícita antes de notificar.
+  variantId          String?
+  itemCondition      ItemCondition?
+  priceCondition     String?
+  contextKey         String?
+  revision           Int       @default(0)
+  deliveryStatus     AlertDeliveryStatus @default(IDLE)
+  deliveryToken      String?
+  deliveryStartedAt  DateTime?
+  nextAttemptAt      DateTime?
+  attemptCount       Int       @default(0)
   targetCents        Int
   /// Quando o aviso desta passagem pela meta foi enviado. Nulo = ainda não avisado
   /// (ou o preço voltou a subir e o alerta foi rearmado).
@@ -74,9 +86,73 @@ model PriceAlert {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  deliveries PriceAlertDelivery[]
+  pushDeliveries PushDelivery[]
 
-  @@unique([userId, productId])
+  @@unique([userId, productId, contextKey])
+  @@index([variantId])
   @@map("price_alerts")
+}
+
+enum AlertDeliveryStatus {
+  IDLE
+  SENDING
+  SENT
+  FAILED
+  UNCERTAIN
+}
+
+model PushSubscription {
+  id String @id @default(cuid())
+  userId String
+  endpoint String @unique
+  p256dh String
+  auth String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries PushDelivery[]
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// Estado independente do SMTP, por alerta e dispositivo.
+model PushDelivery {
+  id String @id @default(cuid())
+  alertId String
+  subscriptionId String
+  contextKey String
+  targetCents Int
+  status AlertDeliveryStatus @default(IDLE)
+  token String?
+  startedAt DateTime?
+  nextAttemptAt DateTime?
+  attemptCount Int @default(0)
+  errorCode String?
+  alert PriceAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  subscription PushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  @@unique([alertId, subscriptionId])
+  @@index([status, startedAt])
+  @@map("push_deliveries")
+}
+
+model PriceAlertDelivery {
+  id           String @id @default(cuid())
+  alertId      String
+  revision     Int
+  status       AlertDeliveryStatus
+  priceCents   Int
+  targetCents  Int
+  contextKey   String
+  errorCode    String?
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+
+  alert PriceAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@index([alertId, startedAt])
+  @@index([status, startedAt])
+  @@map("price_alert_deliveries")
 }
 
 // ---------------------------------------------------------------------------
@@ -272,6 +348,7 @@ model ProductVariant {
   product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   offers  Offer[]
   images  ProductImage[]
+  priceAlerts PriceAlert[]
 
   @@index([productId])
   @@map("product_variants")

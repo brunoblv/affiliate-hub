@@ -9,6 +9,17 @@
 * 🟢 You can import this file directly.
 */
 
+export const AlertDeliveryStatus = {
+  IDLE: 'IDLE',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN'
+} as const
+
+export type AlertDeliveryStatus = (typeof AlertDeliveryStatus)[keyof typeof AlertDeliveryStatus]
+
+
 export const CollectionMethod = {
   API: 'API',
   SCRAPER: 'SCRAPER',

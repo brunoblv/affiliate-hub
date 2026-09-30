@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getProductsByIds } from "@/lib/catalog";
-import { money, parseReais } from "@/lib/format";
+import { parseReais } from "@/lib/format";
+import { AlertInputError, savePriceAlert } from "@/lib/alerts/save";
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
@@ -75,20 +76,16 @@ export async function saveAlert(data: FormData) {
   if (targetCents === null) fail("Informe um preço desejado válido, como 199,90.");
   if (targetCents! > 100_000_000) fail("Esse valor é alto demais para um alerta.");
 
-  const product = await prisma.product.findFirst({ where: { id: productId, status: "PUBLISHED" } });
-  if (!product) fail("Produto indisponível.");
-
-  const lowest = await currentLowest(productId);
-  if (lowest !== null && targetCents! >= lowest) {
-    fail(`O preço desejado precisa ser menor que o atual (${money(lowest)}).`);
+  try {
+    await savePriceAlert(userId, {
+      productId, targetCents: targetCents!, alertId: text(data, "alertId"),
+      variantId: text(data, "variantId"), itemCondition: text(data, "itemCondition"),
+      priceCondition: text(data, "priceCondition"), reactivate: text(data, "reactivate") === "yes",
+    });
+  } catch (error) {
+    if (error instanceof AlertInputError) fail(error.message);
+    throw error;
   }
-
-  await prisma.priceAlert.upsert({
-    where: { userId_productId: { userId, productId } },
-    create: { userId, productId, targetCents: targetCents! },
-    // Meta nova = alerta rearmado: avisa de novo quando o preço chegar nela.
-    update: { targetCents: targetCents!, notifiedAt: null, notifiedPriceCents: null },
-  });
   revalidatePath("/conta");
   redirect(withParam(back, "ok", "Alerta salvo."));
 }

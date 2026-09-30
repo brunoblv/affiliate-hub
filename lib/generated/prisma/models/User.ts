@@ -201,6 +201,7 @@ export type UserWhereInput = {
   accounts?: Prisma.AccountListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
   priceAlerts?: Prisma.PriceAlertListRelationFilter
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -214,6 +215,7 @@ export type UserOrderByWithRelationInput = {
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
   priceAlerts?: Prisma.PriceAlertOrderByRelationAggregateInput
+  pushSubscriptions?: Prisma.PushSubscriptionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -230,6 +232,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   accounts?: Prisma.AccountListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
   priceAlerts?: Prisma.PriceAlertListRelationFilter
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -269,6 +272,7 @@ export type UserCreateInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -282,6 +286,7 @@ export type UserUncheckedCreateInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -295,6 +300,7 @@ export type UserUpdateInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -308,6 +314,7 @@ export type UserUncheckedUpdateInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -433,6 +440,20 @@ export type UserUpdateOneRequiredWithoutPriceAlertsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPriceAlertsInput, Prisma.UserUpdateWithoutPriceAlertsInput>, Prisma.UserUncheckedUpdateWithoutPriceAlertsInput>
 }
 
+export type UserCreateNestedOneWithoutPushSubscriptionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushSubscriptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPushSubscriptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushSubscriptionsInput
+  upsert?: Prisma.UserUpsertWithoutPushSubscriptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPushSubscriptionsInput, Prisma.UserUpdateWithoutPushSubscriptionsInput>, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   name?: string | null
@@ -443,6 +464,7 @@ export type UserCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -455,6 +477,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -483,6 +506,7 @@ export type UserUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -495,6 +519,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFavoritesInput = {
@@ -507,6 +532,7 @@ export type UserCreateWithoutFavoritesInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFavoritesInput = {
@@ -519,6 +545,7 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -547,6 +574,7 @@ export type UserUpdateWithoutFavoritesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritesInput = {
@@ -559,6 +587,7 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPriceAlertsInput = {
@@ -571,6 +600,7 @@ export type UserCreateWithoutPriceAlertsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPriceAlertsInput = {
@@ -583,6 +613,7 @@ export type UserUncheckedCreateWithoutPriceAlertsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPriceAlertsInput = {
@@ -611,6 +642,7 @@ export type UserUpdateWithoutPriceAlertsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPriceAlertsInput = {
@@ -623,6 +655,75 @@ export type UserUncheckedUpdateWithoutPriceAlertsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPushSubscriptionsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPushSubscriptionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+}
+
+export type UserUpsertWithoutPushSubscriptionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPushSubscriptionsInput, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPushSubscriptionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPushSubscriptionsInput, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+}
+
+export type UserUpdateWithoutPushSubscriptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -634,12 +735,14 @@ export type UserCountOutputType = {
   accounts: number
   favorites: number
   priceAlerts: number
+  pushSubscriptions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
   favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
   priceAlerts?: boolean | UserCountOutputTypeCountPriceAlertsArgs
+  pushSubscriptions?: boolean | UserCountOutputTypeCountPushSubscriptionsArgs
 }
 
 /**
@@ -673,6 +776,13 @@ export type UserCountOutputTypeCountPriceAlertsArgs<ExtArgs extends runtime.Type
   where?: Prisma.PriceAlertWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PushSubscriptionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -685,6 +795,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
   priceAlerts?: boolean | Prisma.User$priceAlertsArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -723,6 +834,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
   priceAlerts?: boolean | Prisma.User$priceAlertsArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -734,6 +846,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
     priceAlerts: Prisma.$PriceAlertPayload<ExtArgs>[]
+    pushSubscriptions: Prisma.$PushSubscriptionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1140,6 +1253,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   favorites<T extends Prisma.User$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   priceAlerts<T extends Prisma.User$priceAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$priceAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pushSubscriptions<T extends Prisma.User$pushSubscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pushSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PushSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1638,6 +1752,30 @@ export type User$priceAlertsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PriceAlertScalarFieldEnum | Prisma.PriceAlertScalarFieldEnum[]
+}
+
+/**
+ * User.pushSubscriptions
+ */
+export type User$pushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PushSubscription
+   */
+  select?: Prisma.PushSubscriptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PushSubscription
+   */
+  omit?: Prisma.PushSubscriptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PushSubscriptionInclude<ExtArgs> | null
+  where?: Prisma.PushSubscriptionWhereInput
+  orderBy?: Prisma.PushSubscriptionOrderByWithRelationInput | Prisma.PushSubscriptionOrderByWithRelationInput[]
+  cursor?: Prisma.PushSubscriptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PushSubscriptionScalarFieldEnum | Prisma.PushSubscriptionScalarFieldEnum[]
 }
 
 /**

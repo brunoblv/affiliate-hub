@@ -1,3 +1,4 @@
+import { productHref } from "@/lib/comparison";
 import Link from "next/link";
 import { integer, moneyShort } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -10,7 +11,7 @@ import { ProductImage } from "./photo";
  */
 export function ProductCard({ product, showBrand = true }: { product: Product; showBrand?: boolean }) {
   const { lowestCents, previousCents, storeCount } = product.prices;
-  const multiVariant = product.variants.length > 1;
+  const multiVariant = !product.deal && product.variants.length > 1;
 
   return (
     <article className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 shadow-card transition-colors hover:border-line-strong">
@@ -23,7 +24,7 @@ export function ProductCard({ product, showBrand = true }: { product: Product; s
           </span>
         ) : null}
         <h3 className="text-sm font-semibold leading-snug text-pretty">
-          <Link href={`/produto/${product.slug}`} className="hover:text-brand">
+          <Link href={productHref(product)} className="hover:text-brand">
             {product.name}
           </Link>
         </h3>
@@ -34,6 +35,7 @@ export function ProductCard({ product, showBrand = true }: { product: Product; s
         ) : null}
       </div>
 
+      {product.deal ? <p className="text-xs text-muted">{product.deal.label}</p> : null}
       <div className="flex flex-col gap-0.5">
         <span className="text-xs text-muted">{multiVariant ? "A partir de" : "Menor preço"}</span>
         {lowestCents === null ? (
@@ -54,7 +56,7 @@ export function ProductCard({ product, showBrand = true }: { product: Product; s
       </div>
 
       <Link
-        href={`/produto/${product.slug}`}
+        href={productHref(product)}
         className="flex h-10 items-center justify-center rounded-[9px] bg-brand text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
       >
         Comparar preços
@@ -69,11 +71,12 @@ export function ProductTile({ product }: { product: Product }) {
 
   return (
     <Link
-      href={`/produto/${product.slug}`}
+      href={productHref(product)}
       className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-3.5 transition-colors hover:border-brand"
     >
       <ProductImage product={product} className="aspect-square" rounded="rounded-[9px]" />
       <span className="text-[13px] font-semibold leading-snug">{product.name}</span>
+      {product.deal ? <span className="text-xs text-muted">{product.deal.label}</span> : null}
       {lowestCents === null ? (
         <span className="text-[13px] font-semibold text-muted">Sem ofertas atuais</span>
       ) : (

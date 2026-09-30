@@ -1,4 +1,5 @@
 import { isEligible } from "@/lib/pricing";
+import { selectComparison } from "@/lib/comparison";
 import type { CatalogProduct } from "@/lib/catalog";
 
 /** Internal editorial policy, not an AdSense approval criterion. */
@@ -19,10 +20,7 @@ export interface ProductQuality {
 
 /** The default product page shows the first variant with a current offer. */
 export function canonicalHistoryOfferId(found: CatalogProduct): string | null {
-  const variant = found.product.variants.find((item) =>
-    found.offers.some((offer) => offer.variantId === item.id && isEligible(offer)),
-  );
-  return found.offers.find((offer) => offer.variantId === variant?.id && isEligible(offer))?.id ?? null;
+  return selectComparison(found.product.variants, found.offers).best?.id ?? null;
 }
 
 /** One policy for metadata, sitemap and the future ad renderer. */

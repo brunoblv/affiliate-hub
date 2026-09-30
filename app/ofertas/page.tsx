@@ -1,3 +1,4 @@
+import { productHref } from "@/lib/comparison";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
@@ -14,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 const EMPTY: Record<DealKind, string> = {
-  destaque: "Ainda não há produtos com oferta atual.",
-  quedas: "Nenhuma queda de preço registrada nos últimos 30 dias.",
-  minima: "Ainda não há produtos no menor preço registrado. Esse recorte precisa de histórico.",
+  destaque: "Ainda não há produtos com histórico suficiente e preço abaixo da média de 30 dias.",
+  quedas: "Nenhuma queda com histórico suficiente nos últimos 30 dias.",
+  minima: "Ainda não há produtos no menor preço de 30 dias com histórico suficiente.",
   novas: "Ainda não há ofertas novas.",
 };
 
@@ -35,6 +36,14 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
         <p className="mt-2.5 text-[15px] text-muted">
           {integer(deals.length)} {deals.length === 1 ? "produto" : "produtos"} neste recorte, entre as
           ofertas monitoradas.
+        </p>
+
+        <p className="mt-3 text-sm text-muted">
+          Análise dos últimos 30 dias, por variação e condição de compra. Usamos o menor preço
+          observado por dia, com pelo menos sete dias de coleta ao longo de uma semana.
+          Dias sem coleta não entram na média. Novas ofertas não exigem histórico.
+          Destaques estão pelo menos 10% abaixo da média; quedas comparam o preço atual com
+          a primeira observação do período. Os preços não incluem frete.
         </p>
 
         <nav aria-label="Recortes de ofertas" className="mt-7 flex flex-wrap gap-2.5">
@@ -111,7 +120,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
               return (
                 <Link
                   key={product.slug}
-                  href={`/produto/${product.slug}`}
+                  href={productHref(product)}
                   className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 transition-colors hover:border-brand"
                 >
                   <div className="flex gap-3.5">
@@ -120,6 +129,10 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                       <span className="text-[13px] font-semibold leading-tight text-pretty">
                         {product.name}
                       </span>
+                      {product.deal ? <span className="text-xs text-muted">{product.deal.label}</span> : null}
+                      {product.deal && product.deal.observedDays > 0 ? (
+                        <span className="text-xs text-muted">{product.deal.observedDays} dias observados em 30 dias</span>
+                      ) : null}
                       {previousCents && lowestCents && previousCents > lowestCents ? (
                         <span className="text-xs text-muted line-through">{moneyShort(previousCents)}</span>
                       ) : null}

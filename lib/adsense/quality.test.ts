@@ -17,7 +17,7 @@ function fixture(): CatalogProduct {
         priceCondition: null },
     },
     offers: [{ id: "offer-1", productId: "product-1", variantId: "variant-1", storeId: "store-1",
-      seller: "Loja", priceCents: 10000, installments: null, installmentPriceCents: null,
+      seller: "Loja", condition: "NEW", priceCents: 10000, installments: null, installmentPriceCents: null,
       priceCondition: null, shipping: { kind: "desconhecido", label: "Frete não informado" },
       availability: "em_estoque", method: "API", status: "ativo", collectedMinutesAgo: 5,
       shortCode: "tracked" }],

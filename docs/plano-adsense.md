@@ -31,6 +31,37 @@ Este é o plano correspondente ao pedido corrigido. Substitui, para esta demanda
 - Quatro testes novos da agregação passaram, junto aos 15 testes já existentes, Prisma validate, typecheck e build. Consulta real: 28 ms para uma oferta; o catálogo local ainda tem 0 produtos elegíveis no sitemap, portanto os 93 ms medidos não validam escala de produção.
 - Próximos trabalhos: alinhar os recortes de `/ofertas` à mesma série, distinguir novo/usado no comparador atual e medir a consulta do sitemap com catálogo representativo.
 
+## Quarto lote — comparador e recortes históricos (28/09/2026)
+
+- Comparador público com seleção Novo/Usado na URL. Menor preço, diferença, lojas, ofertas e histórico respeitam a condição escolhida; seleção sem ofertas fica vazia, sem trocar de condição. Linhas de vendedores identificam a condição do item.
+- Seleção padrão compartilhada entre página, qualidade e rankings: primeira variação com oferta elegível e condição da oferta elegível mais barata. Links dos recortes preservam variação/condição; cards identificam também a condição de pagamento do preço exibido.
+- Home e `/ofertas` passam a usar mínimos diários comparáveis de 30 dias, com a mesma agregação e análise do gráfico. Destaques exigem classificação abaixo da média; quedas comparam com a primeira observação do período; mínima exige histórico suficiente e preço que já variou. Preço de referência da loja não classifica esses recortes.
+- Cobertura mínima: sete dias distintos ao longo de uma semana, última observação recente e oferta atual elegível. Dias ausentes não são preenchidos. Novas ofertas continuam sem exigir histórico, ordenadas pela criação do produto.
+- Consultas de histórico agrupadas para os candidatos, com reutilização por requisição; sem limite arbitrário antes de classificar. Custo com catálogo representativo ainda precisa ser medido.
+- Validação: 48 testes automatizados aprovados, incluindo nove novos testes de seleção e rankings. Typecheck aprovado. Build compilou, mas o prerender de `/admin` falhou com `P1000` (autenticação do PostgreSQL); consulta integrada e validação no navegador ficam pendentes de credenciais válidas. Sem alteração de schema ou migração.
+- Próximo lote funcional: alertas por variação/contexto. Os alertas existentes ainda são por produto.
+
+## Quinto lote — alertas por contexto e envio persistente (28/09/2026)
+
+- Alertas vinculam usuário, produto, variação, novo/usado e condição de pagamento normalizada. Uma pessoa pode acompanhar várias opções do mesmo produto. Pagamento desconhecido não equivale a qualquer pagamento. O frete não entra na meta.
+- Página de produto identifica a opção antes de salvar; navegação por pagamento e links do e-mail/conta preservam a seleção. A conta calcula preço e meta atingida com as mesmas regras do worker. Alterações e exclusões conferem o proprietário no servidor.
+- Migração `20260928160000_alert_context_delivery` preserva alertas existentes com contexto nulo. Eles ficam pausados até escolha explícita em Minha conta → Escolher opção. Variação removida também suspende o alerta. Nenhuma associação retroativa automática.
+- Reserva de envio não marca mais o alerta como enviado. Tentativas e resultados ficam no PostgreSQL, com revisão/token para impedir que uma execução antiga sobrescreva edição nova. Rejeições explícitas têm espera persistida e no máximo três tentativas; timeout/conexão interrompida ou processo encerrado ficam incertos, sem reenvio automático. O usuário pode conferir e reativar em Minha conta. Aceite pelo SMTP não comprova chegada à caixa de entrada.
+- O container local `affiliate-hub-postgres` estava parado. Foi iniciado, a migração foi aplicada e `prisma migrate status` confirmou banco atualizado. Não houve alteração de credenciais nem implantação em produção.
+- Validação: 67 testes unitários/de fluxo aprovados e um teste integrado no PostgreSQL aprovado, incluindo dois avaliadores simultâneos, contexto duplicado, preservação/conversão de legado, remoção de variação e rearmamento. SMTP sempre simulado; fixtures locais removidas ao final. Prisma validate, typecheck e build aprovados. Permanecem avisos anteriores de tracing em `lib/creatives/storage.ts`.
+- Smoke HTTP: home, busca, ofertas e produto com NEW/USED/pagamento responderam 200; conta anônima redirecionou para login. Revisão visual/autenticada não executada por ausência de navegador conectado.
+- Teste integrado explícito: definir `RUN_ALERT_DB_TESTS=1` e executar `node --import tsx --test lib/alerts/alerts.integration.test.ts`; o teste restringe-se ao banco local `affiliate_hub` na porta 5434. A suíte padrão não acessa o banco.
+- Ainda pendentes neste bloco de notificações: push web e homologação de SMTP/entrega real com destinatário de teste autorizado. Nenhum e-mail real foi enviado.
+
+## Sexto lote — push por dispositivo (28/09/2026)
+
+- Ativação/desativação voluntária em Minha conta, API autenticada com conferência de origem e inscrição por usuário/dispositivo. Service worker abre somente o comparador no próprio domínio. Manifest permite abrir o site como aplicação instalada.
+- Push usa o mesmo contexto confirmado e a elegibilidade de preços dos alertas. Estados persistentes independentes do SMTP, reserva concorrente, rearme quando o preço sobe, remoção de inscrições expiradas e espera limitada para rejeições temporárias. Resultado incerto não gera reenvio automático nessa passagem pela meta.
+- Migration `20260928190000_browser_push` aplicada ao PostgreSQL local; Prisma Client regenerado. Teste integrado com transporte simulado validou concorrência, deduplicação, rearme, timeout, retry e exclusão de inscrição expirada.
+- Validação final: suíte unitária/de fluxo, typecheck e build aprovados. Smoke HTTP confirmou manifest/service worker/ícone com 200, API sem autenticação com 401 e mutação de origem externa com 403. Permanecem os cinco avisos anteriores de tracing em `lib/creatives/storage.ts`. Sem validação visual/autenticada em navegador nem entrega real.
+- `npm run notifications:verify` adicionado para conferir configuração VAPID e conexão/autenticação SMTP sem envio. Ambiente local ainda sem SMTP completo e sem par VAPID válido. Configuração e homologação em dispositivo real permanecem pendentes; instruções em `docs/notificacoes.md`.
+- A instalação de dependências apontou oito entradas de severidade alta em dependências existentes de Auth.js/Nodemailer/Prisma. Revisão/atualização dessas dependências fica registrada para a preparação de produção; não foi executado `audit fix --force`.
+
 ## 1. O que já existe e deve ser aproveitado
 
 Diagnóstico por leitura de código; funcionamento integrado não foi revalidado nesta atividade.

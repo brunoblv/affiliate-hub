@@ -30,6 +30,7 @@ export interface Shipping {
 }
 
 export interface Offer {
+  condition: "NEW" | "USED";
   id: string;
   productId: string;
   variantId: string;
@@ -83,6 +84,8 @@ export interface PriceSummary {
 }
 
 export interface Product {
+  /** Contexto explícito dos recortes históricos. */
+  deal?: { variantId: string; condition: "NEW" | "USED"; label: string; observedDays: number };
   id: string;
   slug: string;
   name: string;

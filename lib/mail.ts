@@ -16,11 +16,11 @@ export function isMailConfigured(): boolean {
   return Boolean(process.env.SMTP_HOST && process.env.MAIL_FROM);
 }
 
-export function getMailer(): Mailer | null {
+export function getMailTransport() {
   if (!isMailConfigured()) return null;
 
   const port = Number(process.env.SMTP_PORT) || 587;
-  const transport = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
     secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === "true" : port === 465,
@@ -29,6 +29,11 @@ export function getMailer(): Mailer | null {
     socketTimeout: 20_000,
   });
 
+}
+
+export function getMailer(): Mailer | null {
+  const transport = getMailTransport();
+  if (!transport) return null;
   return {
     async send(mail) {
       await transport.sendMail({ from: process.env.MAIL_FROM, ...mail });

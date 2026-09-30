@@ -13,6 +13,7 @@ import { processJob } from "@/lib/sync/run";
 import { syncConfig } from "@/lib/sync/config";
 import { listConnectors } from "@/lib/connectors";
 import { evaluateAlerts } from "@/lib/alerts/notify";
+import { evaluatePushAlerts } from "@/lib/push/notify";
 import { isMailConfigured } from "@/lib/mail";
 import { verifyImages } from "@/lib/images/check";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
@@ -50,6 +51,13 @@ async function drainBatch(): Promise<number> {
 }
 
 async function runAlerts() {
+  try {
+    const push = await evaluatePushAlerts();
+    if (push.sent || push.failed || push.expired || push.rearmed) log("alertas push", push);
+  } catch {
+    // Não registrar endpoint/chaves nem impedir o canal de e-mail.
+    log("erro ao avaliar push");
+  }
   try {
     const invalidated = await invalidateOutdatedCreatives();
     if (invalidated > 0) log("capas com preço vencido invalidadas", { invalidated });

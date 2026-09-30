@@ -591,10 +591,6 @@ export type PricePointUncheckedUpdateManyWithoutOfferNestedInput = {
   deleteMany?: Prisma.PricePointScalarWhereInput | Prisma.PricePointScalarWhereInput[]
 }
 
-export type NullableEnumItemConditionFieldUpdateOperationsInput = {
-  set?: $Enums.ItemCondition | null
-}
-
 export type NullableEnumShippingKindFieldUpdateOperationsInput = {
   set?: $Enums.ShippingKind | null
 }

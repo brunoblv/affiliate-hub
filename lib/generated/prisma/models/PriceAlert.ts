@@ -27,11 +27,15 @@ export type AggregatePriceAlert = {
 }
 
 export type PriceAlertAvgAggregateOutputType = {
+  revision: number | null
+  attemptCount: number | null
   targetCents: number | null
   notifiedPriceCents: number | null
 }
 
 export type PriceAlertSumAggregateOutputType = {
+  revision: number | null
+  attemptCount: number | null
   targetCents: number | null
   notifiedPriceCents: number | null
 }
@@ -40,6 +44,16 @@ export type PriceAlertMinAggregateOutputType = {
   id: string | null
   userId: string | null
   productId: string | null
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
+  priceCondition: string | null
+  contextKey: string | null
+  revision: number | null
+  deliveryStatus: $Enums.AlertDeliveryStatus | null
+  deliveryToken: string | null
+  deliveryStartedAt: Date | null
+  nextAttemptAt: Date | null
+  attemptCount: number | null
   targetCents: number | null
   notifiedAt: Date | null
   notifiedPriceCents: number | null
@@ -50,6 +64,16 @@ export type PriceAlertMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   productId: string | null
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
+  priceCondition: string | null
+  contextKey: string | null
+  revision: number | null
+  deliveryStatus: $Enums.AlertDeliveryStatus | null
+  deliveryToken: string | null
+  deliveryStartedAt: Date | null
+  nextAttemptAt: Date | null
+  attemptCount: number | null
   targetCents: number | null
   notifiedAt: Date | null
   notifiedPriceCents: number | null
@@ -60,6 +84,16 @@ export type PriceAlertCountAggregateOutputType = {
   id: number
   userId: number
   productId: number
+  variantId: number
+  itemCondition: number
+  priceCondition: number
+  contextKey: number
+  revision: number
+  deliveryStatus: number
+  deliveryToken: number
+  deliveryStartedAt: number
+  nextAttemptAt: number
+  attemptCount: number
   targetCents: number
   notifiedAt: number
   notifiedPriceCents: number
@@ -69,11 +103,15 @@ export type PriceAlertCountAggregateOutputType = {
 
 
 export type PriceAlertAvgAggregateInputType = {
+  revision?: true
+  attemptCount?: true
   targetCents?: true
   notifiedPriceCents?: true
 }
 
 export type PriceAlertSumAggregateInputType = {
+  revision?: true
+  attemptCount?: true
   targetCents?: true
   notifiedPriceCents?: true
 }
@@ -82,6 +120,16 @@ export type PriceAlertMinAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  variantId?: true
+  itemCondition?: true
+  priceCondition?: true
+  contextKey?: true
+  revision?: true
+  deliveryStatus?: true
+  deliveryToken?: true
+  deliveryStartedAt?: true
+  nextAttemptAt?: true
+  attemptCount?: true
   targetCents?: true
   notifiedAt?: true
   notifiedPriceCents?: true
@@ -92,6 +140,16 @@ export type PriceAlertMaxAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  variantId?: true
+  itemCondition?: true
+  priceCondition?: true
+  contextKey?: true
+  revision?: true
+  deliveryStatus?: true
+  deliveryToken?: true
+  deliveryStartedAt?: true
+  nextAttemptAt?: true
+  attemptCount?: true
   targetCents?: true
   notifiedAt?: true
   notifiedPriceCents?: true
@@ -102,6 +160,16 @@ export type PriceAlertCountAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  variantId?: true
+  itemCondition?: true
+  priceCondition?: true
+  contextKey?: true
+  revision?: true
+  deliveryStatus?: true
+  deliveryToken?: true
+  deliveryStartedAt?: true
+  nextAttemptAt?: true
+  attemptCount?: true
   targetCents?: true
   notifiedAt?: true
   notifiedPriceCents?: true
@@ -199,6 +267,16 @@ export type PriceAlertGroupByOutputType = {
   id: string
   userId: string
   productId: string
+  variantId: string | null
+  itemCondition: $Enums.ItemCondition | null
+  priceCondition: string | null
+  contextKey: string | null
+  revision: number
+  deliveryStatus: $Enums.AlertDeliveryStatus
+  deliveryToken: string | null
+  deliveryStartedAt: Date | null
+  nextAttemptAt: Date | null
+  attemptCount: number
   targetCents: number
   notifiedAt: Date | null
   notifiedPriceCents: number | null
@@ -232,46 +310,95 @@ export type PriceAlertWhereInput = {
   id?: Prisma.StringFilter<"PriceAlert"> | string
   userId?: Prisma.StringFilter<"PriceAlert"> | string
   productId?: Prisma.StringFilter<"PriceAlert"> | string
+  variantId?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PriceAlert"> | $Enums.ItemCondition | null
+  priceCondition?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  contextKey?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  revision?: Prisma.IntFilter<"PriceAlert"> | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFilter<"PriceAlert"> | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  deliveryStartedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  attemptCount?: Prisma.IntFilter<"PriceAlert"> | number
   targetCents?: Prisma.IntFilter<"PriceAlert"> | number
   notifiedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
   notifiedPriceCents?: Prisma.IntNullableFilter<"PriceAlert"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PriceAlert"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  variant?: Prisma.XOR<Prisma.ProductVariantNullableScalarRelationFilter, Prisma.ProductVariantWhereInput> | null
+  deliveries?: Prisma.PriceAlertDeliveryListRelationFilter
+  pushDeliveries?: Prisma.PushDeliveryListRelationFilter
 }
 
 export type PriceAlertOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrderInput | Prisma.SortOrder
+  itemCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  contextKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  deliveryStatus?: Prisma.SortOrder
+  deliveryToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   product?: Prisma.ProductOrderByWithRelationInput
+  variant?: Prisma.ProductVariantOrderByWithRelationInput
+  deliveries?: Prisma.PriceAlertDeliveryOrderByRelationAggregateInput
+  pushDeliveries?: Prisma.PushDeliveryOrderByRelationAggregateInput
 }
 
 export type PriceAlertWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_productId?: Prisma.PriceAlertUserIdProductIdCompoundUniqueInput
+  userId_productId_contextKey?: Prisma.PriceAlertUserIdProductIdContextKeyCompoundUniqueInput
   AND?: Prisma.PriceAlertWhereInput | Prisma.PriceAlertWhereInput[]
   OR?: Prisma.PriceAlertWhereInput[]
   NOT?: Prisma.PriceAlertWhereInput | Prisma.PriceAlertWhereInput[]
   userId?: Prisma.StringFilter<"PriceAlert"> | string
   productId?: Prisma.StringFilter<"PriceAlert"> | string
+  variantId?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PriceAlert"> | $Enums.ItemCondition | null
+  priceCondition?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  contextKey?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  revision?: Prisma.IntFilter<"PriceAlert"> | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFilter<"PriceAlert"> | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  deliveryStartedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  attemptCount?: Prisma.IntFilter<"PriceAlert"> | number
   targetCents?: Prisma.IntFilter<"PriceAlert"> | number
   notifiedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
   notifiedPriceCents?: Prisma.IntNullableFilter<"PriceAlert"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PriceAlert"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
-}, "id" | "userId_productId">
+  variant?: Prisma.XOR<Prisma.ProductVariantNullableScalarRelationFilter, Prisma.ProductVariantWhereInput> | null
+  deliveries?: Prisma.PriceAlertDeliveryListRelationFilter
+  pushDeliveries?: Prisma.PushDeliveryListRelationFilter
+}, "id" | "userId_productId_contextKey">
 
 export type PriceAlertOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrderInput | Prisma.SortOrder
+  itemCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceCondition?: Prisma.SortOrderInput | Prisma.SortOrder
+  contextKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  deliveryStatus?: Prisma.SortOrder
+  deliveryToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -290,6 +417,16 @@ export type PriceAlertScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"PriceAlert"> | string
   userId?: Prisma.StringWithAggregatesFilter<"PriceAlert"> | string
   productId?: Prisma.StringWithAggregatesFilter<"PriceAlert"> | string
+  variantId?: Prisma.StringNullableWithAggregatesFilter<"PriceAlert"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableWithAggregatesFilter<"PriceAlert"> | $Enums.ItemCondition | null
+  priceCondition?: Prisma.StringNullableWithAggregatesFilter<"PriceAlert"> | string | null
+  contextKey?: Prisma.StringNullableWithAggregatesFilter<"PriceAlert"> | string | null
+  revision?: Prisma.IntWithAggregatesFilter<"PriceAlert"> | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusWithAggregatesFilter<"PriceAlert"> | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.StringNullableWithAggregatesFilter<"PriceAlert"> | string | null
+  deliveryStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PriceAlert"> | Date | string | null
+  nextAttemptAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PriceAlert"> | Date | string | null
+  attemptCount?: Prisma.IntWithAggregatesFilter<"PriceAlert"> | number
   targetCents?: Prisma.IntWithAggregatesFilter<"PriceAlert"> | number
   notifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PriceAlert"> | Date | string | null
   notifiedPriceCents?: Prisma.IntNullableWithAggregatesFilter<"PriceAlert"> | number | null
@@ -298,48 +435,106 @@ export type PriceAlertScalarWhereWithAggregatesInput = {
 
 export type PriceAlertCreateInput = {
   id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPriceAlertsInput
   product: Prisma.ProductCreateNestedOneWithoutPriceAlertsInput
+  variant?: Prisma.ProductVariantCreateNestedOneWithoutPriceAlertsInput
+  deliveries?: Prisma.PriceAlertDeliveryCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertUncheckedCreateInput = {
   id?: string
   userId: string
   productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPriceAlertsNestedInput
   product?: Prisma.ProductUpdateOneRequiredWithoutPriceAlertsNestedInput
+  variant?: Prisma.ProductVariantUpdateOneWithoutPriceAlertsNestedInput
+  deliveries?: Prisma.PriceAlertDeliveryUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertCreateManyInput = {
   id?: string
   userId: string
   productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
@@ -348,6 +543,15 @@ export type PriceAlertCreateManyInput = {
 
 export type PriceAlertUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -358,6 +562,16 @@ export type PriceAlertUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -374,15 +588,26 @@ export type PriceAlertOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type PriceAlertUserIdProductIdCompoundUniqueInput = {
+export type PriceAlertUserIdProductIdContextKeyCompoundUniqueInput = {
   userId: string
   productId: string
+  contextKey: string
 }
 
 export type PriceAlertCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  contextKey?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  deliveryStatus?: Prisma.SortOrder
+  deliveryToken?: Prisma.SortOrder
+  deliveryStartedAt?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedAt?: Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrder
@@ -390,6 +615,8 @@ export type PriceAlertCountOrderByAggregateInput = {
 }
 
 export type PriceAlertAvgOrderByAggregateInput = {
+  revision?: Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrder
 }
@@ -398,6 +625,16 @@ export type PriceAlertMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  contextKey?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  deliveryStatus?: Prisma.SortOrder
+  deliveryToken?: Prisma.SortOrder
+  deliveryStartedAt?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedAt?: Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrder
@@ -408,6 +645,16 @@ export type PriceAlertMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  variantId?: Prisma.SortOrder
+  itemCondition?: Prisma.SortOrder
+  priceCondition?: Prisma.SortOrder
+  contextKey?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  deliveryStatus?: Prisma.SortOrder
+  deliveryToken?: Prisma.SortOrder
+  deliveryStartedAt?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedAt?: Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrder
@@ -415,8 +662,15 @@ export type PriceAlertMinOrderByAggregateInput = {
 }
 
 export type PriceAlertSumOrderByAggregateInput = {
+  revision?: Prisma.SortOrder
+  attemptCount?: Prisma.SortOrder
   targetCents?: Prisma.SortOrder
   notifiedPriceCents?: Prisma.SortOrder
+}
+
+export type PriceAlertScalarRelationFilter = {
+  is?: Prisma.PriceAlertWhereInput
+  isNot?: Prisma.PriceAlertWhereInput
 }
 
 export type PriceAlertCreateNestedManyWithoutUserInput = {
@@ -461,12 +715,48 @@ export type PriceAlertUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.PriceAlertScalarWhereInput | Prisma.PriceAlertScalarWhereInput[]
 }
 
+export type NullableEnumItemConditionFieldUpdateOperationsInput = {
+  set?: $Enums.ItemCondition | null
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type EnumAlertDeliveryStatusFieldUpdateOperationsInput = {
+  set?: $Enums.AlertDeliveryStatus
+}
+
+export type PriceAlertCreateNestedOneWithoutPushDeliveriesInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutPushDeliveriesInput>
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutPushDeliveriesInput
+  connect?: Prisma.PriceAlertWhereUniqueInput
+}
+
+export type PriceAlertUpdateOneRequiredWithoutPushDeliveriesNestedInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutPushDeliveriesInput>
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutPushDeliveriesInput
+  upsert?: Prisma.PriceAlertUpsertWithoutPushDeliveriesInput
+  connect?: Prisma.PriceAlertWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PriceAlertUpdateToOneWithWhereWithoutPushDeliveriesInput, Prisma.PriceAlertUpdateWithoutPushDeliveriesInput>, Prisma.PriceAlertUncheckedUpdateWithoutPushDeliveriesInput>
+}
+
+export type PriceAlertCreateNestedOneWithoutDeliveriesInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutDeliveriesInput>
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutDeliveriesInput
+  connect?: Prisma.PriceAlertWhereUniqueInput
+}
+
+export type PriceAlertUpdateOneRequiredWithoutDeliveriesNestedInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutDeliveriesInput>
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutDeliveriesInput
+  upsert?: Prisma.PriceAlertUpsertWithoutDeliveriesInput
+  connect?: Prisma.PriceAlertWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PriceAlertUpdateToOneWithWhereWithoutDeliveriesInput, Prisma.PriceAlertUpdateWithoutDeliveriesInput>, Prisma.PriceAlertUncheckedUpdateWithoutDeliveriesInput>
 }
 
 export type PriceAlertCreateNestedManyWithoutProductInput = {
@@ -511,22 +801,88 @@ export type PriceAlertUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.PriceAlertScalarWhereInput | Prisma.PriceAlertScalarWhereInput[]
 }
 
+export type PriceAlertCreateNestedManyWithoutVariantInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput> | Prisma.PriceAlertCreateWithoutVariantInput[] | Prisma.PriceAlertUncheckedCreateWithoutVariantInput[]
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutVariantInput | Prisma.PriceAlertCreateOrConnectWithoutVariantInput[]
+  createMany?: Prisma.PriceAlertCreateManyVariantInputEnvelope
+  connect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+}
+
+export type PriceAlertUncheckedCreateNestedManyWithoutVariantInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput> | Prisma.PriceAlertCreateWithoutVariantInput[] | Prisma.PriceAlertUncheckedCreateWithoutVariantInput[]
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutVariantInput | Prisma.PriceAlertCreateOrConnectWithoutVariantInput[]
+  createMany?: Prisma.PriceAlertCreateManyVariantInputEnvelope
+  connect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+}
+
+export type PriceAlertUpdateManyWithoutVariantNestedInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput> | Prisma.PriceAlertCreateWithoutVariantInput[] | Prisma.PriceAlertUncheckedCreateWithoutVariantInput[]
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutVariantInput | Prisma.PriceAlertCreateOrConnectWithoutVariantInput[]
+  upsert?: Prisma.PriceAlertUpsertWithWhereUniqueWithoutVariantInput | Prisma.PriceAlertUpsertWithWhereUniqueWithoutVariantInput[]
+  createMany?: Prisma.PriceAlertCreateManyVariantInputEnvelope
+  set?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  disconnect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  delete?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  connect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  update?: Prisma.PriceAlertUpdateWithWhereUniqueWithoutVariantInput | Prisma.PriceAlertUpdateWithWhereUniqueWithoutVariantInput[]
+  updateMany?: Prisma.PriceAlertUpdateManyWithWhereWithoutVariantInput | Prisma.PriceAlertUpdateManyWithWhereWithoutVariantInput[]
+  deleteMany?: Prisma.PriceAlertScalarWhereInput | Prisma.PriceAlertScalarWhereInput[]
+}
+
+export type PriceAlertUncheckedUpdateManyWithoutVariantNestedInput = {
+  create?: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput> | Prisma.PriceAlertCreateWithoutVariantInput[] | Prisma.PriceAlertUncheckedCreateWithoutVariantInput[]
+  connectOrCreate?: Prisma.PriceAlertCreateOrConnectWithoutVariantInput | Prisma.PriceAlertCreateOrConnectWithoutVariantInput[]
+  upsert?: Prisma.PriceAlertUpsertWithWhereUniqueWithoutVariantInput | Prisma.PriceAlertUpsertWithWhereUniqueWithoutVariantInput[]
+  createMany?: Prisma.PriceAlertCreateManyVariantInputEnvelope
+  set?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  disconnect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  delete?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  connect?: Prisma.PriceAlertWhereUniqueInput | Prisma.PriceAlertWhereUniqueInput[]
+  update?: Prisma.PriceAlertUpdateWithWhereUniqueWithoutVariantInput | Prisma.PriceAlertUpdateWithWhereUniqueWithoutVariantInput[]
+  updateMany?: Prisma.PriceAlertUpdateManyWithWhereWithoutVariantInput | Prisma.PriceAlertUpdateManyWithWhereWithoutVariantInput[]
+  deleteMany?: Prisma.PriceAlertScalarWhereInput | Prisma.PriceAlertScalarWhereInput[]
+}
+
 export type PriceAlertCreateWithoutUserInput = {
   id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutPriceAlertsInput
+  variant?: Prisma.ProductVariantCreateNestedOneWithoutPriceAlertsInput
+  deliveries?: Prisma.PriceAlertDeliveryCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertUncheckedCreateWithoutUserInput = {
   id?: string
   productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertCreateOrConnectWithoutUserInput = {
@@ -562,28 +918,262 @@ export type PriceAlertScalarWhereInput = {
   id?: Prisma.StringFilter<"PriceAlert"> | string
   userId?: Prisma.StringFilter<"PriceAlert"> | string
   productId?: Prisma.StringFilter<"PriceAlert"> | string
+  variantId?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  itemCondition?: Prisma.EnumItemConditionNullableFilter<"PriceAlert"> | $Enums.ItemCondition | null
+  priceCondition?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  contextKey?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  revision?: Prisma.IntFilter<"PriceAlert"> | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFilter<"PriceAlert"> | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.StringNullableFilter<"PriceAlert"> | string | null
+  deliveryStartedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
+  attemptCount?: Prisma.IntFilter<"PriceAlert"> | number
   targetCents?: Prisma.IntFilter<"PriceAlert"> | number
   notifiedAt?: Prisma.DateTimeNullableFilter<"PriceAlert"> | Date | string | null
   notifiedPriceCents?: Prisma.IntNullableFilter<"PriceAlert"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PriceAlert"> | Date | string
 }
 
-export type PriceAlertCreateWithoutProductInput = {
+export type PriceAlertCreateWithoutPushDeliveriesInput = {
   id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPriceAlertsInput
+  product: Prisma.ProductCreateNestedOneWithoutPriceAlertsInput
+  variant?: Prisma.ProductVariantCreateNestedOneWithoutPriceAlertsInput
+  deliveries?: Prisma.PriceAlertDeliveryCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertUncheckedCreateWithoutPushDeliveriesInput = {
+  id?: string
+  userId: string
+  productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertCreateOrConnectWithoutPushDeliveriesInput = {
+  where: Prisma.PriceAlertWhereUniqueInput
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutPushDeliveriesInput>
+}
+
+export type PriceAlertUpsertWithoutPushDeliveriesInput = {
+  update: Prisma.XOR<Prisma.PriceAlertUpdateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedUpdateWithoutPushDeliveriesInput>
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutPushDeliveriesInput>
+  where?: Prisma.PriceAlertWhereInput
+}
+
+export type PriceAlertUpdateToOneWithWhereWithoutPushDeliveriesInput = {
+  where?: Prisma.PriceAlertWhereInput
+  data: Prisma.XOR<Prisma.PriceAlertUpdateWithoutPushDeliveriesInput, Prisma.PriceAlertUncheckedUpdateWithoutPushDeliveriesInput>
+}
+
+export type PriceAlertUpdateWithoutPushDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPriceAlertsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutPriceAlertsNestedInput
+  variant?: Prisma.ProductVariantUpdateOneWithoutPriceAlertsNestedInput
+  deliveries?: Prisma.PriceAlertDeliveryUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertUncheckedUpdateWithoutPushDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertCreateWithoutDeliveriesInput = {
+  id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPriceAlertsInput
+  product: Prisma.ProductCreateNestedOneWithoutPriceAlertsInput
+  variant?: Prisma.ProductVariantCreateNestedOneWithoutPriceAlertsInput
+  pushDeliveries?: Prisma.PushDeliveryCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertUncheckedCreateWithoutDeliveriesInput = {
+  id?: string
+  userId: string
+  productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  pushDeliveries?: Prisma.PushDeliveryUncheckedCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertCreateOrConnectWithoutDeliveriesInput = {
+  where: Prisma.PriceAlertWhereUniqueInput
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutDeliveriesInput>
+}
+
+export type PriceAlertUpsertWithoutDeliveriesInput = {
+  update: Prisma.XOR<Prisma.PriceAlertUpdateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedUpdateWithoutDeliveriesInput>
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedCreateWithoutDeliveriesInput>
+  where?: Prisma.PriceAlertWhereInput
+}
+
+export type PriceAlertUpdateToOneWithWhereWithoutDeliveriesInput = {
+  where?: Prisma.PriceAlertWhereInput
+  data: Prisma.XOR<Prisma.PriceAlertUpdateWithoutDeliveriesInput, Prisma.PriceAlertUncheckedUpdateWithoutDeliveriesInput>
+}
+
+export type PriceAlertUpdateWithoutDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPriceAlertsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutPriceAlertsNestedInput
+  variant?: Prisma.ProductVariantUpdateOneWithoutPriceAlertsNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertUncheckedUpdateWithoutDeliveriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushDeliveries?: Prisma.PushDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertCreateWithoutProductInput = {
+  id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPriceAlertsInput
+  variant?: Prisma.ProductVariantCreateNestedOneWithoutPriceAlertsInput
+  deliveries?: Prisma.PriceAlertDeliveryCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertUncheckedCreateWithoutProductInput = {
   id?: string
   userId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
   createdAt?: Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedCreateNestedManyWithoutAlertInput
 }
 
 export type PriceAlertCreateOrConnectWithoutProductInput = {
@@ -612,9 +1202,87 @@ export type PriceAlertUpdateManyWithWhereWithoutProductInput = {
   data: Prisma.XOR<Prisma.PriceAlertUpdateManyMutationInput, Prisma.PriceAlertUncheckedUpdateManyWithoutProductInput>
 }
 
+export type PriceAlertCreateWithoutVariantInput = {
+  id?: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPriceAlertsInput
+  product: Prisma.ProductCreateNestedOneWithoutPriceAlertsInput
+  deliveries?: Prisma.PriceAlertDeliveryCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertUncheckedCreateWithoutVariantInput = {
+  id?: string
+  userId: string
+  productId: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedCreateNestedManyWithoutAlertInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedCreateNestedManyWithoutAlertInput
+}
+
+export type PriceAlertCreateOrConnectWithoutVariantInput = {
+  where: Prisma.PriceAlertWhereUniqueInput
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput>
+}
+
+export type PriceAlertCreateManyVariantInputEnvelope = {
+  data: Prisma.PriceAlertCreateManyVariantInput | Prisma.PriceAlertCreateManyVariantInput[]
+  skipDuplicates?: boolean
+}
+
+export type PriceAlertUpsertWithWhereUniqueWithoutVariantInput = {
+  where: Prisma.PriceAlertWhereUniqueInput
+  update: Prisma.XOR<Prisma.PriceAlertUpdateWithoutVariantInput, Prisma.PriceAlertUncheckedUpdateWithoutVariantInput>
+  create: Prisma.XOR<Prisma.PriceAlertCreateWithoutVariantInput, Prisma.PriceAlertUncheckedCreateWithoutVariantInput>
+}
+
+export type PriceAlertUpdateWithWhereUniqueWithoutVariantInput = {
+  where: Prisma.PriceAlertWhereUniqueInput
+  data: Prisma.XOR<Prisma.PriceAlertUpdateWithoutVariantInput, Prisma.PriceAlertUncheckedUpdateWithoutVariantInput>
+}
+
+export type PriceAlertUpdateManyWithWhereWithoutVariantInput = {
+  where: Prisma.PriceAlertScalarWhereInput
+  data: Prisma.XOR<Prisma.PriceAlertUpdateManyMutationInput, Prisma.PriceAlertUncheckedUpdateManyWithoutVariantInput>
+}
+
 export type PriceAlertCreateManyUserInput = {
   id?: string
   productId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
@@ -623,25 +1291,59 @@ export type PriceAlertCreateManyUserInput = {
 
 export type PriceAlertUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutPriceAlertsNestedInput
+  variant?: Prisma.ProductVariantUpdateOneWithoutPriceAlertsNestedInput
+  deliveries?: Prisma.PriceAlertDeliveryUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -651,6 +1353,16 @@ export type PriceAlertUncheckedUpdateManyWithoutUserInput = {
 export type PriceAlertCreateManyProductInput = {
   id?: string
   userId: string
+  variantId?: string | null
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
   targetCents: number
   notifiedAt?: Date | string | null
   notifiedPriceCents?: number | null
@@ -659,91 +1371,295 @@ export type PriceAlertCreateManyProductInput = {
 
 export type PriceAlertUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPriceAlertsNestedInput
+  variant?: Prisma.ProductVariantUpdateOneWithoutPriceAlertsNestedInput
+  deliveries?: Prisma.PriceAlertDeliveryUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedUpdateManyWithoutAlertNestedInput
 }
 
 export type PriceAlertUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
   targetCents?: Prisma.IntFieldUpdateOperationsInput | number
   notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type PriceAlertCreateManyVariantInput = {
+  id?: string
+  userId: string
+  productId: string
+  itemCondition?: $Enums.ItemCondition | null
+  priceCondition?: string | null
+  contextKey?: string | null
+  revision?: number
+  deliveryStatus?: $Enums.AlertDeliveryStatus
+  deliveryToken?: string | null
+  deliveryStartedAt?: Date | string | null
+  nextAttemptAt?: Date | string | null
+  attemptCount?: number
+  targetCents: number
+  notifiedAt?: Date | string | null
+  notifiedPriceCents?: number | null
+  createdAt?: Date | string
+}
+
+export type PriceAlertUpdateWithoutVariantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPriceAlertsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutPriceAlertsNestedInput
+  deliveries?: Prisma.PriceAlertDeliveryUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertUncheckedUpdateWithoutVariantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deliveries?: Prisma.PriceAlertDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+  pushDeliveries?: Prisma.PushDeliveryUncheckedUpdateManyWithoutAlertNestedInput
+}
+
+export type PriceAlertUncheckedUpdateManyWithoutVariantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  itemCondition?: Prisma.NullableEnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryStatus?: Prisma.EnumAlertDeliveryStatusFieldUpdateOperationsInput | $Enums.AlertDeliveryStatus
+  deliveryToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attemptCount?: Prisma.IntFieldUpdateOperationsInput | number
+  targetCents?: Prisma.IntFieldUpdateOperationsInput | number
+  notifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notifiedPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type PriceAlertCountOutputType
+ */
+
+export type PriceAlertCountOutputType = {
+  deliveries: number
+  pushDeliveries: number
+}
+
+export type PriceAlertCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  deliveries?: boolean | PriceAlertCountOutputTypeCountDeliveriesArgs
+  pushDeliveries?: boolean | PriceAlertCountOutputTypeCountPushDeliveriesArgs
+}
+
+/**
+ * PriceAlertCountOutputType without action
+ */
+export type PriceAlertCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceAlertCountOutputType
+   */
+  select?: Prisma.PriceAlertCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * PriceAlertCountOutputType without action
+ */
+export type PriceAlertCountOutputTypeCountDeliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PriceAlertDeliveryWhereInput
+}
+
+/**
+ * PriceAlertCountOutputType without action
+ */
+export type PriceAlertCountOutputTypeCountPushDeliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PushDeliveryWhereInput
+}
 
 
 export type PriceAlertSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   productId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
+  priceCondition?: boolean
+  contextKey?: boolean
+  revision?: boolean
+  deliveryStatus?: boolean
+  deliveryToken?: boolean
+  deliveryStartedAt?: boolean
+  nextAttemptAt?: boolean
+  attemptCount?: boolean
   targetCents?: boolean
   notifiedAt?: boolean
   notifiedPriceCents?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
+  deliveries?: boolean | Prisma.PriceAlert$deliveriesArgs<ExtArgs>
+  pushDeliveries?: boolean | Prisma.PriceAlert$pushDeliveriesArgs<ExtArgs>
+  _count?: boolean | Prisma.PriceAlertCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["priceAlert"]>
 
 export type PriceAlertSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   productId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
+  priceCondition?: boolean
+  contextKey?: boolean
+  revision?: boolean
+  deliveryStatus?: boolean
+  deliveryToken?: boolean
+  deliveryStartedAt?: boolean
+  nextAttemptAt?: boolean
+  attemptCount?: boolean
   targetCents?: boolean
   notifiedAt?: boolean
   notifiedPriceCents?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
 }, ExtArgs["result"]["priceAlert"]>
 
 export type PriceAlertSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   productId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
+  priceCondition?: boolean
+  contextKey?: boolean
+  revision?: boolean
+  deliveryStatus?: boolean
+  deliveryToken?: boolean
+  deliveryStartedAt?: boolean
+  nextAttemptAt?: boolean
+  attemptCount?: boolean
   targetCents?: boolean
   notifiedAt?: boolean
   notifiedPriceCents?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
 }, ExtArgs["result"]["priceAlert"]>
 
 export type PriceAlertSelectScalar = {
   id?: boolean
   userId?: boolean
   productId?: boolean
+  variantId?: boolean
+  itemCondition?: boolean
+  priceCondition?: boolean
+  contextKey?: boolean
+  revision?: boolean
+  deliveryStatus?: boolean
+  deliveryToken?: boolean
+  deliveryStartedAt?: boolean
+  nextAttemptAt?: boolean
+  attemptCount?: boolean
   targetCents?: boolean
   notifiedAt?: boolean
   notifiedPriceCents?: boolean
   createdAt?: boolean
 }
 
-export type PriceAlertOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "targetCents" | "notifiedAt" | "notifiedPriceCents" | "createdAt", ExtArgs["result"]["priceAlert"]>
+export type PriceAlertOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "variantId" | "itemCondition" | "priceCondition" | "contextKey" | "revision" | "deliveryStatus" | "deliveryToken" | "deliveryStartedAt" | "nextAttemptAt" | "attemptCount" | "targetCents" | "notifiedAt" | "notifiedPriceCents" | "createdAt", ExtArgs["result"]["priceAlert"]>
 export type PriceAlertInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
+  deliveries?: boolean | Prisma.PriceAlert$deliveriesArgs<ExtArgs>
+  pushDeliveries?: boolean | Prisma.PriceAlert$pushDeliveriesArgs<ExtArgs>
+  _count?: boolean | Prisma.PriceAlertCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PriceAlertIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
 }
 export type PriceAlertIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  variant?: boolean | Prisma.PriceAlert$variantArgs<ExtArgs>
 }
 
 export type $PriceAlertPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -751,11 +1667,27 @@ export type $PriceAlertPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     product: Prisma.$ProductPayload<ExtArgs>
+    variant: Prisma.$ProductVariantPayload<ExtArgs> | null
+    deliveries: Prisma.$PriceAlertDeliveryPayload<ExtArgs>[]
+    pushDeliveries: Prisma.$PushDeliveryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
     productId: string
+    /**
+     * Nulos nos alertas legados: exigem confirmação explícita antes de notificar.
+     */
+    variantId: string | null
+    itemCondition: $Enums.ItemCondition | null
+    priceCondition: string | null
+    contextKey: string | null
+    revision: number
+    deliveryStatus: $Enums.AlertDeliveryStatus
+    deliveryToken: string | null
+    deliveryStartedAt: Date | null
+    nextAttemptAt: Date | null
+    attemptCount: number
     targetCents: number
     /**
      * Quando o aviso desta passagem pela meta foi enviado. Nulo = ainda não avisado
@@ -1160,6 +2092,9 @@ export interface Prisma__PriceAlertClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  variant<T extends Prisma.PriceAlert$variantArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PriceAlert$variantArgs<ExtArgs>>): Prisma.Prisma__ProductVariantClient<runtime.Types.Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  deliveries<T extends Prisma.PriceAlert$deliveriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PriceAlert$deliveriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceAlertDeliveryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pushDeliveries<T extends Prisma.PriceAlert$pushDeliveriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PriceAlert$pushDeliveriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PushDeliveryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1192,6 +2127,16 @@ export interface PriceAlertFieldRefs {
   readonly id: Prisma.FieldRef<"PriceAlert", 'String'>
   readonly userId: Prisma.FieldRef<"PriceAlert", 'String'>
   readonly productId: Prisma.FieldRef<"PriceAlert", 'String'>
+  readonly variantId: Prisma.FieldRef<"PriceAlert", 'String'>
+  readonly itemCondition: Prisma.FieldRef<"PriceAlert", 'ItemCondition'>
+  readonly priceCondition: Prisma.FieldRef<"PriceAlert", 'String'>
+  readonly contextKey: Prisma.FieldRef<"PriceAlert", 'String'>
+  readonly revision: Prisma.FieldRef<"PriceAlert", 'Int'>
+  readonly deliveryStatus: Prisma.FieldRef<"PriceAlert", 'AlertDeliveryStatus'>
+  readonly deliveryToken: Prisma.FieldRef<"PriceAlert", 'String'>
+  readonly deliveryStartedAt: Prisma.FieldRef<"PriceAlert", 'DateTime'>
+  readonly nextAttemptAt: Prisma.FieldRef<"PriceAlert", 'DateTime'>
+  readonly attemptCount: Prisma.FieldRef<"PriceAlert", 'Int'>
   readonly targetCents: Prisma.FieldRef<"PriceAlert", 'Int'>
   readonly notifiedAt: Prisma.FieldRef<"PriceAlert", 'DateTime'>
   readonly notifiedPriceCents: Prisma.FieldRef<"PriceAlert", 'Int'>
@@ -1594,6 +2539,73 @@ export type PriceAlertDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many PriceAlerts to delete.
    */
   limit?: number
+}
+
+/**
+ * PriceAlert.variant
+ */
+export type PriceAlert$variantArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductVariant
+   */
+  select?: Prisma.ProductVariantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductVariant
+   */
+  omit?: Prisma.ProductVariantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductVariantInclude<ExtArgs> | null
+  where?: Prisma.ProductVariantWhereInput
+}
+
+/**
+ * PriceAlert.deliveries
+ */
+export type PriceAlert$deliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceAlertDelivery
+   */
+  select?: Prisma.PriceAlertDeliverySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PriceAlertDelivery
+   */
+  omit?: Prisma.PriceAlertDeliveryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PriceAlertDeliveryInclude<ExtArgs> | null
+  where?: Prisma.PriceAlertDeliveryWhereInput
+  orderBy?: Prisma.PriceAlertDeliveryOrderByWithRelationInput | Prisma.PriceAlertDeliveryOrderByWithRelationInput[]
+  cursor?: Prisma.PriceAlertDeliveryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PriceAlertDeliveryScalarFieldEnum | Prisma.PriceAlertDeliveryScalarFieldEnum[]
+}
+
+/**
+ * PriceAlert.pushDeliveries
+ */
+export type PriceAlert$pushDeliveriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PushDelivery
+   */
+  select?: Prisma.PushDeliverySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PushDelivery
+   */
+  omit?: Prisma.PushDeliveryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PushDeliveryInclude<ExtArgs> | null
+  where?: Prisma.PushDeliveryWhereInput
+  orderBy?: Prisma.PushDeliveryOrderByWithRelationInput | Prisma.PushDeliveryOrderByWithRelationInput[]
+  cursor?: Prisma.PushDeliveryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PushDeliveryScalarFieldEnum | Prisma.PushDeliveryScalarFieldEnum[]
 }
 
 /**

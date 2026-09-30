@@ -55,6 +55,9 @@ export const ModelName = {
   Account: 'Account',
   Favorite: 'Favorite',
   PriceAlert: 'PriceAlert',
+  PushSubscription: 'PushSubscription',
+  PushDelivery: 'PushDelivery',
+  PriceAlertDelivery: 'PriceAlertDelivery',
   Niche: 'Niche',
   Community: 'Community',
   CommunityClick: 'CommunityClick',
@@ -140,6 +143,16 @@ export const PriceAlertScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   productId: 'productId',
+  variantId: 'variantId',
+  itemCondition: 'itemCondition',
+  priceCondition: 'priceCondition',
+  contextKey: 'contextKey',
+  revision: 'revision',
+  deliveryStatus: 'deliveryStatus',
+  deliveryToken: 'deliveryToken',
+  deliveryStartedAt: 'deliveryStartedAt',
+  nextAttemptAt: 'nextAttemptAt',
+  attemptCount: 'attemptCount',
   targetCents: 'targetCents',
   notifiedAt: 'notifiedAt',
   notifiedPriceCents: 'notifiedPriceCents',
@@ -147,6 +160,51 @@ export const PriceAlertScalarFieldEnum = {
 } as const
 
 export type PriceAlertScalarFieldEnum = (typeof PriceAlertScalarFieldEnum)[keyof typeof PriceAlertScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  createdAt: 'createdAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
+
+
+export const PushDeliveryScalarFieldEnum = {
+  id: 'id',
+  alertId: 'alertId',
+  subscriptionId: 'subscriptionId',
+  contextKey: 'contextKey',
+  targetCents: 'targetCents',
+  status: 'status',
+  token: 'token',
+  startedAt: 'startedAt',
+  nextAttemptAt: 'nextAttemptAt',
+  attemptCount: 'attemptCount',
+  errorCode: 'errorCode'
+} as const
+
+export type PushDeliveryScalarFieldEnum = (typeof PushDeliveryScalarFieldEnum)[keyof typeof PushDeliveryScalarFieldEnum]
+
+
+export const PriceAlertDeliveryScalarFieldEnum = {
+  id: 'id',
+  alertId: 'alertId',
+  revision: 'revision',
+  status: 'status',
+  priceCents: 'priceCents',
+  targetCents: 'targetCents',
+  contextKey: 'contextKey',
+  errorCode: 'errorCode',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type PriceAlertDeliveryScalarFieldEnum = (typeof PriceAlertDeliveryScalarFieldEnum)[keyof typeof PriceAlertDeliveryScalarFieldEnum]
 
 
 export const NicheScalarFieldEnum = {

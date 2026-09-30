@@ -1,3 +1,4 @@
+import { productHref } from "@/lib/comparison";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -124,19 +125,20 @@ export default async function HomePage() {
               {drops.map(({ product, series, fromCents, toCents }) => (
                 <Link
                   key={product.slug}
-                  href={`/produto/${product.slug}`}
+                  href={productHref(product)}
                   className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4.5 transition-colors hover:border-brand"
                 >
                   <div className="flex items-center gap-4">
                     <ProductImage product={product} className="h-[72px] w-[72px] flex-none" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="text-sm font-semibold leading-tight">{product.name}</span>
+                      {product.deal ? <span className="text-xs text-muted">{product.deal.label}</span> : null}
                       <div className="flex items-baseline gap-2">
                         <span className="text-[13px] text-muted line-through">{moneyShort(fromCents)}</span>
                         <span className="text-[22px] font-extrabold tracking-[-0.03em]">{moneyShort(toCents)}</span>
                       </div>
                       <span className="text-xs font-semibold text-good">
-                        ↓ {money(fromCents - toCents)} nos últimos 30 dias
+                        ↓ {money(fromCents - toCents)} desde a primeira coleta em 30 dias
                       </span>
                     </div>
                   </div>

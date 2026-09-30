@@ -17,12 +17,15 @@ import { BellIcon, HeartIcon } from "@/components/icons";
 import { getProductBySlug, getVariantPriceHistory, listRelated } from "@/lib/catalog";
 import { historicalOfferIdsForProduct } from "@/lib/adsense/quality-data";
 import { canonicalHistoryOfferId, evaluateProductQuality } from "@/lib/adsense/quality";
+import { selectComparison } from "@/lib/comparison";
 import { groupByStore, isEligible, summarize } from "@/lib/pricing";
 import { elapsed, freshnessLimitMinutes, installmentLabel, integer, money } from "@/lib/format";
 import { asText, type RawParams } from "@/lib/query";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { deleteAlert, saveAlert, toggleFavorite } from "@/lib/user/actions";
+import { alertContextKey, alertContextLabel, alertLowest } from "@/lib/alerts/context";
+import { normalizedPriceCondition } from "@/lib/history/variant";
 
 export async function generateMetadata({
   params,
@@ -60,12 +63,12 @@ export default async function ProductPage({
   const historicalOfferIds = await historicalOfferIdsForProduct(product.id);
 
   // Comparação sempre dentro de UMA variação (30 ml não concorre com 60 ml).
-  const requested = product.variants.find((variant) => variant.id === asText(query.variacao));
-  const withOffers = product.variants.find((variant) =>
-    found.offers.some((offer) => offer.variantId === variant.id && isEligible(offer)),
-  );
-  const selected = requested ?? withOffers ?? product.variants[0];
-  const variantOffers = found.offers.filter((offer) => offer.variantId === selected?.id);
+  const payment = query.pagamento === undefined ? undefined : asText(query.pagamento);
+  const comparison = selectComparison(product.variants, found.offers,
+    asText(query.variacao), asText(query.condicao), payment);
+  const selected = comparison.variant;
+  const condition = comparison.condition;
+  const variantOffers = comparison.offers;
 
   // Galeria da variação escolhida: as fotos dela primeiro e as gerais depois; fotos de OUTRA variação ficam de fora.
   const gallery = [
@@ -100,15 +103,36 @@ export default async function ProductPage({
   ]);
   const nowMs = Date.now();
 
+  const alertContext = selected && (historyOffer || payment !== undefined) ? {
+    variantId: selected.id, itemCondition: condition,
+    priceCondition: payment !== undefined ? normalizedPriceCondition(payment) : historyOffer?.priceCondition ?? null,
+  } : null;
+  const alertPrice = alertLowest(found, alertContext);
+  const legacyId = asText(query.confirmarAlerta);
+  const comparisonPath = (variantId: string, itemCondition: string, selectedPayment?: string) => {
+    const params = new URLSearchParams({ variacao: variantId, condicao: itemCondition });
+    if (selectedPayment !== undefined) params.set("pagamento", selectedPayment);
+    if (legacyId) params.set("confirmarAlerta", legacyId);
+    return `/produto/${product.slug}?${params}`;
+  };
+  const paymentOptions = [...new Map(found.offers.filter((offer) => offer.variantId === selected?.id && offer.condition === condition)
+    .map((offer) => [normalizedPriceCondition(offer.priceCondition) ?? "", offer.priceCondition || "Condição não informada"])).entries()];
+
   // Estado do usuário logado: favorito e alerta deste produto.
   const userId = (await auth())?.user?.id;
-  const [favorite, alert] = userId
+  const [favorite, alert, legacyAlert] = userId
     ? await Promise.all([
         prisma.favorite.findUnique({ where: { userId_productId: { userId, productId: product.id } } }),
-        prisma.priceAlert.findUnique({ where: { userId_productId: { userId, productId: product.id } } }),
+        alertContext ? prisma.priceAlert.findUnique({ where: { userId_productId_contextKey: {
+          userId, productId: product.id, contextKey: alertContextKey(alertContext),
+        } } }) : null,
+        legacyId ? prisma.priceAlert.findFirst({ where: { id: legacyId, userId, productId: product.id,
+          OR: [{ variantId: null }, { contextKey: null }] } }) : null,
       ])
-    : [null, null];
-  const back = `/produto/${product.slug}`;
+    : [null, null, null];
+  const editableAlert = alert ?? legacyAlert;
+  const back = comparisonPath(selected?.id ?? "", condition,
+    alertContext ? normalizedPriceCondition(alertContext.priceCondition) ?? "" : payment);
   const loginHref = `/entrar?callbackUrl=${encodeURIComponent(back)}`;
   const errorMessage = asText(query.erro);
   const okMessage = asText(query.ok);
@@ -203,7 +227,7 @@ export default async function ProductPage({
                     return (
                       <Link
                         key={variant.id}
-                        href={`/produto/${product.slug}?variacao=${variant.id}`}
+                        href={comparisonPath(variant.id, condition, payment)}
                         aria-current={current ? "true" : undefined}
                         scroll={false}
                         className={`rounded-lg border px-3.5 py-2 text-[13px] font-medium ${
@@ -217,6 +241,33 @@ export default async function ProductPage({
                     );
                   })}
                 </div>
+              </nav>
+            ) : null}
+
+            <nav aria-label="Condição do produto" className="flex flex-wrap gap-2">
+              {(["NEW", "USED"] as const).map((value) => (
+                <Link key={value}
+                  href={comparisonPath(selected?.id ?? "", value)}
+                  aria-current={condition === value ? "true" : undefined} scroll={false}
+                  className={`rounded-lg border px-3.5 py-2 text-sm ${condition === value ? "border-brand bg-brand-soft text-brand-dark" : "border-line bg-surface"}`}>
+                  {value === "NEW" ? "Novo" : "Usado"}
+                </Link>
+              ))}
+            </nav>
+
+            {paymentOptions.length > 1 || payment !== undefined ? (
+              <nav aria-label="Condição de pagamento" className="flex flex-wrap gap-2 text-xs">
+                <Link href={comparisonPath(selected?.id ?? "", condition)} scroll={false}
+                  aria-current={payment === undefined ? "true" : undefined} className="rounded-lg border border-line px-3 py-2">
+                  Todos os pagamentos
+                </Link>
+                {paymentOptions.map(([value, label]) => (
+                  <Link key={value} href={comparisonPath(selected?.id ?? "", condition, value)} scroll={false}
+                    aria-current={payment !== undefined && (normalizedPriceCondition(payment) ?? "") === value ? "true" : undefined}
+                    className={`rounded-lg border px-3 py-2 ${payment !== undefined && (normalizedPriceCondition(payment) ?? "") === value ? "border-brand bg-brand-soft text-brand-dark" : "border-line"}`}>
+                    {label}
+                  </Link>
+                ))}
               </nav>
             ) : null}
 
@@ -289,7 +340,7 @@ export default async function ProductPage({
                     alert ? "border-brand bg-brand-soft text-brand-dark" : "border-line bg-surface"
                   }`}
                 >
-                  <BellIcon /> {alert ? "Alerta ativo" : "Alerta de preço"}
+                  <BellIcon /> {alert ? "Ver meu alerta" : "Alerta de preço"}
                 </a>
               </div>
 
@@ -471,8 +522,20 @@ export default async function ProductPage({
             <div id="alerta" className="flex scroll-mt-24 flex-col gap-3.5 rounded-[14px] bg-ink p-6">
               <h2 className="text-[19px] font-bold tracking-[-0.02em] text-surface">Quer pagar menos?</h2>
               <p className="text-sm leading-relaxed text-ghost">
-                Guarde o preço que você quer pagar. Ele fica salvo na sua conta e mostra quando o produto chega lá.
+                Guarde o preço que você quer pagar por esta opção, sem incluir o frete.
               </p>
+              {alertContext && selected ? (
+                <p className="text-sm font-semibold text-surface">{alertContextLabel(selected.label, alertContext)}</p>
+              ) : null}
+              {legacyAlert && !alert ? (
+                <p className="text-xs text-ghost">Seu alerta antigo está pausado. Confira a opção acima e confirme para ativá-lo.</p>
+              ) : null}
+              {legacyAlert && alert ? (
+                <p className="text-xs text-ghost">Você já acompanha esta opção. O alerta antigo continua pausado e pode ser removido em Minha conta.</p>
+              ) : null}
+              {alert && ["FAILED", "UNCERTAIN"].includes(alert.deliveryStatus) ? (
+                <p className="text-xs text-ghost">Avisos pausados. Confira o envio e reative em <Link href="/conta#alertas" className="underline">Minha conta</Link>.</p>
+              ) : null}
 
               {errorMessage ? (
                 <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-medium text-bad-ink">
@@ -485,17 +548,23 @@ export default async function ProductPage({
                 </p>
               ) : null}
 
-              {userId ? (
+              {!alertContext ? (
+                <p className="text-sm text-ghost">Escolha uma variação e condição com oferta cadastrada para criar o alerta.</p>
+              ) : userId ? (
                 <>
                   <form action={saveAlert} className="flex flex-col gap-3.5">
                     <input type="hidden" name="productId" value={product.id} />
+                    <input type="hidden" name="alertId" value={editableAlert?.id ?? ""} />
+                    <input type="hidden" name="variantId" value={alertContext.variantId} />
+                    <input type="hidden" name="itemCondition" value={alertContext.itemCondition} />
+                    <input type="hidden" name="priceCondition" value={alertContext.priceCondition ?? ""} />
                     <input type="hidden" name="voltar" value={`${back}#alerta`} />
                     <label className="flex flex-col gap-1.5">
                       <span className="sr-only">Preço desejado</span>
                       <input
                         name="target"
                         inputMode="decimal"
-                        defaultValue={alert ? (alert.targetCents / 100).toFixed(2).replace(".", ",") : ""}
+                        defaultValue={editableAlert ? (editableAlert.targetCents / 100).toFixed(2).replace(".", ",") : ""}
                         placeholder="Preço desejado, ex.: 199,90"
                         className="h-[46px] rounded-[9px] bg-surface px-3.5 text-base font-semibold text-ink outline-none placeholder:font-normal placeholder:text-muted"
                       />
@@ -504,7 +573,7 @@ export default async function ProductPage({
                       type="submit"
                       className="h-[46px] rounded-[9px] bg-brand text-[15px] font-semibold text-surface transition-colors hover:bg-brand-dark"
                     >
-                      {alert ? "Atualizar alerta" : "Criar alerta de preço"}
+                      {alert ? "Atualizar alerta" : legacyAlert ? "Confirmar opção e ativar" : "Criar alerta de preço"}
                     </button>
                   </form>
                   {alert ? (
@@ -525,7 +594,7 @@ export default async function ProductPage({
                   Entrar para criar alerta
                 </Link>
               )}
-              {lowestCents ? <span className="text-xs text-faint">Preço atual: {money(lowestCents)}</span> : null}
+              {alertPrice ? <span className="text-xs text-faint">Preço atual desta opção: {money(alertPrice)}</span> : null}
             </div>
 
             <dl className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface p-5">
