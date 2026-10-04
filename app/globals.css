@@ -86,3 +86,56 @@
   background-size: 400px 100%;
   animation: var(--animate-shimmer);
 }
+
+/* Texto corrido das páginas institucionais (políticas, termos, sobre). */
+@layer components {
+  .institutional-prose {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .institutional-prose h2 {
+    margin: 2.25rem 0 0.75rem;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 6rem;
+  }
+  .institutional-prose h3 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .institutional-prose p,
+  .institutional-prose ul,
+  .institutional-prose table {
+    margin: 0 0 1rem;
+  }
+  .institutional-prose ul {
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+  .institutional-prose li + li {
+    margin-top: 0.35rem;
+  }
+  .institutional-prose a {
+    color: var(--color-brand-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .institutional-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .institutional-prose th,
+  .institutional-prose td {
+    border: 1px solid var(--color-line);
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .institutional-prose th {
+    background: var(--color-line-soft);
+    font-weight: 600;
+  }
+}

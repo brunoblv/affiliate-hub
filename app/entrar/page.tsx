@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 
@@ -33,6 +34,12 @@ export default async function SignInPage({
           Continuar com Google
         </button>
       </form>
+      <p className="text-[13px] leading-relaxed text-muted">
+        Usamos seu nome e e-mail do Google para guardar favoritos e enviar os alertas que você criar. Ao continuar,
+        você concorda com os{" "}
+        <Link href="/termos-de-uso" className="underline hover:text-brand">termos de uso</Link> e declara ter lido a{" "}
+        <Link href="/politica-de-privacidade" className="underline hover:text-brand">política de privacidade</Link>.
+      </p>
     </main>
   );
 }
