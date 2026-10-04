@@ -23,6 +23,11 @@ export default async function HomePage() {
 
       <main id="conteudo" className="mx-auto max-w-[1280px] px-4 pb-24 sm:px-8">
         <section className="py-14 text-center sm:py-20">
+          <div className="relative mx-auto mb-6 flex h-[200px] w-[200px] items-end justify-center">
+            <div className="absolute bottom-0 left-1/2 aspect-square w-full -translate-x-1/2 rounded-full bg-brand-soft" aria-hidden />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/capi/compare.png" alt="Capi comparando preços" className="relative block h-[190px] w-auto" />
+          </div>
           <h1 className="mx-auto max-w-[760px] text-4xl font-extrabold leading-[1.06] tracking-[-0.035em] text-balance sm:text-[52px]">
             Compare preços. Encontre a melhor oferta.
           </h1>
@@ -118,9 +123,13 @@ export default async function HomePage() {
 
         {drops.length > 0 ? (
           <section aria-labelledby="quedas" className="mt-16">
-            <h2 id="quedas" className="mb-5 text-xl font-bold tracking-[-0.02em]">
-              Preços que caíram
-            </h2>
+            <div className="mb-5 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/capi/drop2.png" alt="" className="block h-16 w-auto" />
+              <h2 id="quedas" className="text-xl font-bold tracking-[-0.02em]">
+                Preços que caíram
+              </h2>
+            </div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
               {drops.map(({ product, series, fromCents, toCents }) => (
                 <Link

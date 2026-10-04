@@ -82,9 +82,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div className="flex flex-col gap-10">
           <PushSettings />
           <section>
-            <h1 className="text-[30px] font-extrabold tracking-[-0.035em]">
-              Olá{user.name ? `, ${user.name.split(" ")[0]}` : ""}
-            </h1>
+            <div className="flex items-center gap-4 overflow-hidden rounded-[18px] bg-brand-soft pl-3 pr-6 pt-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/capi/watch.png" alt="" className="block h-28 w-auto flex-none self-end" />
+              <h1 className="pb-3 text-[30px] font-extrabold tracking-[-0.035em]">
+                Olá{user.name ? `, ${user.name.split(" ")[0]}` : ""}
+              </h1>
+            </div>
             {errorMessage ? (
               <p role="alert" className="mt-4 rounded-[10px] bg-bad-bg px-4 py-3 text-[13px] font-medium text-bad-ink">
                 {errorMessage}

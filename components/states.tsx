@@ -30,7 +30,8 @@ export function ResultSkeleton() {
 export function NoOffers({ storeCount }: { storeCount: number }) {
   return (
     <div className="flex flex-col items-start gap-3 rounded-[14px] border border-line bg-surface p-7">
-      <div className="h-10 w-10 rounded-[10px] border border-line bg-canvas" aria-hidden />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/capi/sleep.png" alt="" className="block h-24 w-auto" />
       <h3 className="text-base font-bold">Nenhuma oferta disponível no momento.</h3>
       <p className="text-[13px] leading-relaxed text-muted">
         Monitoramos este produto em {storeCount} lojas. Avisaremos quando voltar a ter estoque.
@@ -57,7 +58,9 @@ export function StaleNotice({ label }: { label: string }) {
 export function CollectionFailure({ onRetryHref = "#" }: { onRetryHref?: string }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-[10px] border border-bad-line bg-bad-bg px-3.5 py-3">
-      <span className="text-[13px] font-semibold text-bad-ink">
+      <span className="flex items-center gap-2.5 text-[13px] font-semibold text-bad-ink">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/capi/wow.png" alt="" className="h-8 w-8 flex-none rounded-lg object-cover" />
         Não conseguimos atualizar esta oferta agora.
       </span>
       <a href={onRetryHref} className="text-xs font-bold text-bad-ink underline">
