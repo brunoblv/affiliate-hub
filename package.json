@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"lib/**/*.test.ts\"",
     "notifications:verify": "tsx scripts/verify-notifications.ts",
     "worker": "tsx scripts/worker.ts",
     "sync:once": "tsx scripts/worker.ts --once"

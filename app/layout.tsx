@@ -3,9 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Affiliate Hub — compare preços entre lojas",
-    template: "%s · Affiliate Hub",
+    default: "Capibusca — compare preços entre lojas",
+    template: "%s · Capibusca",
   },
+  icons: { icon: "/capi/face-wink.png", apple: "/capi/face-wink.png" },
   description:
     "Pesquise um produto e compare as ofertas monitoradas nas principais lojas em um só lugar.",
 };
@@ -17,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@900&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -1,7 +1,7 @@
 self.addEventListener("push", (event) => {
   let data = {};
   try { data = event.data?.json() || {}; } catch { /* Aviso genérico se payload inválido. */ }
-  event.waitUntil(self.registration.showNotification("Affiliate Hub — alerta de preço", {
+  event.waitUntil(self.registration.showNotification("Capibusca — alerta de preço", {
     body: typeof data.body === "string" ? data.body.slice(0, 300) : "Confira seus alertas na conta.",
     tag: typeof data.tag === "string" ? data.tag : "price-alert",
     data: { url: typeof data.url === "string" ? data.url : "/conta#alertas" },

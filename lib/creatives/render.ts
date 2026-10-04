@@ -20,10 +20,10 @@ export const FORMATS = {
 export type FormatKey = keyof typeof FORMATS;
 export const FORMAT_KEYS = Object.keys(FORMATS) as FormatKey[];
 
-const BRAND = "#5B5CE2";
+const BRAND = "#16A66A";
 const BRAND_DARK = "#3E3FB8";
 const BRAND_SOFT = "#EEEEFF";
-const INK = "#17212B";
+const INK = "#172033";
 const MUTED = "#5B6573";
 const FONT = "'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif";
 
@@ -193,7 +193,7 @@ export async function renderCreative(input: CreativeInput): Promise<Buffer> {
     `<rect x="${pad}" y="${logoY}" width="${logo}" height="${logo}" rx="${Math.round(logo * 0.3)}" fill="${BRAND}"/>`,
     `<circle cx="${pad + logo * 0.45}" cy="${logoY + logo * 0.45}" r="${logo * 0.2}" fill="none" stroke="#fff" stroke-width="${Math.max(2, logo * 0.07)}"/>`,
     `<line x1="${pad + logo * 0.6}" y1="${logoY + logo * 0.6}" x2="${pad + logo * 0.76}" y2="${logoY + logo * 0.76}" stroke="#fff" stroke-width="${Math.max(2, logo * 0.07)}" stroke-linecap="round"/>`,
-    `<text x="${pad + logo + 14}" y="${logoY + logo * 0.72}" font-family="${FONT}" font-size="${Math.round(logo * 0.62)}" font-weight="700" fill="${INK}">Affiliate<tspan fill="${BRAND}">Hub</tspan></text>`,
+    `<text x="${pad + logo + 14}" y="${logoY + logo * 0.72}" font-family="${FONT}" font-size="${Math.round(logo * 0.62)}" font-weight="700" fill="${INK}">Capi<tspan fill="${BRAND}">busca</tspan></text>`,
   );
 
   let cursor = text.top;

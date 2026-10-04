@@ -206,3 +206,15 @@ Páginas institucionais e guias podem avançar enquanto o histórico acumula; an
 | Destinos legados e migração de conteúdo misto | Etapa 8 | Inventário individual; preservar para revisão |
 
 **Primeiro lote recomendado:** Etapa 0, seguida da correção de contexto comercial/variação da Etapa 1 e do contrato de observações da Etapa 3. Isso permite acumular histórico confiável enquanto as páginas e a camada de qualidade são construídas.
+
+## 8. Baseline da Etapa 0 (03/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `npx tsc --noEmit -p tsconfig.json` | Passa |
+| `npm test` (74 testes de domínio, sem banco) | Passa; os `*.integration.test.ts` exigem PostgreSQL e não rodaram |
+| `npm run build` | Compila; falha no pré-render de `/admin` com `PrismaClientKnownRequestError` porque o PostgreSQL (`localhost:5434`) está inacessível e não há Docker na máquina |
+| Aviso de rastreamento em `lib/creatives/storage.ts` | Corrigido com `turbopackIgnore` |
+| `npm run lint` | Removido: `next lint` não existe no Next 16 e não há ESLint nem configuração instalados. Adotar ESLint é decisão separada |
+
+Pendente para fechar a Etapa 0: subir um PostgreSQL local, rodar `prisma migrate status`/`deploy` (incluindo `20260928160000_alert_context_delivery` e `20260928190000_browser_push`), os testes de integração e o build completo; ensaiar backup/restauração; montar a matriz de status por funcionalidade.

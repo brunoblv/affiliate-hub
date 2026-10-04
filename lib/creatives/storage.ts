@@ -5,7 +5,7 @@ import path from "node:path";
  * Arquivos dos criativos ficam em disco, fora do banco e fora de `public/`: só saem pelo admin.
  * Em produção, aponte CREATIVES_DIR para um volume persistente.
  */
-const root = () => path.resolve(process.env.CREATIVES_DIR || path.join(process.cwd(), "storage", "creatives"));
+const root = () => path.resolve(/*turbopackIgnore: true*/ process.env.CREATIVES_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), "storage", "creatives"));
 
 /** O nome vem sempre de um id do banco; recusa qualquer coisa que pudesse sair da pasta. */
 function safeName(file: string): string {

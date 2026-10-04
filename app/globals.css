@@ -2,31 +2,32 @@
 
 @theme {
   --font-sans: Inter, Helvetica, Arial, sans-serif;
+  --font-brand: Nunito, Inter, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
 
-  --color-canvas: #f7f8fa;
+  --color-canvas: #fafbf9;
   --color-surface: #ffffff;
-  --color-ink: #16181d;
-  --color-muted: #656b76;
+  --color-ink: #172033;
+  --color-muted: #667085;
   --color-faint: #8a9099;
   --color-ghost: #c2c6ce;
-  --color-line: #e5e7eb;
+  --color-line: #e7eae7;
   --color-line-soft: #f1f2f5;
   --color-line-strong: #d3d5db;
 
-  --color-brand: #5b5ce2;
-  --color-brand-dark: #4647c7;
-  --color-brand-soft: #eeeeff;
+  --color-brand: #16a66a;
+  --color-brand-dark: #087a4d;
+  --color-brand-soft: #e8f6ef;
 
   --color-good: #168653;
   --color-good-bg: #e7f4ee;
 
-  --color-warn: #f59e0b;
+  --color-warn: #ff9f1c;
   --color-warn-ink: #8a5b00;
   --color-warn-bg: #fef6e7;
   --color-warn-line: #f7e3b5;
 
-  --color-bad: #dc3545;
+  --color-bad: #f04444;
   --color-bad-ink: #a32430;
   --color-bad-bg: #fdecee;
   --color-bad-line: #f5c6cb;

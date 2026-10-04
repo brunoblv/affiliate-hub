@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
-import { LogoMark, SearchIcon } from "./icons";
+import { LogoMark, SearchIcon, Wordmark } from "./icons";
 
 export async function SiteHeader({ term = "" }: { term?: string }) {
   const user = (await auth())?.user;
@@ -9,10 +9,8 @@ export async function SiteHeader({ term = "" }: { term?: string }) {
     <header className="sticky top-0 z-40 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-7 gap-y-3 px-4 py-3 sm:px-8">
         <Link href="/" className="flex flex-none items-center gap-2.5">
-          <LogoMark />
-          <span className="text-base font-bold tracking-[-0.02em]">
-            Affiliate<span className="text-brand">Hub</span>
-          </span>
+          <LogoMark size={32} />
+          <Wordmark className="text-xl" />
         </Link>
 
         <form

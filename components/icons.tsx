@@ -11,15 +11,22 @@ export function SearchIcon({ size = 16, ...props }: SVGProps<SVGSVGElement> & { 
 
 export function LogoMark({ size = 26 }: { size?: number }) {
   return (
-    <span
-      className="flex flex-none items-center justify-center rounded-lg bg-brand text-surface"
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/capi/face-wink.png"
+      alt=""
+      width={size}
+      height={size}
+      className="flex-none rounded-[28%] object-cover"
       style={{ width: size, height: size }}
-      aria-hidden
-    >
-      <svg width={size * 0.54} height={size * 0.54} viewBox="0 0 14 14" fill="none">
-        <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.7" />
-        <path d="M9.3 9.3 12.4 12.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      </svg>
+    />
+  );
+}
+
+export function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={`font-brand font-black tracking-[-0.02em] ${className}`}>
+      Capi<span className="text-brand">busca</span>
     </span>
   );
 }

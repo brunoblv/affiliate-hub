@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Wordmark } from "./icons";
 import { listNiches } from "@/lib/catalog";
 
 /**
@@ -11,9 +12,7 @@ export async function SiteFooter() {
     <footer className="mt-24 border-t border-line bg-surface">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 sm:px-8 md:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]">
         <div className="flex flex-col gap-3">
-          <span className="text-base font-bold tracking-[-0.02em]">
-            Affiliate<span className="text-brand">Hub</span>
-          </span>
+          <Wordmark className="text-xl" />
           <p className="max-w-sm text-[13px] leading-relaxed text-muted">
             Comparamos as ofertas que monitoramos nas lojas parceiras. Preço e disponibilidade
             finais são confirmados na loja escolhida.
