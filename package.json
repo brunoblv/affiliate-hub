@@ -11,7 +11,11 @@
     "notifications:verify": "tsx scripts/verify-notifications.ts",
     "social:verify": "tsx scripts/verify-social.ts",
     "worker": "tsx scripts/worker.ts",
-    "sync:once": "tsx scripts/worker.ts --once"
+    "sync:once": "tsx scripts/worker.ts --once",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:reload": "pm2 reload ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:logs": "pm2 logs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -35,6 +39,7 @@
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
     "@types/web-push": "^3.6.4",
+    "pm2": "^7.0.4",
     "prisma": "^7.10.0",
     "tailwindcss": "4.1.13",
     "tsx": "^4.23.15",

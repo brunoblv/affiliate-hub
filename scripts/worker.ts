@@ -158,6 +158,13 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   });
 }
 
+// PM2 no Windows não entrega sinais; com `shutdown_with_message` ele avisa por IPC.
+process.on("message", (message) => {
+  if (message !== "shutdown") return;
+  log("encerrando", { signal: "shutdown" });
+  stopping = true;
+});
+
 main()
   .catch((error) => {
     log("worker falhou", { erro: error instanceof Error ? error.message : String(error) });
