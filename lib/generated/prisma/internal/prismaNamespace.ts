@@ -424,7 +424,8 @@ export const ModelName = {
   Creative: 'Creative',
   Publication: 'Publication',
   PublicationAttempt: 'PublicationAttempt',
-  MetricEvent: 'MetricEvent'
+  MetricEvent: 'MetricEvent',
+  SocialToken: 'SocialToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -440,7 +441,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "favorite" | "priceAlert" | "pushSubscription" | "pushDelivery" | "priceAlertDelivery" | "niche" | "community" | "communityClick" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative" | "publication" | "publicationAttempt" | "metricEvent"
+    modelProps: "user" | "account" | "favorite" | "priceAlert" | "pushSubscription" | "pushDelivery" | "priceAlertDelivery" | "niche" | "community" | "communityClick" | "category" | "store" | "product" | "productNiche" | "productVariant" | "productImage" | "offer" | "affiliateLink" | "click" | "pricePoint" | "matchSuggestion" | "syncJob" | "workerHeartbeat" | "productContent" | "creative" | "publication" | "publicationAttempt" | "metricEvent" | "socialToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2516,6 +2517,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SocialToken: {
+      payload: Prisma.$SocialTokenPayload<ExtArgs>
+      fields: Prisma.SocialTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SocialTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SocialTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.SocialTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SocialTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        findMany: {
+          args: Prisma.SocialTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>[]
+        }
+        create: {
+          args: Prisma.SocialTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        createMany: {
+          args: Prisma.SocialTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SocialTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.SocialTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        update: {
+          args: Prisma.SocialTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.SocialTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SocialTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SocialTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.SocialTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.SocialTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSocialToken>
+        }
+        groupBy: {
+          args: Prisma.SocialTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SocialTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SocialTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SocialTokenCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3012,6 +3087,16 @@ export const MetricEventScalarFieldEnum = {
 } as const
 
 export type MetricEventScalarFieldEnum = (typeof MetricEventScalarFieldEnum)[keyof typeof MetricEventScalarFieldEnum]
+
+
+export const SocialTokenScalarFieldEnum = {
+  id: 'id',
+  ciphertext: 'ciphertext',
+  expiresAt: 'expiresAt',
+  refreshedAt: 'refreshedAt'
+} as const
+
+export type SocialTokenScalarFieldEnum = (typeof SocialTokenScalarFieldEnum)[keyof typeof SocialTokenScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3540,6 +3625,7 @@ export type GlobalOmitConfig = {
   publication?: Prisma.PublicationOmit
   publicationAttempt?: Prisma.PublicationAttemptOmit
   metricEvent?: Prisma.MetricEventOmit
+  socialToken?: Prisma.SocialTokenOmit
 }
 
 /* Types for Logging */

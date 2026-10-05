@@ -18,6 +18,7 @@ import { isMailConfigured } from "@/lib/mail";
 import { verifyImages } from "@/lib/images/check";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
 import { processPublication } from "@/lib/distribution/run";
+import { refreshThreadsTokenIfDue } from "@/lib/social/threads-token";
 
 const once = process.argv.includes("--once");
 const startedAt = new Date();
@@ -82,6 +83,7 @@ async function main() {
   let lastPrune = 0;
   let lastAlerts = 0;
   let lastImages = 0;
+  let lastTokens = 0;
   let warnedMail = false;
 
   while (!stopping) {
@@ -104,6 +106,18 @@ async function main() {
       if (distribution !== "idle" && distribution !== "disabled") log("distribuição", { resultado: distribution });
     } catch {
       log("falha na distribuição; confira o painel antes de reenviar");
+    }
+
+    // Token do Threads vence em 60 dias: renova na última semana (falha tenta de novo em 6h).
+    if (Date.now() - lastTokens > 6 * 60 * 60 * 1000) {
+      lastTokens = Date.now();
+      try {
+        const outcome = await refreshThreadsTokenIfDue();
+        if (outcome === "refreshed") log("token do Threads renovado");
+        else if (typeof outcome === "object") log("falha ao renovar token do Threads", { erro: outcome.error });
+      } catch {
+        log("erro ao renovar token do Threads");
+      }
     }
 
     // Fotos: confere as vencidas de tempos em tempos (URL de loja expira).

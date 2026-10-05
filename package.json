@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"lib/**/*.test.ts\"",
     "notifications:verify": "tsx scripts/verify-notifications.ts",
+    "social:verify": "tsx scripts/verify-social.ts",
     "worker": "tsx scripts/worker.ts",
     "sync:once": "tsx scripts/worker.ts --once"
   },

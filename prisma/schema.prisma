@@ -721,3 +721,13 @@ model MetricEvent {
   @@index([productId, createdAt])
   @@map("metric_events")
 }
+
+// Token renovável de rede social (ex.: Threads, 60 dias). Valor cifrado com AUTH_SECRET.
+model SocialToken {
+  id          String   @id
+  ciphertext  String
+  expiresAt   DateTime
+  refreshedAt DateTime
+
+  @@map("social_tokens")
+}

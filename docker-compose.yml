@@ -1,0 +1,21 @@
+# PostgreSQL local do Hub: `docker compose up -d`. Credenciais batem com DATABASE_URL do .env.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: affiliate-hub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: affiliate
+      POSTGRES_DB: affiliate_hub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    ports:
+      - "5434:5432"
+    volumes:
+      - affiliate-hub-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U affiliate -d affiliate_hub"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  affiliate-hub-pgdata:

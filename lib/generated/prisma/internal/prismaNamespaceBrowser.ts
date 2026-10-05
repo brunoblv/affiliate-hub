@@ -78,7 +78,8 @@ export const ModelName = {
   Creative: 'Creative',
   Publication: 'Publication',
   PublicationAttempt: 'PublicationAttempt',
-  MetricEvent: 'MetricEvent'
+  MetricEvent: 'MetricEvent',
+  SocialToken: 'SocialToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -554,6 +555,16 @@ export const MetricEventScalarFieldEnum = {
 } as const
 
 export type MetricEventScalarFieldEnum = (typeof MetricEventScalarFieldEnum)[keyof typeof MetricEventScalarFieldEnum]
+
+
+export const SocialTokenScalarFieldEnum = {
+  id: 'id',
+  ciphertext: 'ciphertext',
+  expiresAt: 'expiresAt',
+  refreshedAt: 'refreshedAt'
+} as const
+
+export type SocialTokenScalarFieldEnum = (typeof SocialTokenScalarFieldEnum)[keyof typeof SocialTokenScalarFieldEnum]
 
 
 export const SortOrder = {

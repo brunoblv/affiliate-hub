@@ -159,3 +159,8 @@ export type PublicationAttempt = Prisma.PublicationAttemptModel
  * Eventos de páginas visíveis, sem identificação do visitante. IDs do catálogo são snapshots.
  */
 export type MetricEvent = Prisma.MetricEventModel
+/**
+ * Model SocialToken
+ * 
+ */
+export type SocialToken = Prisma.SocialTokenModel
