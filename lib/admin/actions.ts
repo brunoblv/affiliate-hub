@@ -8,14 +8,13 @@ import { requireAdmin } from "@/lib/admin/guard";
 import { slugify } from "@/lib/slug";
 import { parseReais } from "@/lib/format";
 import { productSearchText } from "@/lib/search-text";
-import { getConnector, listConnectors } from "@/lib/connectors";
+import { expandShortUrl, getConnector, listConnectors } from "@/lib/connectors";
 import { checkImageUrl } from "@/lib/images/check";
 import { attachFetchedOffer } from "@/lib/admin/import-offer";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
 import {
   Availability,
   CollectionMethod,
-  ItemCondition,
   OfferStatus,
   ProductStatus,
   ShippingKind,
@@ -302,9 +301,12 @@ export async function saveOffer(data: FormData) {
   const previousPriceCents = previousRaw ? parseReais(previousRaw) : null;
   if (previousRaw && previousPriceCents === null) fail(back, "Preço anterior inválido.");
 
-  const originalUrl = httpUrl(optional(data, "originalUrl"));
-  if (text(data, "originalUrl") && !originalUrl) fail(back, "URL original inválida (use http/https).");
-  const affiliateUrl = httpUrl(optional(data, "affiliateUrl"));
+  const pastedUrl = httpUrl(optional(data, "originalUrl"));
+  if (text(data, "originalUrl") && !pastedUrl) fail(back, "URL original inválida (use http/https).");
+  // Link curto de afiliado (ex.: s.click.aliexpress.com) vira a URL do produto e, sem outro, o link de afiliado.
+  const expanded = pastedUrl ? await expandShortUrl(pastedUrl) : null;
+  const originalUrl = expanded?.url ?? null;
+  const affiliateUrl = httpUrl(optional(data, "affiliateUrl")) ?? expanded?.shortUrl ?? null;
   if (text(data, "affiliateUrl") && !affiliateUrl) fail(back, "URL de afiliado inválida (use http/https).");
 
   // Loja com conector: o preço vem da API, então precisamos dos IDs do anúncio.
@@ -319,7 +321,7 @@ export async function saveOffer(data: FormData) {
     if (!externalListingId || (connector.requiresSellerId !== false && !externalSellerId)) {
       fail(
         back,
-        `Para coletar o preço por ${connector.label}, cole a URL completa do produto (links curtos não servem) ou informe o ID do anúncio e o ID da loja.`,
+        `Para coletar o preço por ${connector.label}, cole a URL completa do produto ou informe o ID do anúncio e o ID da loja.`,
       );
     }
   }
@@ -342,7 +344,8 @@ export async function saveOffer(data: FormData) {
     priceCondition: text(data, "priceCondition").slice(0, 60) || null,
     shippingKind,
     shippingCents: shippingKind === "PAID" && shippingRaw ? parseReais(shippingRaw) : null,
-    condition: oneOf(ItemCondition, text(data, "condition"), "NEW"),
+    // Só itens novos são cadastrados no site.
+    condition: "NEW" as const,
     availability: oneOf(Availability, text(data, "availability"), "UNKNOWN"),
     status: oneOf(OfferStatus, text(data, "status"), "ACTIVE"),
     active: id ? flag(data, "active") : true,
@@ -406,8 +409,10 @@ export async function importOfferFromUrl(data: FormData) {
   const productId = text(data, "productId");
   const back = `/admin/produtos/${productId}?aba=ofertas`;
   const variantId = text(data, "variantId");
-  const url = httpUrl(optional(data, "url"));
-  if (!url || !variantId) fail(back, "Informe a variação e a URL completa do produto.");
+  const pasted = httpUrl(optional(data, "url"));
+  if (!pasted || !variantId) fail(back, "Informe a variação e a URL completa do produto.");
+  // Link curto de afiliado (s.click.aliexpress.com/e/...): segue até a página do item e guarda o link.
+  const { url, shortUrl } = await expandShortUrl(pasted);
 
   const stores = await prisma.store.findMany({ where: { connector: { not: null } } });
   const match = stores
@@ -419,7 +424,7 @@ export async function importOfferFromUrl(data: FormData) {
       back,
       known
         ? `Cadastre a loja em /admin/lojas escolhendo o conector "${known.label}" e tente de novo.`
-        : "Não reconheci a loja dessa URL. Use a URL completa do produto (Shopee) ou da página de catálogo /p/MLB… (Mercado Livre).",
+        : "Não reconheci a loja dessa URL. Use a URL completa do produto (Shopee), da página de catálogo /p/MLB… (Mercado Livre) ou o link do item/afiliado do AliExpress.",
     );
   }
   const { store, connector } = match;
@@ -453,7 +458,7 @@ export async function importOfferFromUrl(data: FormData) {
     sellerId: parsed.sellerId,
     originalUrl: url,
     result,
-    fallbackAffiliateUrl: httpUrl(optional(data, "affiliateUrl")),
+    fallbackAffiliateUrl: httpUrl(optional(data, "affiliateUrl")) ?? shortUrl,
   });
   revalidatePath(`/admin/produtos/${productId}`);
   redirect(back);

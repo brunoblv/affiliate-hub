@@ -36,6 +36,8 @@ export type FetchResult =
       /** Nome do vendedor/loja no marketplace, quando a fonte informa. */
       sellerName?: string | null;
       imageUrl: string | null;
+      /** Galeria completa (inclui imageUrl), quando a fonte informa. */
+      imageUrls?: string[];
       /** Link de afiliado devolvido pela fonte (só usado se a oferta ainda não tiver um). */
       affiliateUrl: string | null;
       observedAt: Date;
@@ -64,6 +66,8 @@ export interface Connector {
   requiresSellerId?: boolean;
   /** Extrai os identificadores externos de uma URL colada pelo admin. */
   parseUrl?(url: string): { listingId: string; sellerId: string | null } | null;
+  /** Link curto desta loja (ex.: s.click.aliexpress.com) -> URL completa do produto. null = não é link curto dela. */
+  resolveShortUrl?(url: string): Promise<string | null>;
   /** Falha de rede/API lança erro (nova tentativa); anúncio ausente devolve `not_found`. */
   fetchOffer(ref: OfferRef): Promise<FetchResult>;
 }

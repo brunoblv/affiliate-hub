@@ -244,6 +244,7 @@ export default async function ProductPage({
               </nav>
             ) : null}
 
+            {found.offers.some((offer) => offer.variantId === selected?.id && offer.condition === "USED") ? (
             <nav aria-label="Condição do produto" className="flex flex-wrap gap-2">
               {(["NEW", "USED"] as const).map((value) => (
                 <Link key={value}
@@ -254,6 +255,7 @@ export default async function ProductPage({
                 </Link>
               ))}
             </nav>
+            ) : null}
 
             {paymentOptions.length > 1 || payment !== undefined ? (
               <nav aria-label="Condição de pagamento" className="flex flex-wrap gap-2 text-xs">

@@ -65,10 +65,15 @@ export async function attachFetchedOffer(input: {
     await prisma.affiliateLink.create({ data: { offerId: offer.id, url: affiliateUrl, shortCode: newShortCode() } });
   }
 
-  if (result.imageUrl && (await prisma.productImage.count({ where: { productId: input.productId } })) === 0) {
-    const check = await checkImageUrl(result.imageUrl);
-    if (check.ok) {
-      await prisma.productImage.create({ data: { productId: input.productId, url: result.imageUrl, position: 0 } });
+  const gallery = result.imageUrls?.length ? result.imageUrls : result.imageUrl ? [result.imageUrl] : [];
+  if (gallery.length && (await prisma.productImage.count({ where: { productId: input.productId } })) === 0) {
+    let position = 0;
+    for (const url of gallery.slice(0, 10)) {
+      if (!(await checkImageUrl(url)).ok) continue;
+      await prisma.productImage.create({
+        data: { productId: input.productId, url, position, isCover: position === 0, verifiedAt: new Date() },
+      });
+      position++;
     }
   }
 

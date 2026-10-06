@@ -363,7 +363,7 @@ export default async function AdminProductPage({
             </Panel>
           ))}
 
-          <Panel title="Importar por link (Shopee / Mercado Livre)">
+          <Panel title="Importar por link (Shopee / Mercado Livre / AliExpress)">
             <form action={importOfferFromUrl} className="flex flex-col gap-3.5">
               <input type="hidden" name="productId" value={product.id} />
               <div className="grid gap-3.5 sm:grid-cols-[1fr_2fr_2fr]">
@@ -376,8 +376,8 @@ export default async function AdminProductPage({
                     ))}
                   </select>
                 </Field>
-                <Field label="URL completa do produto">
-                  <input name="url" type="url" className={`${inputClass} font-mono text-xs`} placeholder="https://shopee.com.br/... ou https://www.mercadolivre.com.br/.../p/MLB..." required />
+                <Field label="URL do produto">
+                  <input name="url" type="url" className={`${inputClass} font-mono text-xs`} placeholder="https://shopee.com.br/..., .../p/MLB... ou https://s.click.aliexpress.com/e/..." required />
                 </Field>
                 <Field label="Link de afiliado (só Mercado Livre)">
                   <input name="affiliateUrl" type="url" className={`${inputClass} font-mono text-xs`} placeholder="https://meli.la/..." />
@@ -386,7 +386,9 @@ export default async function AdminProductPage({
               <p className="text-[11px] text-muted">
                 Vendedor, preço, preço anterior, IDs e foto (se o produto ainda não tiver) vêm da API. Shopee também traz o link
                 de afiliado; no Mercado Livre, use a página de catálogo (/p/MLB…) e cole o link meli.la, que não tem API — sem ele
-                a oferta fica sem link e não aparece no site. Condição de pagamento e parcelas você ajusta depois.
+                a oferta fica sem link e não aparece no site. No AliExpress, cole o link do item (/item/…html) ou o seu link curto
+                de afiliado (s.click…): o link curto vira o link de afiliado e todas as fotos do anúncio entram na galeria. A
+                descrição completa vem do material colado na aba de conteúdo. Condição de pagamento e parcelas você ajusta depois.
               </p>
               <div>
                 <button type="submit" className={primaryButton}>
@@ -607,12 +609,6 @@ function OfferForm({
         </Field>
         <Field label="Valor do frete (R$)">
           <input name="shipping" inputMode="decimal" defaultValue={reaisInput(offer?.shippingCents)} className={inputClass} />
-        </Field>
-        <Field label="Condição">
-          <select name="condition" defaultValue={offer?.condition ?? "NEW"} className={inputClass}>
-            <option value="NEW">Novo</option>
-            <option value="USED">Usado</option>
-          </select>
         </Field>
         <Field label="Disponibilidade">
           <select name="availability" defaultValue={offer?.availability ?? "UNKNOWN"} className={inputClass}>
