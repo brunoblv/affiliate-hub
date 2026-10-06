@@ -2,7 +2,11 @@
  * Cadastra o produto de exemplo do AliExpress com landing page completa (fotos, oferta,
  * link de afiliado, especificações e conteúdo editorial publicado).
  *
- *   npx tsx scripts/seed-aliexpress-example.ts [--nicho <slug>] [--categoria <slug>]
+ *   npx tsx scripts/seed-aliexpress-example.ts [--nicho <slug>] [--categoria <slug>] [--confirmar]
+ *
+ * (No Windows PowerShell, `npm run ... -- --confirmar` perde o `--` e o flag não chega ao script.)
+ *
+ * Sem --confirmar só simula: valida o texto, mostra o banco de destino e o que seria feito.
  *
  * Com ALIEXPRESS_APP_KEY/SECRET o preço, as fotos e o link vêm da API; sem eles, usa o retrato
  * do anúncio tirado em 06/10/2026 (oferta MANUAL, o worker não atualiza o preço).
@@ -135,9 +139,51 @@ function arg(name: string): string | null {
   return index >= 0 ? (process.argv[index + 1] ?? null) : null;
 }
 
+/** Host/banco do DATABASE_URL, sem usuário e senha. */
+function databaseTarget(): string {
+  try {
+    const url = new URL(process.env.DATABASE_URL ?? "");
+    return `${url.hostname}:${url.port || "5432"}${url.pathname}`;
+  } catch {
+    return "(DATABASE_URL inválido)";
+  }
+}
+
+async function dryRun(issues: ReturnType<typeof validateSections>) {
+  const store = await prisma.store.findUnique({ where: { slug: "aliexpress" } });
+  const existing = store
+    ? await prisma.offer.findFirst({ where: { storeId: store.id, externalListingId: ITEM_ID }, include: { variant: { include: { product: true } } } })
+    : null;
+  for (const [flag, exists] of [
+    ["--nicho", arg("--nicho") ? await prisma.niche.findUnique({ where: { slug: arg("--nicho")! } }) : true],
+    ["--categoria", arg("--categoria") ? await prisma.category.findUnique({ where: { slug: arg("--categoria")! } }) : true],
+  ] as const) {
+    if (!exists) throw new Error(`${flag} "${arg(flag)}" não existe nesse banco.`);
+  }
+
+  console.log("SIMULAÇÃO (nada foi gravado). Rode de novo com --confirmar para aplicar.\n");
+  console.log(`Loja AliExpress: ${store ? `já existe (conector: ${store.connector ?? "nenhum"})` : "será criada"}`);
+  if (existing) {
+    console.log(`Produto: já cadastrado (/produto/${existing.variant.product.slug}); só o conteúdo será atualizado.`);
+  } else {
+    console.log(`Produto: será criado e publicado — "${NAME}"`);
+    console.log(
+      aliExpressConnector.isConfigured()
+        ? "Oferta: preço, fotos e loja virão da API do AliExpress (retrato do anúncio se a API não devolver o item)."
+        : `Oferta: retrato do anúncio (R$ ${(SNAPSHOT.priceCents / 100).toFixed(2)}, ${SNAPSHOT.imageUrls!.length} fotos), sem atualização automática de preço.`,
+    );
+    console.log(`Link de afiliado: ${SHORT_LINK}`);
+  }
+  console.log(`Nicho: ${arg("--nicho") ?? "(nenhum)"} · Categoria: ${arg("--categoria") ?? "(nenhuma)"}`);
+  if (issues.length) console.log("Avisos do conteúdo:", issues.map((issue) => issue.message).join(" | "));
+}
+
 async function main() {
   const issues = validateSections(SECTIONS, SOURCE_MATERIAL);
   if (hasErrors(issues)) throw new Error(`Conteúdo com erros: ${JSON.stringify(issues, null, 2)}`);
+
+  console.log(`Banco de destino: ${databaseTarget()} (NODE_ENV=${process.env.NODE_ENV ?? "indefinido"})`);
+  if (!process.argv.includes("--confirmar")) return dryRun(issues);
 
   const store = await prisma.store.upsert({
     where: { slug: "aliexpress" },
@@ -226,8 +272,8 @@ async function main() {
   });
 
   const product = await prisma.product.findUniqueOrThrow({ where: { id: productId } });
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  console.log(`Pronto: ${site}/produto/${product.slug}`);
+  // O caminho vale para o site que usa este banco (local ou produção).
+  console.log(`Pronto: /produto/${product.slug} (gravado em ${databaseTarget()})`);
   if (issues.length) console.log("Avisos do conteúdo:", issues.map((issue) => issue.message).join(" | "));
 }
 

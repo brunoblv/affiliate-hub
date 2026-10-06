@@ -10,7 +10,7 @@ import { OfferList } from "@/components/offer-list";
 import { PriceHistory } from "@/components/price-history";
 import { AdSlot } from "@/components/ad-slot";
 import { ProductTile } from "@/components/product-card";
-import { ProductImage } from "@/components/photo";
+import { ProductGallery } from "@/components/product-gallery";
 import { DropBadge } from "@/components/price";
 import { NoOffers, UnpublishedContent } from "@/components/states";
 import { BellIcon, HeartIcon } from "@/components/icons";
@@ -75,7 +75,6 @@ export default async function ProductPage({
     ...product.images.filter((image) => image.variantId === selected?.id),
     ...product.images.filter((image) => image.variantId === null),
   ];
-  const galleryProduct = { name: product.name, images: gallery };
 
   const storeOf = (id: string) => found.stores.find((store) => store.id === id)!;
   const eligible = variantOffers.filter(isEligible);
@@ -166,31 +165,7 @@ export default async function ProductPage({
         </nav>
 
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="flex flex-col-reverse gap-4 sm:flex-row">
-            {gallery.length > 1 ? (
-              <ul className="flex flex-none gap-2.5 sm:flex-col" aria-label="Miniaturas">
-                {gallery.map((image, index) => (
-                  <li key={image.url}>
-                    <a
-                      href={image.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Abrir imagem ${index + 1} de ${gallery.length}`}
-                      className={`block h-16 w-16 overflow-hidden rounded-[9px] border bg-canvas ${
-                        index === 0 ? "border-[1.5px] border-brand" : "border-line"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} alt="" loading="lazy" className="h-full w-full object-contain" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <div className="flex aspect-square flex-1 items-center justify-center rounded-[14px] border border-line bg-surface">
-              <ProductImage product={galleryProduct} className="h-[78%] w-[78%]" rounded="rounded-xl" />
-            </div>
-          </div>
+          <ProductGallery name={product.name} images={gallery} />
 
           <div className="flex flex-col gap-3.5">
             {product.brand ? (
