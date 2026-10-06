@@ -3,7 +3,7 @@
 module.exports = {
   apps: [
     {
-      name: "affiliate-hub-web",
+      name: "capibusca-web",
       cwd: __dirname,
       script: "node_modules/next/dist/bin/next",
       args: "start",
@@ -14,7 +14,7 @@ module.exports = {
     },
     {
       // Um único worker: a fila tem lease, mas o ciclo diário não foi feito para instâncias paralelas.
-      name: "affiliate-hub-worker",
+      name: "capibusca-worker",
       cwd: __dirname,
       script: "scripts/worker.ts",
       exec_mode: "fork",
