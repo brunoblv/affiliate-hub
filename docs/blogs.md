@@ -98,15 +98,17 @@ Faça backup dos dois bancos antes. O script só **lê** o banco do meu-novo-lar
 ```bash
 export MEUNOVOLAR_DATABASE_URL="postgresql://…/meu_novo_lar"
 export MEUNOVOLAR_MEDIA_ROOT="/var/lib/affiliate-hub/midia"   # MEDIA_ROOT do meu-novo-lar
-npm run blog:migrar-meunovolar              # simulação: mostra o que faria
-npm run blog:migrar-meunovolar -- --aplicar # grava
+npm run blog:migrar-meunovolar -- --tipos=JORNADA            # simulação: mostra o que faria
+npm run blog:migrar-meunovolar -- --tipos=JORNADA --aplicar  # grava
 ```
 
 O script mantém os slugs, copia a mídia com o mesmo caminho `/midia/...`, casa os produtos
 citados com o catálogo (mesma loja e ID externo) ou cria em rascunho, e **recria os códigos
 `/go/<código>` antigos** como links de afiliado. Assim os links já publicados nas redes seguem
 valendo pelo `capibusca.com.br/go/…` (o produto precisa estar publicado). Posts dos destinos
-Mago da Meia Noite e Umbanda ficam de fora (`--destinos=` muda isso). Reexecutar é seguro.
+Mago da Meia Noite e Umbanda ficam de fora (`--destinos=` muda isso). Com `--tipos=JORNADA` só os
+artigos vêm (fichas e listas já estavam fora do ar no modo "só blog"); rode depois com
+`--tipos=LISTA` ou `--tipos=PRODUTO` se quiser trazê-las. Reexecutar é seguro.
 Depois, revise em `/admin/produtos` os produtos criados em rascunho.
 
 ### 6. Redirecionar meunovolar.com (301)

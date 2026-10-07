@@ -4,7 +4,8 @@
  *   npx tsx scripts/migrate-meunovolar.ts             -> simulação: só lê e mostra o que faria
  *   npx tsx scripts/migrate-meunovolar.ts --aplicar   -> grava
  *
- * Opções: --destinos=MEU_NOVO_LAR,TIKTOK_SHOP (padrão MEU_NOVO_LAR)  --sobrescrever (atualiza posts já migrados)
+ * Opções: --destinos=MEU_NOVO_LAR,TIKTOK_SHOP (padrão MEU_NOVO_LAR)  --tipos=JORNADA,LISTA,PRODUTO (padrão: todos)
+ *         --sobrescrever (atualiza posts já migrados)
  *
  * Variáveis: DATABASE_URL (Capibusca), MEUNOVOLAR_DATABASE_URL (banco do meu-novo-lar, só leitura),
  * MEUNOVOLAR_MEDIA_ROOT (pasta MEDIA_ROOT do meu-novo-lar) e MEDIA_DIR (destino, ver .env.example).
@@ -34,6 +35,7 @@ import { productSearchText } from "@/lib/search-text";
 const APPLY = process.argv.includes("--aplicar");
 const OVERWRITE = process.argv.includes("--sobrescrever");
 const DESTINOS = (process.argv.find((arg) => arg.startsWith("--destinos="))?.split("=")[1] ?? "MEU_NOVO_LAR").split(",");
+const TIPOS = (process.argv.find((arg) => arg.startsWith("--tipos="))?.split("=")[1] ?? "JORNADA,LISTA,PRODUTO").split(",");
 
 const KIND: Record<string, PostKind> = { JORNADA: "EDITORIAL", PRODUTO: "PRODUCT", LISTA: "LIST" };
 const CATEGORY: Record<string, EditorialCategory> = {
@@ -123,7 +125,7 @@ async function main() {
   const source = new Pool({ connectionString: env("MEUNOVOLAR_DATABASE_URL"), max: 2 });
   const sourceMediaRoot = env("MEUNOVOLAR_MEDIA_ROOT");
   console.log(APPLY ? "MODO APLICAR: gravando no Capibusca." : "SIMULAÇÃO: nada será gravado (use --aplicar).");
-  console.log(`Destinos migrados: ${DESTINOS.join(", ")} · mídia de ${sourceMediaRoot} para ${mediaRoot()}\n`);
+  console.log(`Destinos: ${DESTINOS.join(", ")} · tipos: ${TIPOS.join(", ")} · mídia de ${sourceMediaRoot} para ${mediaRoot()}\n`);
 
   // --- Leitura da origem --------------------------------------------------------
   const posts = (
@@ -132,9 +134,9 @@ async function main() {
               p."seoTitulo", p."metaDescricao", p.status, p."publicadoEm", p."avisoSeguranca", p."larsmartPauta", p."criadoEm",
               u.name AS autor
          FROM posts p LEFT JOIN users u ON u.id = p."autorId"
-        WHERE p.destino::text = ANY($1)
+        WHERE p.destino::text = ANY($1) AND p.tipo::text = ANY($2)
         ORDER BY p."criadoEm"`,
-      [DESTINOS],
+      [DESTINOS, TIPOS],
     )
   ).rows;
   const others = (await source.query<{ destino: string; total: string }>(`SELECT destino::text, count(*) AS total FROM posts WHERE NOT (destino::text = ANY($1)) GROUP BY destino`, [DESTINOS])).rows;
