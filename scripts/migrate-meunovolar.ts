@@ -64,6 +64,7 @@ interface SourcePost {
   avisoSeguranca: boolean;
   larsmartPauta: unknown;
   criadoEm: Date;
+  atualizadoEm: Date;
   autor: string | null;
 }
 
@@ -131,7 +132,7 @@ async function main() {
   const posts = (
     await source.query<SourcePost>(
       `SELECT p.id, p.tipo, p."categoriaEditorial", p.titulo, p.slug, p.resumo, p.corpo, p."capaId", p."audioId",
-              p."seoTitulo", p."metaDescricao", p.status, p."publicadoEm", p."avisoSeguranca", p."larsmartPauta", p."criadoEm",
+              p."seoTitulo", p."metaDescricao", p.status, p."publicadoEm", p."avisoSeguranca", p."larsmartPauta", p."criadoEm", p."atualizadoEm",
               u.name AS autor
          FROM posts p LEFT JOIN users u ON u.id = p."autorId"
         WHERE p.destino::text = ANY($1) AND p.tipo::text = ANY($2)
@@ -169,6 +170,7 @@ async function main() {
 
   // --- Blog ---------------------------------------------------------------------
   let blog = await prisma.blog.findUnique({ where: { subdomain: "meunovolar" } });
+  console.log(blog ? `Blog "meunovolar" já existe (${blog.id}).` : `Blog "meunovolar" ${APPLY ? "criado" : "será criado"}.`);
   if (!blog && APPLY) {
     blog = await prisma.blog.create({
       data: {
@@ -180,7 +182,6 @@ async function main() {
       },
     });
   }
-  console.log(blog ? `Blog "meunovolar" já existe (${blog.id}).` : "Blog \"meunovolar\" será criado.");
   // Página /sobre (o meunovolar.com/sobre e /equipe redirecionam para ela).
   if (blog && !blog.about && APPLY) {
     blog = await prisma.blog.update({ where: { id: blog.id }, data: { about: await loadBlogFile("meunovolar", "sobre.md") } });
@@ -312,6 +313,8 @@ async function main() {
       authorName: post.autor,
       larsmartBrief: briefFrom(post.larsmartPauta),
       createdAt: post.criadoEm,
+      // Data original: senão todo post migrado aparece como "Atualizado hoje" (página, sitemap e JSON-LD).
+      updatedAt: post.atualizadoEm,
     };
     const saved = existing ? await prisma.post.update({ where: { id: existing.id }, data }) : await prisma.post.create({ data });
     postIdMap.set(post.id, saved.id);
