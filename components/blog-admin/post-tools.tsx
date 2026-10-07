@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { generateNarrationAction, removeNarrationAction } from "@/lib/blog/actions";
 import { larsmartImageAction, larsmartRegenerateAction, larsmartSwapAction } from "@/lib/blog/ai-actions";
 import { secondaryButton } from "@/components/admin-ui";
 
@@ -11,48 +10,6 @@ type Feedback = { tone: "good" | "bad"; text: string } | null;
 function Message({ feedback }: { feedback: Feedback }) {
   if (!feedback) return null;
   return <p className={`text-xs ${feedback.tone === "bad" ? "text-bad" : "text-good"}`}>{feedback.text}</p>;
-}
-
-/** Narração TTS do post (cota gratuita baixa: gerar sob demanda). */
-export function NarrationTool({ postId, audioUrl }: { postId: string; audioUrl: string | null }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback>(null);
-
-  async function generate() {
-    setBusy(true);
-    setFeedback(null);
-    const result = await generateNarrationAction(postId).catch((error: Error) => ({ ok: false as const, error: error.message }));
-    setBusy(false);
-    if (!result.ok) return setFeedback({ tone: "bad", text: result.error });
-    setFeedback({ tone: "good", text: "Narração gerada e publicada no post." });
-    router.refresh();
-  }
-
-  async function remove() {
-    setBusy(true);
-    await removeNarrationAction(postId);
-    setBusy(false);
-    router.refresh();
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      {audioUrl ? <audio controls preload="none" src={audioUrl} className="w-full" /> : <p className="text-xs text-muted">Sem narração.</p>}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={generate} disabled={busy} className={secondaryButton}>
-          {busy ? "Gerando (até 2 min)…" : audioUrl ? "Gerar de novo" : "Gerar narração"}
-        </button>
-        {audioUrl ? (
-          <button type="button" onClick={remove} disabled={busy} className={secondaryButton}>
-            Remover
-          </button>
-        ) : null}
-      </div>
-      <p className="text-[11px] text-muted">Gemini TTS: cota gratuita de ~10 por dia. Gere depois de revisar o texto.</p>
-      <Message feedback={feedback} />
-    </div>
-  );
 }
 
 /** Ferramentas de posts gerados pelo LarSmart: imagens por produto, troca e reescrita. */

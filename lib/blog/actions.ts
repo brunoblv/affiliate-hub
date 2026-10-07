@@ -4,15 +4,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin/guard";
 import type { EditorialCategory, PostKind } from "@/lib/generated/prisma/enums";
-import { autoSummary, isEmptyProductSheet, narrationText, referencedProducts } from "@/lib/blog/body";
+import { autoSummary, isEmptyProductSheet, referencedProducts } from "@/lib/blog/body";
 import { ALL_CATEGORIES, isCategory, isKind } from "@/lib/blog/categories";
 import { isValidSubdomain } from "@/lib/blog/hosts";
 import { revalidateBlogs, syncPostRelations, uniquePostSlug } from "@/lib/blog/posts";
 import { generateCover } from "@/lib/blog/covers/generate";
-import { generateNarration } from "@/lib/blog/ai/tts";
 import { addOpinion } from "@/lib/blog/ai/editorial";
 import { writeProductSheet } from "@/lib/blog/ai/product-sheet";
-import { deleteMediaIfUnused, saveAudio } from "@/lib/media/storage";
+import { deleteMediaIfUnused } from "@/lib/media/storage";
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message ? error.message : fallback);
@@ -175,32 +174,6 @@ export async function generateCoverAction(input: {
   } catch (error) {
     return { ok: false, error: message(error, "Falha ao gerar a capa.") };
   }
-}
-
-export async function generateNarrationAction(postId: string): Promise<ActionResult<{ url: string }>> {
-  await requireAdmin();
-  const post = await prisma.post.findUnique({ where: { id: postId }, select: { slug: true, title: true, body: true, audioId: true } });
-  if (!post) return { ok: false, error: "Post não encontrado." };
-  try {
-    const wav = await generateNarration(narrationText(post.title, post.body));
-    const media = await saveAudio({ buffer: wav, originalName: `${post.slug}-narracao.wav`, alt: `Narração em áudio: ${post.title}` });
-    await prisma.post.update({ where: { id: postId }, data: { audioId: media.id } });
-    if (post.audioId && post.audioId !== media.id) await deleteMediaIfUnused(post.audioId);
-    revalidateBlogs();
-    return { ok: true, url: media.url };
-  } catch (error) {
-    return { ok: false, error: message(error, "Falha ao gerar a narração.") };
-  }
-}
-
-export async function removeNarrationAction(postId: string): Promise<ActionResult> {
-  await requireAdmin();
-  const post = await prisma.post.findUnique({ where: { id: postId }, select: { audioId: true } });
-  if (!post?.audioId) return { ok: true };
-  await prisma.post.update({ where: { id: postId }, data: { audioId: null } });
-  await deleteMediaIfUnused(post.audioId);
-  revalidateBlogs();
-  return { ok: true };
 }
 
 /** Acrescenta o bloco de opinião própria ao corpo (devolve o texto; o editor decide salvar). */

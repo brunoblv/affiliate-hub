@@ -37,7 +37,7 @@ do meu-novo-lar estão em `content/blogs/_espiritualidade/` para um blog futuro.
 Posts, **Artigo com IA** (tema e artigo pelo Gemini, com as notas da Jornada nas linhas de
 jornada), **Lista por pauta**, **LarSmart** (tema livre → produtos → texto → capa e imagens de
 ambiente pela OpenAI; o que faltar no catálogo é importado da Shopee como rascunho), **Jornada**
-e **Blogs**. No editor: capa por upload ou IA, opinião (IA), ficha de produto (IA) e narração (Gemini TTS).
+e **Blogs**. No editor: capa por upload ou IA, opinião (IA) e ficha de produto (IA).
 
 ## Colocar no ar
 

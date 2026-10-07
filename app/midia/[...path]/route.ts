@@ -2,7 +2,7 @@ import path from "node:path";
 import { CONTENT_TYPES, readMediaFile } from "@/lib/media/storage";
 
 /**
- * Entrega os arquivos de MEDIA_DIR (imagens e narrações dos blogs). Em produção o nginx
+ * Entrega os arquivos de MEDIA_DIR (imagens dos blogs). Em produção o nginx
  * pode servir /midia direto do disco; esta rota cobre dev e o caso sem configuração extra.
  */
 export async function GET(_request: Request, context: { params: Promise<{ path: string[] }> }) {

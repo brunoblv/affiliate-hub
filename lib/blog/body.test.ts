@@ -5,7 +5,6 @@ import {
   ensureProductShortcodes,
   insertImageBeforeProduct,
   isAllowedCta,
-  narrationText,
   referencedImages,
   referencedProducts,
   replaceProductSection,
@@ -71,9 +70,4 @@ test("replaceProductSection troca card, imagem e título da seção", () => {
     replaceProductSection(body, "velho", "novo", "Pote novo", null),
     "## Pote novo\n\nTexto.\n\n\n[produto:novo]\n\n## Outro\n\n[produto:outro]",
   );
-});
-
-test("narrationText tira shortcodes, imagens e marcação", () => {
-  assert.equal(narrationText("Título", "## Seção\n\nTexto **forte**.\n\n[produto:a]\n\n![x](/m.webp)"), "Título.\n\nSeção\n\nTexto forte.");
-  assert.throws(() => narrationText("", "[produto:a]"));
 });

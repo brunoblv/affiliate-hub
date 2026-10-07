@@ -73,7 +73,6 @@ export const getPublishedPost = cache(async (blogId: string, slug: string) =>
     where: { blogId, slug, ...PUBLISHED },
     include: {
       cover: true,
-      audio: true,
       products: { orderBy: { position: "asc" }, take: 1, select: { productId: true } },
     },
   }),

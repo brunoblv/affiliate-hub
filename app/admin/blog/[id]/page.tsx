@@ -4,7 +4,7 @@ import { AdminShell } from "@/components/admin-shell";
 import { dangerButton, PageHeader, Panel } from "@/components/admin-ui";
 import { BlogNav, Notice } from "@/components/blog-admin/blog-nav";
 import { PostForm } from "@/components/blog-admin/post-form";
-import { LarSmartTools, NarrationTool } from "@/components/blog-admin/post-tools";
+import { LarSmartTools } from "@/components/blog-admin/post-tools";
 import { prisma } from "@/lib/db";
 import { deletePost } from "@/lib/blog/actions";
 import { blogOptions } from "@/lib/blog/admin-data";
@@ -13,7 +13,7 @@ import { asText, type RawParams } from "@/lib/query";
 
 export const metadata: Metadata = { title: "Editar post · Admin", robots: { index: false, follow: false } };
 
-/** Ferramentas de IA chamam APIs lentas (texto, imagem, áudio). */
+/** Ferramentas de IA chamam APIs lentas (texto e imagem). */
 export const maxDuration = 180;
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<RawParams> };
@@ -27,7 +27,6 @@ export default async function EditBlogPostPage({ params, searchParams }: Props) 
       include: {
         blog: { select: { subdomain: true } },
         cover: { select: { id: true, url: true, alt: true } },
-        audio: { select: { url: true } },
         products: { orderBy: { position: "asc" }, include: { product: { select: { slug: true, name: true } } } },
         larsmartImages: { where: { kind: "PRODUCT" }, select: { productId: true } },
       },
@@ -80,9 +79,6 @@ export default async function EditBlogPostPage({ params, searchParams }: Props) 
         />
 
         <aside className="flex flex-col gap-5">
-          <Panel title="Narração">
-            <NarrationTool postId={post.id} audioUrl={post.audio?.url ?? null} />
-          </Panel>
           {post.larsmartBrief ? (
             <Panel title="LarSmart">
               <LarSmartTools

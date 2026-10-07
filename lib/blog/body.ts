@@ -181,24 +181,3 @@ export function replaceProductSection(body: string, oldSlug: string, newSlug: st
 
   return lines.join("\n");
 }
-
-/** Markdown -> texto falável para o TTS: sem shortcodes, imagens, URLs nem marcação. */
-export function narrationText(title: string, body: string): string {
-  const speakable = body
-    .replace(/^\\?\[produto:[a-z0-9-]+\]\s*$/gm, "")
-    .replace(/^\\?\[cta:[^\]]+\]\s*$/gm, "")
-    .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/[*_~`>#]/g, "")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/^\s*\d+\.\s+/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/[ \t]+/g, " ")
-    .trim();
-
-  const cleanTitle = title.replace(/\s+/g, " ").trim();
-  const script = cleanTitle ? `${cleanTitle}.\n\n${speakable}` : speakable;
-  if (!script.replace(/\./g, "").trim()) throw new Error("O corpo do post não tem texto para narrar.");
-  return script;
-}

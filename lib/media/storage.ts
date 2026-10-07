@@ -94,20 +94,6 @@ export async function saveImage(input: { buffer: Buffer; originalName: string; a
   });
 }
 
-export async function saveAudio(input: { buffer: Buffer; originalName: string; alt?: string | null }) {
-  const file = await writeMediaFile(input.originalName, "wav", input.buffer);
-  return prisma.media.create({
-    data: {
-      url: file.url,
-      path: file.relative,
-      originalName: input.originalName,
-      mimeType: "audio/wav",
-      sizeBytes: input.buffer.byteLength,
-      alt: input.alt?.trim() || null,
-    },
-  });
-}
-
 export async function readMediaFile(relative: string): Promise<Buffer | null> {
   const absolute = mediaFilePath(relative);
   if (!absolute) return null;

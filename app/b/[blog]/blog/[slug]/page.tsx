@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AudioPlayer } from "@/components/blog/audio-player";
 import { PostCover } from "@/components/blog/cover";
 import { PostBody } from "@/components/blog/post-body";
 import { RelatedPostCard } from "@/components/blog/post-card";
@@ -68,7 +67,6 @@ export default async function BlogPostPage({ params }: Props) {
     author: { "@type": "Person", name: author, ...(blog.about ? { url: blogUrl(blog.subdomain, "/sobre") } : {}) },
     publisher: { "@type": "Organization", name: blog.name, url: blogUrl(blog.subdomain) },
     image: post.cover ? [absolute(blog.subdomain, post.cover.url)] : undefined,
-    associatedMedia: post.audio ? { "@type": "AudioObject", contentUrl: absolute(blog.subdomain, post.audio.url), encodingFormat: "audio/wav" } : undefined,
   };
 
   return (
@@ -92,11 +90,6 @@ export default async function BlogPostPage({ params }: Props) {
         {showUpdated ? ` · Atualizado em ${shortDate(post.updatedAt)}` : null}
       </p>
 
-      {post.audio ? (
-        <div className="mt-6">
-          <AudioPlayer src={post.audio.url} />
-        </div>
-      ) : null}
 
       {post.safetyNotice ? (
         <div role="note" className="mt-6 flex gap-3 rounded-[14px] border border-warn-line bg-warn-bg px-4 py-3.5 text-sm leading-normal text-warn-ink">
