@@ -160,3 +160,39 @@ export const MetricKind = {
 } as const
 
 export type MetricKind = (typeof MetricKind)[keyof typeof MetricKind]
+
+
+export const PostKind = {
+  EDITORIAL: 'EDITORIAL',
+  PRODUCT: 'PRODUCT',
+  LIST: 'LIST'
+} as const
+
+export type PostKind = (typeof PostKind)[keyof typeof PostKind]
+
+
+export const PostStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus]
+
+
+export const EditorialCategory = {
+  HOME_TIPS: 'HOME_TIPS',
+  APARTMENT_JOURNEY: 'APARTMENT_JOURNEY',
+  SPIRITUAL_JOURNEY: 'SPIRITUAL_JOURNEY',
+  SPIRITUAL_REFLECTION: 'SPIRITUAL_REFLECTION',
+  SPIRITUALITY_GUIDE: 'SPIRITUALITY_GUIDE'
+} as const
+
+export type EditorialCategory = (typeof EditorialCategory)[keyof typeof EditorialCategory]
+
+
+export const LarSmartImageKind = {
+  COVER: 'COVER',
+  PRODUCT: 'PRODUCT'
+} as const
+
+export type LarSmartImageKind = (typeof LarSmartImageKind)[keyof typeof LarSmartImageKind]

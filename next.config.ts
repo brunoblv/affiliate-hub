@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Dev: blogs abertos por subdomínio (meunovolar.localhost) precisam do HMR.
+  allowedDevOrigins: ["*.localhost", "*.capibusca.com.br"],
   async headers() {
     return [{ source: "/push-sw.js", headers: [
       { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },

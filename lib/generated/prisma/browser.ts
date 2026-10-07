@@ -164,3 +164,38 @@ export type MetricEvent = Prisma.MetricEventModel
  * 
  */
 export type SocialToken = Prisma.SocialTokenModel
+/**
+ * Model Blog
+ * 
+ */
+export type Blog = Prisma.BlogModel
+/**
+ * Model Post
+ * 
+ */
+export type Post = Prisma.PostModel
+/**
+ * Model PostProduct
+ * Produto citado no post (shortcodes [produto:slug]), na ordem do texto.
+ */
+export type PostProduct = Prisma.PostProductModel
+/**
+ * Model JourneyNote
+ * Registro livre da jornada pessoal: contexto real para a IA não inventar detalhes.
+ */
+export type JourneyNote = Prisma.JourneyNoteModel
+/**
+ * Model Media
+ * Biblioteca de mídia dos blogs. Arquivos ficam em MEDIA_DIR e são servidos por /midia.
+ */
+export type Media = Prisma.MediaModel
+/**
+ * Model PostMedia
+ * Imagens embutidas no corpo de cada post: avisa antes de excluir mídia em uso.
+ */
+export type PostMedia = Prisma.PostMediaModel
+/**
+ * Model LarSmartImage
+ * Imagem gerada pelo LarSmart: guarda o prompt e as legendas para o Pinterest.
+ */
+export type LarSmartImage = Prisma.LarSmartImageModel

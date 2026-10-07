@@ -139,3 +139,149 @@
     font-weight: 600;
   }
 }
+
+/* Blogs (subdomínios): cores e fontes vêm de variáveis definidas por blog em lib/blog/themes.ts. */
+@theme inline {
+  --color-blog-bg: var(--blog-bg);
+  --color-blog-surface: var(--blog-surface);
+  --color-blog-ink: var(--blog-ink);
+  --color-blog-muted: var(--blog-muted);
+  --color-blog-line: var(--blog-line);
+  --color-blog-soft: var(--blog-soft);
+  --color-blog-accent: var(--blog-accent);
+  --color-blog-accent-dark: var(--blog-accent-dark);
+  --color-blog-accent-ink: var(--blog-accent-ink);
+  --font-blog-heading: var(--blog-heading);
+  --font-blog-body: var(--blog-body);
+}
+
+@utility blog-stripes {
+  background: repeating-linear-gradient(45deg, var(--blog-soft) 0 8px, var(--blog-bg) 8px 16px);
+}
+
+/* Texto do artigo (markdown renderizado). */
+@layer components {
+  .blog-prose {
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--blog-ink);
+  }
+  .blog-prose > * + * {
+    margin-top: 1.1em;
+  }
+  .blog-prose h2 {
+    margin-top: 2em;
+    font-family: var(--blog-heading);
+    font-size: 1.6em;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .blog-prose h3 {
+    margin-top: 1.6em;
+    font-family: var(--blog-heading);
+    font-size: 1.25em;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .blog-prose h2 + *,
+  .blog-prose h3 + * {
+    margin-top: 0.6em;
+  }
+  .blog-prose ul,
+  .blog-prose ol {
+    padding-left: 1.4em;
+  }
+  .blog-prose ul {
+    list-style: disc;
+  }
+  .blog-prose ol {
+    list-style: decimal;
+  }
+  .blog-prose li + li {
+    margin-top: 0.4em;
+  }
+  .blog-prose li::marker {
+    color: var(--blog-accent);
+  }
+  .blog-prose a {
+    color: var(--blog-accent-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .blog-prose strong {
+    font-weight: 700;
+  }
+  .blog-prose blockquote {
+    border-left: 3px solid var(--blog-accent);
+    padding-left: 1em;
+    color: var(--blog-muted);
+    font-style: italic;
+  }
+  .blog-prose hr {
+    border: 0;
+    border-top: 1px solid var(--blog-line);
+    margin: 2em 0;
+  }
+  .blog-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .blog-prose th,
+  .blog-prose td {
+    border: 1px solid var(--blog-line);
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .blog-prose th {
+    background: var(--blog-soft);
+    font-weight: 600;
+  }
+  .blog-prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--blog-soft);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+}
+
+/* Prévia do markdown no editor do admin. */
+@layer components {
+  .admin-markdown > * + * {
+    margin-top: 0.75em;
+  }
+  .admin-markdown h2 {
+    font-size: 1.3em;
+    font-weight: 700;
+    margin-top: 1.2em;
+  }
+  .admin-markdown h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-top: 1em;
+  }
+  .admin-markdown ul {
+    list-style: disc;
+    padding-left: 1.3em;
+  }
+  .admin-markdown ol {
+    list-style: decimal;
+    padding-left: 1.3em;
+  }
+  .admin-markdown a {
+    color: var(--color-brand-dark);
+    text-decoration: underline;
+  }
+  .admin-markdown img {
+    max-height: 18rem;
+    border-radius: 8px;
+  }
+  .admin-markdown blockquote {
+    border-left: 3px solid var(--color-line-strong);
+    padding-left: 0.8em;
+    color: var(--color-muted);
+  }
+}

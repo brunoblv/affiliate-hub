@@ -318,6 +318,8 @@ model Product {
   content     ProductContent?
   creatives   Creative[]
   matchSuggestions MatchSuggestion[]
+  postItems        PostProduct[]
+  larsmartImages   LarSmartImage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -730,4 +732,198 @@ model SocialToken {
   refreshedAt DateTime
 
   @@map("social_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Blogs editoriais (ex.: meunovolar.capibusca.com.br). Cada blog é servido no
+// subdomínio `<subdomain>.<BLOG_BASE_DOMAIN>`; os cards de produto dos posts
+// apontam para o catálogo do comparador.
+// ---------------------------------------------------------------------------
+
+enum PostKind {
+  /// Artigo editorial (dicas, jornada). Único tipo indexado e listado no blog.
+  EDITORIAL
+  /// Ficha de um produto só.
+  PRODUCT
+  /// Roundup com vários produtos.
+  LIST
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Linha editorial do post. Cada uma tem prompts próprios (content/blogs/<sub>/prompts)
+/// e cada blog escolhe as suas em Blog.categories.
+enum EditorialCategory {
+  HOME_TIPS
+  APARTMENT_JOURNEY
+  SPIRITUAL_JOURNEY
+  SPIRITUAL_REFLECTION
+  SPIRITUALITY_GUIDE
+}
+
+model Blog {
+  id         String              @id @default(cuid())
+  /// Subdomínio sem o domínio base (ex.: "meunovolar"). Também é a pasta em content/blogs/.
+  subdomain  String              @unique
+  name       String
+  tagline    String?
+  /// Texto da página /sobre do blog (markdown).
+  about      String?             @db.Text
+  /// Autor exibido nos posts sem autor próprio.
+  authorName String?
+  categories EditorialCategory[]
+  active     Boolean             @default(true)
+
+  posts        Post[]
+  journeyNotes JourneyNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blogs")
+}
+
+model Post {
+  id       String             @id @default(cuid())
+  blogId   String
+  kind     PostKind
+  category EditorialCategory?
+  title    String
+  slug     String
+  summary  String?
+
+  /// Markdown. Imagens via ![alt](url), card de produto via [produto:slug] e botão
+  /// de afiliado via [cta:url] (cada shortcode em linha própria).
+  body String @db.Text
+
+  coverId String?
+  audioId String?
+
+  seoTitle        String?
+  metaDescription String?
+
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  /// Caixa fixa de aviso no topo (ex.: não misturar produtos de limpeza).
+  safetyNotice Boolean @default(false)
+  authorName   String?
+
+  /// Pauta usada pelo LarSmart para gerar o post (permite regenerar ou trocar produto).
+  larsmartBrief Json?
+
+  blog           Blog            @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  cover          Media?          @relation("PostCover", fields: [coverId], references: [id], onDelete: SetNull)
+  audio          Media?          @relation("PostAudio", fields: [audioId], references: [id], onDelete: SetNull)
+  products       PostProduct[]
+  media          PostMedia[]
+  larsmartImages LarSmartImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([blogId, slug])
+  @@index([blogId, status, publishedAt])
+  @@index([blogId, kind, category])
+  @@map("posts")
+}
+
+/// Produto citado no post (shortcodes [produto:slug]), na ordem do texto.
+model PostProduct {
+  id        String  @id @default(cuid())
+  postId    String
+  productId String
+  position  Int     @default(0)
+  label     String?
+  note      String? @db.Text
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, productId])
+  @@index([postId, position])
+  @@map("post_products")
+}
+
+/// Registro livre da jornada pessoal: contexto real para a IA não inventar detalhes.
+model JourneyNote {
+  id       String             @id @default(cuid())
+  blogId   String
+  category EditorialCategory?
+  text     String             @db.Text
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([blogId, category])
+  @@map("journey_notes")
+}
+
+/// Biblioteca de mídia dos blogs. Arquivos ficam em MEDIA_DIR e são servidos por /midia.
+model Media {
+  id           String  @id @default(cuid())
+  /// URL pública (ex.: /midia/2026/10/sofa-abc123.webp).
+  url          String  @unique
+  /// Caminho relativo a MEDIA_DIR.
+  path         String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  alt          String?
+
+  coverOf        Post[]          @relation("PostCover")
+  audioOf        Post[]          @relation("PostAudio")
+  usedIn         PostMedia[]
+  larsmartImages LarSmartImage[]
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("media")
+}
+
+/// Imagens embutidas no corpo de cada post: avisa antes de excluir mídia em uso.
+model PostMedia {
+  postId  String
+  mediaId String
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media Media @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([postId, mediaId])
+  @@map("post_media")
+}
+
+enum LarSmartImageKind {
+  COVER
+  PRODUCT
+}
+
+/// Imagem gerada pelo LarSmart: guarda o prompt e as legendas para o Pinterest.
+model LarSmartImage {
+  id        String            @id @default(cuid())
+  postId    String
+  mediaId   String
+  /// null na capa; preenchido na imagem de ambiente de um produto.
+  productId String?
+  kind      LarSmartImageKind
+  prompt    String            @db.Text
+
+  pinterestTitle       String?
+  pinterestDescription String? @db.Text
+
+  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media   Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, productId, kind])
+  @@map("larsmart_images")
 }

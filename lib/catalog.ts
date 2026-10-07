@@ -345,6 +345,17 @@ export async function getCatalogProductsByIds(ids: string[]): Promise<Map<string
   return new Map(rows.map((row) => [row.id, mapProduct(row, now)]));
 }
 
+/** Produtos publicados por slug (cards dos posts dos blogs). Slugs despublicados ficam de fora. */
+export async function getCatalogProductsBySlugs(slugs: string[]): Promise<Map<string, CatalogProduct>> {
+  if (!slugs.length) return new Map();
+  const rows = await prisma.product.findMany({
+    where: { slug: { in: [...new Set(slugs)] }, status: "PUBLISHED" },
+    include: productInclude,
+  });
+  const now = Date.now();
+  return new Map(rows.map((row) => [row.slug, mapProduct(row, now)]));
+}
+
 /** Outros produtos do mesmo nicho, os que têm oferta atual primeiro. */
 export async function listRelated(product: Product, limit = 4): Promise<Product[]> {
   if (!product.categorySlug) return [];

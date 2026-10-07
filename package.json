@@ -10,6 +10,8 @@
     "test": "tsx --test \"lib/**/*.test.ts\"",
     "notifications:verify": "tsx scripts/verify-notifications.ts",
     "social:verify": "tsx scripts/verify-social.ts",
+    "aliexpress:verify": "tsx scripts/verify-aliexpress.ts",
+    "blog:migrar-meunovolar": "tsx scripts/migrate-meunovolar.ts",
     "worker": "tsx scripts/worker.ts",
     "sync:once": "tsx scripts/worker.ts --once",
     "produto:aliexpress-exemplo": "tsx scripts/seed-aliexpress-example.ts",
@@ -29,6 +31,9 @@
     "pg": "^8.23.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "sharp": "^0.35.4",
     "web-push": "^3.6.7"
   },

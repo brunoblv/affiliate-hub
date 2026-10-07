@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { countClick } from "@/lib/metrics/click";
+import { blogSubdomainFromHost } from "@/lib/blog/hosts";
 
 /**
  * Redirecionamento de afiliado (RF-12).
@@ -57,12 +58,14 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
 
 export function HEAD() { return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } }); }
 
-/** Caminho da página de onde veio o clique, só se for do próprio site. */
+/** Caminho da página de onde veio o clique, só se for do próprio site ou de um blog dele. */
 function originPath(request: Request): string | null {
   const referer = request.headers.get("referer");
   if (!referer) return null;
   try {
     const url = new URL(referer);
+    const blog = blogSubdomainFromHost(url.host);
+    if (blog) return `blog:${blog}${url.pathname}`;
     return url.host === new URL(request.url).host ? url.pathname : null;
   } catch {
     return null;

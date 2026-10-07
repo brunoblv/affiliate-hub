@@ -1,0 +1,197 @@
+{
+  "_doc": "Cenas das capas geradas por IA (OpenAI Images). O tema é escolhido pelo primeiro termo que aparecer no título/resumo; o mood descreve a cor do fundo (fundos/capa/<tipo>/<arquivo>) para a foto combinar com a moldura.",
+  "themes": [
+    {
+      "id": "cozinha",
+      "label": "cozinha",
+      "terms": [
+        "cozinha",
+        "despensa",
+        "panela",
+        "pia",
+        "air fryer",
+        "tempero",
+        "geladeira",
+        "louça",
+        "louca"
+      ],
+      "scene": "a lived-in Brazilian kitchen: light wood counters, open shelves, ceramic tiles, a window with daylight, nothing luxury-showroom"
+    },
+    {
+      "id": "banheiro",
+      "label": "banheiro",
+      "terms": [
+        "banheiro",
+        "box",
+        "toalha",
+        "chuveiro",
+        "pia do banheiro",
+        "espelho"
+      ],
+      "scene": "a small Brazilian apartment bathroom: light tiles, wood accents, towels, natural light, tidy not hotel-like"
+    },
+    {
+      "id": "quarto",
+      "label": "quarto",
+      "terms": [
+        "quarto",
+        "cama",
+        "lençol",
+        "lencol",
+        "travesseiro",
+        "cabeceira",
+        "edredom",
+        "guarda-roupa",
+        "guarda roupa"
+      ],
+      "scene": "a calm Brazilian bedroom: rumpled linen, wood headboard, soft daylight through curtains, lived-in not a catalog"
+    },
+    {
+      "id": "sala",
+      "label": "sala",
+      "terms": [
+        "sala",
+        "sofá",
+        "sofa",
+        "estar",
+        "tapete",
+        "mesa de centro",
+        "almofada"
+      ],
+      "scene": "a Brazilian living room: sofa, linen cushions, a plant, warm afternoon light, compact apartment scale"
+    },
+    {
+      "id": "lavanderia",
+      "label": "lavanderia",
+      "terms": [
+        "lavanderia",
+        "varal",
+        "roupa suja",
+        "tanque",
+        "passar roupa"
+      ],
+      "scene": "a compact Brazilian laundry corner: drying rack, hamper, clean tiles, practical not staged"
+    },
+    {
+      "id": "jardim",
+      "label": "jardim",
+      "terms": [
+        "jardim",
+        "varanda",
+        "planta",
+        "vaso",
+        "área externa",
+        "area externa",
+        "quintal"
+      ],
+      "scene": "a Brazilian balcony or small garden: terracotta pots, greenery, sunlight, apartment-scale outdoor corner"
+    },
+    {
+      "id": "organizacao",
+      "label": "organização da casa",
+      "terms": [
+        "organiza",
+        "gaveta",
+        "despensa",
+        "caixa",
+        "nicho",
+        "prateleira"
+      ],
+      "scene": "inside drawers, a pantry or open shelves of a Brazilian home, tidy and useful, warm wood and cream tones"
+    },
+    {
+      "id": "limpeza",
+      "label": "limpeza da casa",
+      "terms": [
+        "limpeza",
+        "faxina",
+        "mop",
+        "rodo",
+        "balde"
+      ],
+      "scene": "a Brazilian home mid-clean: tiled floor, natural light, cleaning tools as objects in a real room, not a commercial"
+    },
+    {
+      "id": "iluminacao",
+      "label": "iluminação",
+      "terms": [
+        "ilumina",
+        "luminária",
+        "luminaria",
+        "abajur",
+        "pendente",
+        "luz"
+      ],
+      "scene": "a Brazilian room at golden hour where lamps and pendants are the focus, warm cream and terracotta light"
+    },
+    {
+      "id": "moveis",
+      "label": "móveis",
+      "terms": [
+        "móvel",
+        "movel",
+        "compacto",
+        "apartamento pequeno",
+        "estante"
+      ],
+      "scene": "a small Brazilian apartment with compact furniture that actually fits the room, cream walls, wood floors"
+    },
+    {
+      "id": "decoracao",
+      "label": "decoração",
+      "terms": [
+        "decora",
+        "vaso",
+        "quadro",
+        "manta",
+        "espelho"
+      ],
+      "scene": "a styled but lived-in Brazilian home vignette: texture, plants, ceramics, cream and sage palette"
+    },
+    {
+      "id": "eletro",
+      "label": "eletrodomésticos da casa",
+      "terms": [
+        "eletro",
+        "cafeteira",
+        "liquidificador",
+        "mixer"
+      ],
+      "scene": "a Brazilian kitchen counter with small home appliances in daily use, not a product catalog"
+    },
+    {
+      "id": "ferramentas",
+      "label": "ferramentas de casa",
+      "terms": [
+        "ferramenta",
+        "furadeira",
+        "parafuso",
+        "kit"
+      ],
+      "scene": "a home workbench or hallway cupboard in a Brazilian apartment, practical tools, warm workshop light"
+    }
+  ],
+  "defaultTheme": {
+    "id": "casa",
+    "label": "casa e lar",
+    "scene": "a warm Brazilian home interior (kitchen, living room or bedroom — pick what fits the title), cream, terracotta and sage, daylight, lived-in"
+  },
+  "moods": {
+    "lista:1.png": "sage green (#87947B) with a soft light circle",
+    "lista:2.png": "warm cream (#F8F6F1) with a sage strip",
+    "lista:3.png": "olive (#657A55) with a dark corner glow",
+    "jornada:1.png": "charcoal (#292824) with an olive glow",
+    "jornada:2.png": "warm cream with a terracotta strip",
+    "jornada:3.png": "sand (#EDE6DA) with faint terracotta stripes",
+    "produto:1.png": "terracotta gradient (#B8664F to #8F493A)",
+    "produto:2.png": "charcoal with a terracotta glow",
+    "produto:3.png": "sand with faint terracotta stripes"
+  },
+  "defaultMood": "warm cream, terracotta and sage of a Brazilian home brand",
+  "roles": {
+    "lista": "editorial roundup cover for a home blog: several household products sharing one scene",
+    "produto": "single-product lifestyle cover for a home blog",
+    "jornada": "editorial photography cover for a home blog article, no shopping collage"
+  },
+  "style": "Warm natural daylight, Brazilian apartment scale, lived-in, not a luxury ad."
+}

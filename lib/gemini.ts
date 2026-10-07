@@ -27,6 +27,11 @@ export interface GenerateJsonOptions {
   maxOutputTokens?: number;
   timeoutMs?: number;
   maxAttempts?: number;
+  /**
+   * Cadeia de modelos (ex.: `modelChain("article")`). Cota esgotada, modelo fora do ar ou
+   * timeout passam direto para o próximo. Sem isto, usa só GEMINI_MODEL.
+   */
+  models?: string[];
 }
 
 export const geminiModel = () => process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
@@ -110,9 +115,21 @@ async function callOnce<T>(options: GenerateJsonOptions, model: string): Promise
   }
 }
 
-/** Repete em falhas transitórias (429, 5xx, timeout); erros 4xx de pedido ruim falham na hora. */
-export async function generateJson<T>(options: GenerateJsonOptions): Promise<GeminiResult<T>> {
-  const model = geminiModel();
+function isTransient(error: unknown): boolean {
+  return error instanceof GeminiHttpError
+    ? error.status === 429 || error.status >= 500
+    : error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError" || error.message.includes("fetch failed"));
+}
+
+/** Erros que pedem outro modelo da cadeia em vez de repetir o mesmo: cota, 404, 503, 400 de parâmetro, timeout. */
+function shouldSwitchModel(error: unknown): boolean {
+  if (error instanceof GeminiHttpError) {
+    return error.status === 429 || error.status === 404 || error.status === 503 || (error.status === 400 && /INVALID_ARGUMENT|thinking/i.test(error.message));
+  }
+  return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+}
+
+async function withRetries<T>(options: GenerateJsonOptions, model: string, chained: boolean): Promise<GeminiResult<T>> {
   const attempts = options.maxAttempts ?? 3;
   let last: unknown;
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -120,13 +137,53 @@ export async function generateJson<T>(options: GenerateJsonOptions): Promise<Gem
       return await callOnce<T>(options, model);
     } catch (error) {
       last = error;
-      const transient =
-        error instanceof GeminiHttpError
-          ? error.status === 429 || error.status >= 500
-          : error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError" || error.message.includes("fetch failed"));
-      if (!transient || attempt === attempts) break;
+      // Na cadeia, erro de cota/modelo vai direto para o próximo modelo.
+      if (!isTransient(error) || (chained && shouldSwitchModel(error)) || attempt === attempts) break;
       await new Promise((resolve) => setTimeout(resolve, 1500 * 2 ** (attempt - 1)));
     }
   }
   throw last;
+}
+
+/** Repete em falhas transitórias (429, 5xx, timeout); erros 4xx de pedido ruim falham na hora. */
+export async function generateJson<T>(options: GenerateJsonOptions): Promise<GeminiResult<T>> {
+  const chain = options.models?.length ? options.models : [geminiModel()];
+  let last: unknown;
+  for (const model of chain) {
+    try {
+      return await withRetries<T>(options, model, chain.length > 1);
+    } catch (error) {
+      last = error;
+      if (chain.length === 1 || !shouldSwitchModel(error)) throw error;
+    }
+  }
+  throw last;
+}
+
+// ---------------------------------------------------------------------------
+// Cadeia de modelos (API free do AI Studio). IDs conferidos em ListModels; os 2.5
+// saíram do ar para contas novas (404).
+// ---------------------------------------------------------------------------
+
+export type GeminiTask = "article" | "short";
+
+const QUALITY_MODELS = ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3-flash-preview"];
+const VOLUME_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
+const RETIRED_MODELS = new Set(["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash-preview-tts"]);
+
+function unique(ids: Array<string | undefined>): string[] {
+  const seen = new Set<string>();
+  return ids.flatMap((id) => {
+    const name = id?.trim();
+    if (!name || seen.has(name) || RETIRED_MODELS.has(name)) return [];
+    seen.add(name);
+    return [name];
+  });
+}
+
+/** "article" tenta os modelos de qualidade primeiro; "short" prioriza os lite (mais cota diária). */
+export function modelChain(task: GeminiTask): string[] {
+  const configured = process.env.GEMINI_MODEL;
+  if (task === "article") return unique([process.env.GEMINI_MODEL_ARTICLE, ...QUALITY_MODELS, configured, ...VOLUME_MODELS]);
+  return unique([configured, ...VOLUME_MODELS, ...QUALITY_MODELS]);
 }

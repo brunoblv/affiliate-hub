@@ -259,6 +259,8 @@ export type ProductWhereInput = {
   content?: Prisma.XOR<Prisma.ProductContentNullableScalarRelationFilter, Prisma.ProductContentWhereInput> | null
   creatives?: Prisma.CreativeListRelationFilter
   matchSuggestions?: Prisma.MatchSuggestionListRelationFilter
+  postItems?: Prisma.PostProductListRelationFilter
+  larsmartImages?: Prisma.LarSmartImageListRelationFilter
 }
 
 export type ProductOrderByWithRelationInput = {
@@ -285,6 +287,8 @@ export type ProductOrderByWithRelationInput = {
   content?: Prisma.ProductContentOrderByWithRelationInput
   creatives?: Prisma.CreativeOrderByRelationAggregateInput
   matchSuggestions?: Prisma.MatchSuggestionOrderByRelationAggregateInput
+  postItems?: Prisma.PostProductOrderByRelationAggregateInput
+  larsmartImages?: Prisma.LarSmartImageOrderByRelationAggregateInput
 }
 
 export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -314,6 +318,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   content?: Prisma.XOR<Prisma.ProductContentNullableScalarRelationFilter, Prisma.ProductContentWhereInput> | null
   creatives?: Prisma.CreativeListRelationFilter
   matchSuggestions?: Prisma.MatchSuggestionListRelationFilter
+  postItems?: Prisma.PostProductListRelationFilter
+  larsmartImages?: Prisma.LarSmartImageListRelationFilter
 }, "id" | "slug">
 
 export type ProductOrderByWithAggregationInput = {
@@ -379,6 +385,8 @@ export type ProductCreateInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateInput = {
@@ -404,6 +412,8 @@ export type ProductUncheckedCreateInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductUpdateInput = {
@@ -429,6 +439,8 @@ export type ProductUpdateInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateInput = {
@@ -454,6 +466,8 @@ export type ProductUncheckedUpdateInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateManyInput = {
@@ -568,6 +582,11 @@ export type ProductMinOrderByAggregateInput = {
   mlMatchCheckedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ProductNullableScalarRelationFilter = {
+  is?: Prisma.ProductWhereInput | null
+  isNot?: Prisma.ProductWhereInput | null
 }
 
 export type ProductCreateNestedOneWithoutFavoritesInput = {
@@ -728,6 +747,36 @@ export type ProductUpdateOneRequiredWithoutCreativesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutCreativesInput, Prisma.ProductUpdateWithoutCreativesInput>, Prisma.ProductUncheckedUpdateWithoutCreativesInput>
 }
 
+export type ProductCreateNestedOneWithoutPostItemsInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutPostItemsInput, Prisma.ProductUncheckedCreateWithoutPostItemsInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutPostItemsInput
+  connect?: Prisma.ProductWhereUniqueInput
+}
+
+export type ProductUpdateOneRequiredWithoutPostItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutPostItemsInput, Prisma.ProductUncheckedCreateWithoutPostItemsInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutPostItemsInput
+  upsert?: Prisma.ProductUpsertWithoutPostItemsInput
+  connect?: Prisma.ProductWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutPostItemsInput, Prisma.ProductUpdateWithoutPostItemsInput>, Prisma.ProductUncheckedUpdateWithoutPostItemsInput>
+}
+
+export type ProductCreateNestedOneWithoutLarsmartImagesInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutLarsmartImagesInput, Prisma.ProductUncheckedCreateWithoutLarsmartImagesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutLarsmartImagesInput
+  connect?: Prisma.ProductWhereUniqueInput
+}
+
+export type ProductUpdateOneWithoutLarsmartImagesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutLarsmartImagesInput, Prisma.ProductUncheckedCreateWithoutLarsmartImagesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutLarsmartImagesInput
+  upsert?: Prisma.ProductUpsertWithoutLarsmartImagesInput
+  disconnect?: Prisma.ProductWhereInput | boolean
+  delete?: Prisma.ProductWhereInput | boolean
+  connect?: Prisma.ProductWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutLarsmartImagesInput, Prisma.ProductUpdateWithoutLarsmartImagesInput>, Prisma.ProductUncheckedUpdateWithoutLarsmartImagesInput>
+}
+
 export type ProductCreateWithoutFavoritesInput = {
   id?: string
   slug: string
@@ -750,6 +799,8 @@ export type ProductCreateWithoutFavoritesInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutFavoritesInput = {
@@ -774,6 +825,8 @@ export type ProductUncheckedCreateWithoutFavoritesInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutFavoritesInput = {
@@ -814,6 +867,8 @@ export type ProductUpdateWithoutFavoritesInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutFavoritesInput = {
@@ -838,6 +893,8 @@ export type ProductUncheckedUpdateWithoutFavoritesInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutPriceAlertsInput = {
@@ -862,6 +919,8 @@ export type ProductCreateWithoutPriceAlertsInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutPriceAlertsInput = {
@@ -886,6 +945,8 @@ export type ProductUncheckedCreateWithoutPriceAlertsInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutPriceAlertsInput = {
@@ -926,6 +987,8 @@ export type ProductUpdateWithoutPriceAlertsInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutPriceAlertsInput = {
@@ -950,6 +1013,8 @@ export type ProductUncheckedUpdateWithoutPriceAlertsInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutCategoryInput = {
@@ -974,6 +1039,8 @@ export type ProductCreateWithoutCategoryInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutCategoryInput = {
@@ -998,6 +1065,8 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutCategoryInput = {
@@ -1068,6 +1137,8 @@ export type ProductCreateWithoutNichesInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutNichesInput = {
@@ -1092,6 +1163,8 @@ export type ProductUncheckedCreateWithoutNichesInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutNichesInput = {
@@ -1132,6 +1205,8 @@ export type ProductUpdateWithoutNichesInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutNichesInput = {
@@ -1156,6 +1231,8 @@ export type ProductUncheckedUpdateWithoutNichesInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutVariantsInput = {
@@ -1180,6 +1257,8 @@ export type ProductCreateWithoutVariantsInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutVariantsInput = {
@@ -1204,6 +1283,8 @@ export type ProductUncheckedCreateWithoutVariantsInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutVariantsInput = {
@@ -1244,6 +1325,8 @@ export type ProductUpdateWithoutVariantsInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutVariantsInput = {
@@ -1268,6 +1351,8 @@ export type ProductUncheckedUpdateWithoutVariantsInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutImagesInput = {
@@ -1292,6 +1377,8 @@ export type ProductCreateWithoutImagesInput = {
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutImagesInput = {
@@ -1316,6 +1403,8 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutImagesInput = {
@@ -1356,6 +1445,8 @@ export type ProductUpdateWithoutImagesInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutImagesInput = {
@@ -1380,6 +1471,8 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutMatchSuggestionsInput = {
@@ -1404,6 +1497,8 @@ export type ProductCreateWithoutMatchSuggestionsInput = {
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutMatchSuggestionsInput = {
@@ -1428,6 +1523,8 @@ export type ProductUncheckedCreateWithoutMatchSuggestionsInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutMatchSuggestionsInput = {
@@ -1468,6 +1565,8 @@ export type ProductUpdateWithoutMatchSuggestionsInput = {
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutMatchSuggestionsInput = {
@@ -1492,6 +1591,8 @@ export type ProductUncheckedUpdateWithoutMatchSuggestionsInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutContentInput = {
@@ -1516,6 +1617,8 @@ export type ProductCreateWithoutContentInput = {
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutContentInput = {
@@ -1540,6 +1643,8 @@ export type ProductUncheckedCreateWithoutContentInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutContentInput = {
@@ -1580,6 +1685,8 @@ export type ProductUpdateWithoutContentInput = {
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutContentInput = {
@@ -1604,6 +1711,8 @@ export type ProductUncheckedUpdateWithoutContentInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutCreativesInput = {
@@ -1628,6 +1737,8 @@ export type ProductCreateWithoutCreativesInput = {
   priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
   content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutCreativesInput = {
@@ -1652,6 +1763,8 @@ export type ProductUncheckedCreateWithoutCreativesInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
   content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutCreativesInput = {
@@ -1692,6 +1805,8 @@ export type ProductUpdateWithoutCreativesInput = {
   priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutCreativesInput = {
@@ -1716,6 +1831,248 @@ export type ProductUncheckedUpdateWithoutCreativesInput = {
   priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type ProductCreateWithoutPostItemsInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  mlMatchCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
+  niches?: Prisma.ProductNicheCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+}
+
+export type ProductUncheckedCreateWithoutPostItemsInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  categoryId?: string | null
+  mlMatchCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantUncheckedCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type ProductCreateOrConnectWithoutPostItemsInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutPostItemsInput, Prisma.ProductUncheckedCreateWithoutPostItemsInput>
+}
+
+export type ProductUpsertWithoutPostItemsInput = {
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutPostItemsInput, Prisma.ProductUncheckedUpdateWithoutPostItemsInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutPostItemsInput, Prisma.ProductUncheckedCreateWithoutPostItemsInput>
+  where?: Prisma.ProductWhereInput
+}
+
+export type ProductUpdateToOneWithWhereWithoutPostItemsInput = {
+  where?: Prisma.ProductWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutPostItemsInput, Prisma.ProductUncheckedUpdateWithoutPostItemsInput>
+}
+
+export type ProductUpdateWithoutPostItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
+  niches?: Prisma.ProductNicheUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutPostItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUncheckedUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type ProductCreateWithoutLarsmartImagesInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  mlMatchCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
+  niches?: Prisma.ProductNicheCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+}
+
+export type ProductUncheckedCreateWithoutLarsmartImagesInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  categoryId?: string | null
+  mlMatchCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantUncheckedCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type ProductCreateOrConnectWithoutLarsmartImagesInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutLarsmartImagesInput, Prisma.ProductUncheckedCreateWithoutLarsmartImagesInput>
+}
+
+export type ProductUpsertWithoutLarsmartImagesInput = {
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutLarsmartImagesInput, Prisma.ProductUncheckedUpdateWithoutLarsmartImagesInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutLarsmartImagesInput, Prisma.ProductUncheckedCreateWithoutLarsmartImagesInput>
+  where?: Prisma.ProductWhereInput
+}
+
+export type ProductUpdateToOneWithWhereWithoutLarsmartImagesInput = {
+  where?: Prisma.ProductWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutLarsmartImagesInput, Prisma.ProductUncheckedUpdateWithoutLarsmartImagesInput>
+}
+
+export type ProductUpdateWithoutLarsmartImagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
+  niches?: Prisma.ProductNicheUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutLarsmartImagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUncheckedUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateManyCategoryInput = {
@@ -1756,6 +2113,8 @@ export type ProductUpdateWithoutCategoryInput = {
   content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutCategoryInput = {
@@ -1780,6 +2139,8 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateManyWithoutCategoryInput = {
@@ -1811,6 +2172,8 @@ export type ProductCountOutputType = {
   priceAlerts: number
   creatives: number
   matchSuggestions: number
+  postItems: number
+  larsmartImages: number
 }
 
 export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1821,6 +2184,8 @@ export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   priceAlerts?: boolean | ProductCountOutputTypeCountPriceAlertsArgs
   creatives?: boolean | ProductCountOutputTypeCountCreativesArgs
   matchSuggestions?: boolean | ProductCountOutputTypeCountMatchSuggestionsArgs
+  postItems?: boolean | ProductCountOutputTypeCountPostItemsArgs
+  larsmartImages?: boolean | ProductCountOutputTypeCountLarsmartImagesArgs
 }
 
 /**
@@ -1882,6 +2247,20 @@ export type ProductCountOutputTypeCountMatchSuggestionsArgs<ExtArgs extends runt
   where?: Prisma.MatchSuggestionWhereInput
 }
 
+/**
+ * ProductCountOutputType without action
+ */
+export type ProductCountOutputTypeCountPostItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PostProductWhereInput
+}
+
+/**
+ * ProductCountOutputType without action
+ */
+export type ProductCountOutputTypeCountLarsmartImagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LarSmartImageWhereInput
+}
+
 
 export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1907,6 +2286,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   content?: boolean | Prisma.Product$contentArgs<ExtArgs>
   creatives?: boolean | Prisma.Product$creativesArgs<ExtArgs>
   matchSuggestions?: boolean | Prisma.Product$matchSuggestionsArgs<ExtArgs>
+  postItems?: boolean | Prisma.Product$postItemsArgs<ExtArgs>
+  larsmartImages?: boolean | Prisma.Product$larsmartImagesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
@@ -1974,6 +2355,8 @@ export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   content?: boolean | Prisma.Product$contentArgs<ExtArgs>
   creatives?: boolean | Prisma.Product$creativesArgs<ExtArgs>
   matchSuggestions?: boolean | Prisma.Product$matchSuggestionsArgs<ExtArgs>
+  postItems?: boolean | Prisma.Product$postItemsArgs<ExtArgs>
+  larsmartImages?: boolean | Prisma.Product$larsmartImagesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1995,6 +2378,8 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     content: Prisma.$ProductContentPayload<ExtArgs> | null
     creatives: Prisma.$CreativePayload<ExtArgs>[]
     matchSuggestions: Prisma.$MatchSuggestionPayload<ExtArgs>[]
+    postItems: Prisma.$PostProductPayload<ExtArgs>[]
+    larsmartImages: Prisma.$LarSmartImagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2420,6 +2805,8 @@ export interface Prisma__ProductClient<T, Null = never, ExtArgs extends runtime.
   content<T extends Prisma.Product$contentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$contentArgs<ExtArgs>>): Prisma.Prisma__ProductContentClient<runtime.Types.Result.GetResult<Prisma.$ProductContentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   creatives<T extends Prisma.Product$creativesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$creativesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CreativePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   matchSuggestions<T extends Prisma.Product$matchSuggestionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$matchSuggestionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchSuggestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  postItems<T extends Prisma.Product$postItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$postItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  larsmartImages<T extends Prisma.Product$larsmartImagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$larsmartImagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LarSmartImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3067,6 +3454,54 @@ export type Product$matchSuggestionsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.MatchSuggestionScalarFieldEnum | Prisma.MatchSuggestionScalarFieldEnum[]
+}
+
+/**
+ * Product.postItems
+ */
+export type Product$postItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PostProduct
+   */
+  select?: Prisma.PostProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PostProduct
+   */
+  omit?: Prisma.PostProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PostProductInclude<ExtArgs> | null
+  where?: Prisma.PostProductWhereInput
+  orderBy?: Prisma.PostProductOrderByWithRelationInput | Prisma.PostProductOrderByWithRelationInput[]
+  cursor?: Prisma.PostProductWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PostProductScalarFieldEnum | Prisma.PostProductScalarFieldEnum[]
+}
+
+/**
+ * Product.larsmartImages
+ */
+export type Product$larsmartImagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LarSmartImage
+   */
+  select?: Prisma.LarSmartImageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LarSmartImage
+   */
+  omit?: Prisma.LarSmartImageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LarSmartImageInclude<ExtArgs> | null
+  where?: Prisma.LarSmartImageWhereInput
+  orderBy?: Prisma.LarSmartImageOrderByWithRelationInput | Prisma.LarSmartImageOrderByWithRelationInput[]
+  cursor?: Prisma.LarSmartImageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LarSmartImageScalarFieldEnum | Prisma.LarSmartImageScalarFieldEnum[]
 }
 
 /**

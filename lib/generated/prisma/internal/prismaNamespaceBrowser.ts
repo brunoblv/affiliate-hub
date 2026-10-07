@@ -79,7 +79,14 @@ export const ModelName = {
   Publication: 'Publication',
   PublicationAttempt: 'PublicationAttempt',
   MetricEvent: 'MetricEvent',
-  SocialToken: 'SocialToken'
+  SocialToken: 'SocialToken',
+  Blog: 'Blog',
+  Post: 'Post',
+  PostProduct: 'PostProduct',
+  JourneyNote: 'JourneyNote',
+  Media: 'Media',
+  PostMedia: 'PostMedia',
+  LarSmartImage: 'LarSmartImage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -565,6 +572,109 @@ export const SocialTokenScalarFieldEnum = {
 } as const
 
 export type SocialTokenScalarFieldEnum = (typeof SocialTokenScalarFieldEnum)[keyof typeof SocialTokenScalarFieldEnum]
+
+
+export const BlogScalarFieldEnum = {
+  id: 'id',
+  subdomain: 'subdomain',
+  name: 'name',
+  tagline: 'tagline',
+  about: 'about',
+  authorName: 'authorName',
+  categories: 'categories',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BlogScalarFieldEnum = (typeof BlogScalarFieldEnum)[keyof typeof BlogScalarFieldEnum]
+
+
+export const PostScalarFieldEnum = {
+  id: 'id',
+  blogId: 'blogId',
+  kind: 'kind',
+  category: 'category',
+  title: 'title',
+  slug: 'slug',
+  summary: 'summary',
+  body: 'body',
+  coverId: 'coverId',
+  audioId: 'audioId',
+  seoTitle: 'seoTitle',
+  metaDescription: 'metaDescription',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  safetyNotice: 'safetyNotice',
+  authorName: 'authorName',
+  larsmartBrief: 'larsmartBrief',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
+export const PostProductScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  productId: 'productId',
+  position: 'position',
+  label: 'label',
+  note: 'note'
+} as const
+
+export type PostProductScalarFieldEnum = (typeof PostProductScalarFieldEnum)[keyof typeof PostProductScalarFieldEnum]
+
+
+export const JourneyNoteScalarFieldEnum = {
+  id: 'id',
+  blogId: 'blogId',
+  category: 'category',
+  text: 'text',
+  createdAt: 'createdAt'
+} as const
+
+export type JourneyNoteScalarFieldEnum = (typeof JourneyNoteScalarFieldEnum)[keyof typeof JourneyNoteScalarFieldEnum]
+
+
+export const MediaScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  path: 'path',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  width: 'width',
+  height: 'height',
+  alt: 'alt',
+  createdAt: 'createdAt'
+} as const
+
+export type MediaScalarFieldEnum = (typeof MediaScalarFieldEnum)[keyof typeof MediaScalarFieldEnum]
+
+
+export const PostMediaScalarFieldEnum = {
+  postId: 'postId',
+  mediaId: 'mediaId'
+} as const
+
+export type PostMediaScalarFieldEnum = (typeof PostMediaScalarFieldEnum)[keyof typeof PostMediaScalarFieldEnum]
+
+
+export const LarSmartImageScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  mediaId: 'mediaId',
+  productId: 'productId',
+  kind: 'kind',
+  prompt: 'prompt',
+  pinterestTitle: 'pinterestTitle',
+  pinterestDescription: 'pinterestDescription',
+  createdAt: 'createdAt'
+} as const
+
+export type LarSmartImageScalarFieldEnum = (typeof LarSmartImageScalarFieldEnum)[keyof typeof LarSmartImageScalarFieldEnum]
 
 
 export const SortOrder = {
