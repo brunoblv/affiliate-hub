@@ -801,6 +801,8 @@ model Post {
 
   coverId String?
   audioId String?
+  /// Frase curta (2-4 palavras) da capa ilustrada, usada quando o post não tem imagem de capa.
+  coverText String?
 
   seoTitle        String?
   metaDescription String?

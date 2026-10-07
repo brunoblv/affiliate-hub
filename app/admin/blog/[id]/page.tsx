@@ -75,6 +75,7 @@ export default async function EditBlogPostPage({ params, searchParams }: Props) 
             safetyNotice: post.safetyNotice,
             authorName: post.authorName ?? "",
             cover: post.cover,
+            coverText: post.coverText ?? "",
           }}
         />
 

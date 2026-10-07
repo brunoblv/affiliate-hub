@@ -16,8 +16,12 @@ export default async function BlogAboutPage({ params }: Props) {
   if (!blog?.about) notFound();
 
   return (
-    <article className="mx-auto w-full max-w-[720px] px-5 py-12">
-      <h1 className="font-blog-heading text-4xl font-semibold">Sobre o {blog.name}</h1>
+    <article className="mx-auto w-full max-w-[760px] px-5 pt-12">
+      <div className="flex items-center gap-5 overflow-hidden rounded-[20px] bg-blog-accent-soft pl-4 pr-7 pt-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/capi/compare.png" alt="" className="block h-[100px] w-auto flex-none self-end sm:h-[130px]" />
+        <h1 className="pb-4 text-[clamp(26px,5vw,36px)] font-extrabold leading-[1.1] tracking-[-0.035em]">Sobre o {blog.name}</h1>
+      </div>
       <div className="blog-prose mt-8">
         <Markdown remarkPlugins={[remarkGfm]}>{blog.about}</Markdown>
       </div>

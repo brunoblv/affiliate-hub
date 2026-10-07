@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
+import type { EditorialCategory } from "@/lib/generated/prisma/enums";
 
 /**
  * Leitura pública dos blogs. Regras:
@@ -24,13 +25,15 @@ const cardSelect = {
   summary: true,
   category: true,
   publishedAt: true,
+  coverText: true,
+  body: true,
   cover: { select: { url: true, alt: true } },
 } satisfies Prisma.PostSelect;
 
 export type PostCard = Prisma.PostGetPayload<{ select: typeof cardSelect }>;
 
-export async function listPosts(blogId: string, page: number, pageSize: number) {
-  const where = { blogId, ...LISTED };
+export async function listPosts(blogId: string, page: number, pageSize: number, category?: EditorialCategory | null) {
+  const where = { blogId, ...LISTED, ...(category ? { category } : {}) };
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
@@ -102,4 +105,10 @@ export async function sitemapPosts(blogId: string) {
     select: { slug: true, updatedAt: true },
     orderBy: { publishedAt: "desc" },
   });
+}
+
+/** Linhas editoriais com artigo publicado (os filtros da listagem). */
+export async function listedCategories(blogId: string): Promise<EditorialCategory[]> {
+  const rows = await prisma.post.groupBy({ by: ["category"], where: { blogId, ...LISTED, category: { not: null } } });
+  return rows.flatMap((row) => (row.category ? [row.category] : []));
 }

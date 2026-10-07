@@ -39,6 +39,7 @@ export interface PostFormValues {
   safetyNotice: boolean;
   authorName: string;
   cover: { id: string; url: string; alt: string | null } | null;
+  coverText: string;
 }
 
 type Feedback = { tone: "good" | "bad"; text: string } | null;
@@ -225,6 +226,9 @@ export function PostForm({ blogs, initial }: { blogs: BlogOption[]; initial: Pos
                 </button>
               ) : null}
             </div>
+            <Field label="Frase da capa ilustrada (usada quando não há imagem; 2 a 4 palavras)" className="w-full max-w-sm">
+              <input name="coverText" defaultValue={initial.coverText} maxLength={40} placeholder="Ex.: Adeus, mofo" className={inputClass} />
+            </Field>
             <p className="text-xs text-muted">
               “Gerar capa” pede à OpenAI uma cena do tema (nas listas, com as fotos dos produtos) e cola na moldura da marca do blog.
             </p>

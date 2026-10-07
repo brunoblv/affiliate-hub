@@ -601,6 +601,7 @@ export const PostScalarFieldEnum = {
   body: 'body',
   coverId: 'coverId',
   audioId: 'audioId',
+  coverText: 'coverText',
   seoTitle: 'seoTitle',
   metaDescription: 'metaDescription',
   status: 'status',

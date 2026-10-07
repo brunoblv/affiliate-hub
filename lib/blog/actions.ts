@@ -74,6 +74,7 @@ function readPostForm(data: FormData) {
     publish: data.get("publish") === "on",
     safetyNotice: data.get("safetyNotice") === "on",
     coverId: text(data, "coverId") || null,
+    coverText: text(data, "coverText").slice(0, 40) || null,
     authorName: text(data, "authorName") || null,
     slug: text(data, "slug"),
   };
@@ -100,6 +101,7 @@ export async function savePost(id: string | null, _prev: PostFormState, data: Fo
     summary: form.summary || autoSummary(form.body) || null,
     body: form.body,
     coverId: form.coverId,
+    coverText: form.coverText,
     seoTitle: form.seoTitle,
     metaDescription: form.metaDescription,
     status: form.publish ? ("PUBLISHED" as const) : ("DRAFT" as const),

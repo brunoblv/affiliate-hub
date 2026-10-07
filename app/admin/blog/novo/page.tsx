@@ -34,6 +34,7 @@ export default async function NewBlogPostPage() {
             safetyNotice: false,
             authorName: "",
             cover: null,
+            coverText: "",
           }}
         />
       )}

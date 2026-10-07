@@ -35,6 +35,7 @@ export type PostMinAggregateOutputType = {
   body: string | null
   coverId: string | null
   audioId: string | null
+  coverText: string | null
   seoTitle: string | null
   metaDescription: string | null
   status: $Enums.PostStatus | null
@@ -56,6 +57,7 @@ export type PostMaxAggregateOutputType = {
   body: string | null
   coverId: string | null
   audioId: string | null
+  coverText: string | null
   seoTitle: string | null
   metaDescription: string | null
   status: $Enums.PostStatus | null
@@ -77,6 +79,7 @@ export type PostCountAggregateOutputType = {
   body: number
   coverId: number
   audioId: number
+  coverText: number
   seoTitle: number
   metaDescription: number
   status: number
@@ -101,6 +104,7 @@ export type PostMinAggregateInputType = {
   body?: true
   coverId?: true
   audioId?: true
+  coverText?: true
   seoTitle?: true
   metaDescription?: true
   status?: true
@@ -122,6 +126,7 @@ export type PostMaxAggregateInputType = {
   body?: true
   coverId?: true
   audioId?: true
+  coverText?: true
   seoTitle?: true
   metaDescription?: true
   status?: true
@@ -143,6 +148,7 @@ export type PostCountAggregateInputType = {
   body?: true
   coverId?: true
   audioId?: true
+  coverText?: true
   seoTitle?: true
   metaDescription?: true
   status?: true
@@ -238,6 +244,7 @@ export type PostGroupByOutputType = {
   body: string
   coverId: string | null
   audioId: string | null
+  coverText: string | null
   seoTitle: string | null
   metaDescription: string | null
   status: $Enums.PostStatus
@@ -281,6 +288,7 @@ export type PostWhereInput = {
   body?: Prisma.StringFilter<"Post"> | string
   coverId?: Prisma.StringNullableFilter<"Post"> | string | null
   audioId?: Prisma.StringNullableFilter<"Post"> | string | null
+  coverText?: Prisma.StringNullableFilter<"Post"> | string | null
   seoTitle?: Prisma.StringNullableFilter<"Post"> | string | null
   metaDescription?: Prisma.StringNullableFilter<"Post"> | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
@@ -309,6 +317,7 @@ export type PostOrderByWithRelationInput = {
   body?: Prisma.SortOrder
   coverId?: Prisma.SortOrderInput | Prisma.SortOrder
   audioId?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverText?: Prisma.SortOrderInput | Prisma.SortOrder
   seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   metaDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -341,6 +350,7 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   body?: Prisma.StringFilter<"Post"> | string
   coverId?: Prisma.StringNullableFilter<"Post"> | string | null
   audioId?: Prisma.StringNullableFilter<"Post"> | string | null
+  coverText?: Prisma.StringNullableFilter<"Post"> | string | null
   seoTitle?: Prisma.StringNullableFilter<"Post"> | string | null
   metaDescription?: Prisma.StringNullableFilter<"Post"> | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
@@ -369,6 +379,7 @@ export type PostOrderByWithAggregationInput = {
   body?: Prisma.SortOrder
   coverId?: Prisma.SortOrderInput | Prisma.SortOrder
   audioId?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverText?: Prisma.SortOrderInput | Prisma.SortOrder
   seoTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   metaDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -397,6 +408,7 @@ export type PostScalarWhereWithAggregatesInput = {
   body?: Prisma.StringWithAggregatesFilter<"Post"> | string
   coverId?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   audioId?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
+  coverText?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   seoTitle?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   metaDescription?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   status?: Prisma.EnumPostStatusWithAggregatesFilter<"Post"> | $Enums.PostStatus
@@ -416,6 +428,7 @@ export type PostCreateInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -444,6 +457,7 @@ export type PostUncheckedCreateInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -466,6 +480,7 @@ export type PostUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -494,6 +509,7 @@ export type PostUncheckedUpdateInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -519,6 +535,7 @@ export type PostCreateManyInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -538,6 +555,7 @@ export type PostUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -560,6 +578,7 @@ export type PostUncheckedUpdateManyInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -597,6 +616,7 @@ export type PostCountOrderByAggregateInput = {
   body?: Prisma.SortOrder
   coverId?: Prisma.SortOrder
   audioId?: Prisma.SortOrder
+  coverText?: Prisma.SortOrder
   seoTitle?: Prisma.SortOrder
   metaDescription?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -619,6 +639,7 @@ export type PostMaxOrderByAggregateInput = {
   body?: Prisma.SortOrder
   coverId?: Prisma.SortOrder
   audioId?: Prisma.SortOrder
+  coverText?: Prisma.SortOrder
   seoTitle?: Prisma.SortOrder
   metaDescription?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -640,6 +661,7 @@ export type PostMinOrderByAggregateInput = {
   body?: Prisma.SortOrder
   coverId?: Prisma.SortOrder
   audioId?: Prisma.SortOrder
+  coverText?: Prisma.SortOrder
   seoTitle?: Prisma.SortOrder
   metaDescription?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -843,6 +865,7 @@ export type PostCreateWithoutBlogInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -869,6 +892,7 @@ export type PostUncheckedCreateWithoutBlogInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -923,6 +947,7 @@ export type PostScalarWhereInput = {
   body?: Prisma.StringFilter<"Post"> | string
   coverId?: Prisma.StringNullableFilter<"Post"> | string | null
   audioId?: Prisma.StringNullableFilter<"Post"> | string | null
+  coverText?: Prisma.StringNullableFilter<"Post"> | string | null
   seoTitle?: Prisma.StringNullableFilter<"Post"> | string | null
   metaDescription?: Prisma.StringNullableFilter<"Post"> | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
@@ -942,6 +967,7 @@ export type PostCreateWithoutProductsInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -969,6 +995,7 @@ export type PostUncheckedCreateWithoutProductsInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1006,6 +1033,7 @@ export type PostUpdateWithoutProductsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1033,6 +1061,7 @@ export type PostUncheckedUpdateWithoutProductsInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1054,6 +1083,7 @@ export type PostCreateWithoutCoverInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1080,6 +1110,7 @@ export type PostUncheckedCreateWithoutCoverInput = {
   summary?: string | null
   body: string
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1112,6 +1143,7 @@ export type PostCreateWithoutAudioInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1138,6 +1170,7 @@ export type PostUncheckedCreateWithoutAudioInput = {
   summary?: string | null
   body: string
   coverId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1202,6 +1235,7 @@ export type PostCreateWithoutMediaInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1229,6 +1263,7 @@ export type PostUncheckedCreateWithoutMediaInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1266,6 +1301,7 @@ export type PostUpdateWithoutMediaInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1293,6 +1329,7 @@ export type PostUncheckedUpdateWithoutMediaInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1314,6 +1351,7 @@ export type PostCreateWithoutLarsmartImagesInput = {
   slug: string
   summary?: string | null
   body: string
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1341,6 +1379,7 @@ export type PostUncheckedCreateWithoutLarsmartImagesInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1378,6 +1417,7 @@ export type PostUpdateWithoutLarsmartImagesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1405,6 +1445,7 @@ export type PostUncheckedUpdateWithoutLarsmartImagesInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1428,6 +1469,7 @@ export type PostCreateManyBlogInput = {
   body: string
   coverId?: string | null
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1447,6 +1489,7 @@ export type PostUpdateWithoutBlogInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1473,6 +1516,7 @@ export type PostUncheckedUpdateWithoutBlogInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1497,6 +1541,7 @@ export type PostUncheckedUpdateManyWithoutBlogInput = {
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1518,6 +1563,7 @@ export type PostCreateManyCoverInput = {
   summary?: string | null
   body: string
   audioId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1539,6 +1585,7 @@ export type PostCreateManyAudioInput = {
   summary?: string | null
   body: string
   coverId?: string | null
+  coverText?: string | null
   seoTitle?: string | null
   metaDescription?: string | null
   status?: $Enums.PostStatus
@@ -1558,6 +1605,7 @@ export type PostUpdateWithoutCoverInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1584,6 +1632,7 @@ export type PostUncheckedUpdateWithoutCoverInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1608,6 +1657,7 @@ export type PostUncheckedUpdateManyWithoutCoverInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   audioId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1627,6 +1677,7 @@ export type PostUpdateWithoutAudioInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1653,6 +1704,7 @@ export type PostUncheckedUpdateWithoutAudioInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1677,6 +1729,7 @@ export type PostUncheckedUpdateManyWithoutAudioInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   coverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
@@ -1748,6 +1801,7 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   body?: boolean
   coverId?: boolean
   audioId?: boolean
+  coverText?: boolean
   seoTitle?: boolean
   metaDescription?: boolean
   status?: boolean
@@ -1777,6 +1831,7 @@ export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   body?: boolean
   coverId?: boolean
   audioId?: boolean
+  coverText?: boolean
   seoTitle?: boolean
   metaDescription?: boolean
   status?: boolean
@@ -1802,6 +1857,7 @@ export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   body?: boolean
   coverId?: boolean
   audioId?: boolean
+  coverText?: boolean
   seoTitle?: boolean
   metaDescription?: boolean
   status?: boolean
@@ -1827,6 +1883,7 @@ export type PostSelectScalar = {
   body?: boolean
   coverId?: boolean
   audioId?: boolean
+  coverText?: boolean
   seoTitle?: boolean
   metaDescription?: boolean
   status?: boolean
@@ -1838,7 +1895,7 @@ export type PostSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "blogId" | "kind" | "category" | "title" | "slug" | "summary" | "body" | "coverId" | "audioId" | "seoTitle" | "metaDescription" | "status" | "publishedAt" | "safetyNotice" | "authorName" | "larsmartBrief" | "createdAt" | "updatedAt", ExtArgs["result"]["post"]>
+export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "blogId" | "kind" | "category" | "title" | "slug" | "summary" | "body" | "coverId" | "audioId" | "coverText" | "seoTitle" | "metaDescription" | "status" | "publishedAt" | "safetyNotice" | "authorName" | "larsmartBrief" | "createdAt" | "updatedAt", ExtArgs["result"]["post"]>
 export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   blog?: boolean | Prisma.BlogDefaultArgs<ExtArgs>
   cover?: boolean | Prisma.Post$coverArgs<ExtArgs>
@@ -1884,6 +1941,10 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     body: string
     coverId: string | null
     audioId: string | null
+    /**
+     * Frase curta (2-4 palavras) da capa ilustrada, usada quando o post não tem imagem de capa.
+     */
+    coverText: string | null
     seoTitle: string | null
     metaDescription: string | null
     status: $Enums.PostStatus
@@ -2338,6 +2399,7 @@ export interface PostFieldRefs {
   readonly body: Prisma.FieldRef<"Post", 'String'>
   readonly coverId: Prisma.FieldRef<"Post", 'String'>
   readonly audioId: Prisma.FieldRef<"Post", 'String'>
+  readonly coverText: Prisma.FieldRef<"Post", 'String'>
   readonly seoTitle: Prisma.FieldRef<"Post", 'String'>
   readonly metaDescription: Prisma.FieldRef<"Post", 'String'>
   readonly status: Prisma.FieldRef<"Post", 'PostStatus'>

@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { splitBlocks, type BodyBlock } from "@/lib/blog/body";
 import { getCatalogProductsBySlugs } from "@/lib/catalog";
 import { mainSiteUrl } from "@/lib/blog/hosts";
-import { FeaturedProductCard, ProductGridCard } from "./product-cards";
+import { FeaturedProductCard, PriceAlertCallout, ProductGridCard } from "./product-cards";
 
 type Group = Exclude<BodyBlock, { kind: "product" }> | { kind: "products"; slugs: string[] };
 
@@ -37,9 +37,10 @@ export async function PostBody({ body, hasAffiliateLinks }: { body: string; hasA
   const slugs = blocks.flatMap((block) => (block.kind === "product" ? [block.slug] : []));
   const products = await getCatalogProductsBySlugs(slugs);
   const affiliate = hasAffiliateLinks || products.size > 0 || blocks.some((block) => block.kind === "cta");
+  const alertSlug = slugs.find((slug) => products.get(slug)?.offers.length);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-7">
       {groupProducts(blocks).map((group, index) => {
         if (group.kind === "markdown") {
           return (
@@ -49,7 +50,7 @@ export async function PostBody({ body, hasAffiliateLinks }: { body: string; hasA
                 components={{
                   img: ({ src, alt }) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={String(src ?? "")} alt={alt ?? ""} loading="lazy" className="mx-auto h-auto max-h-[28rem] w-full rounded-lg object-contain" />
+                    <img src={String(src ?? "")} alt={alt ?? ""} loading="lazy" className="mx-auto h-auto max-h-[28rem] w-full rounded-[14px] object-contain" />
                   ),
                   a: ({ href, children }) => {
                     const url = absoluteHref(String(href ?? ""));
@@ -77,7 +78,7 @@ export async function PostBody({ body, hasAffiliateLinks }: { body: string; hasA
                 href={absoluteHref(group.url)}
                 target="_blank"
                 rel="nofollow sponsored noopener"
-                className="inline-flex w-full max-w-md items-center justify-center rounded-lg bg-blog-ink px-6 py-3 text-center text-sm font-semibold text-blog-surface hover:opacity-90"
+                className="inline-flex h-12 w-full max-w-md items-center justify-center rounded-xl bg-blog-accent px-6 text-center text-[15px] font-bold text-white hover:bg-blog-accent-dark hover:text-white"
               >
                 {group.label}
               </a>
@@ -93,16 +94,18 @@ export async function PostBody({ body, hasAffiliateLinks }: { body: string; hasA
         if (items.length === 0) return null;
         if (items.length === 1) return <FeaturedProductCard key={index} item={items[0]!} />;
         return (
-          <div key={index} className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {items.map((item) => (
-              <ProductGridCard key={item.product.id} item={item} />
+          <div key={index} className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,190px),1fr))] gap-3.5">
+            {items.map((item, position) => (
+              <ProductGridCard key={`${item.product.id}-${position}`} item={item} />
             ))}
           </div>
         );
       })}
 
+      {alertSlug ? <PriceAlertCallout productSlug={alertSlug} /> : null}
+
       {affiliate ? (
-        <p className="text-xs text-blog-muted">
+        <p className="text-xs leading-normal text-blog-muted">
           Esta página contém links de afiliado. Se você comprar por eles, o site pode receber uma comissão, sem custo adicional
           para você.
         </p>

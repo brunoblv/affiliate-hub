@@ -91,7 +91,7 @@ export function ArticleWizard({ blogs }: { blogs: BlogOption[] }) {
         <Message feedback={{ tone: "good", text: "Artigo gerado. Revise, gere a capa e salve; nada foi gravado ainda." }} />
         <PostForm
           blogs={blogs}
-          initial={{ blogId, kind: "EDITORIAL", category, ...draft, published: false, safetyNotice: false, authorName: "", cover: null }}
+          initial={{ blogId, kind: "EDITORIAL", category, ...draft, published: false, safetyNotice: false, authorName: "", cover: null, coverText: "" }}
         />
       </div>
     );

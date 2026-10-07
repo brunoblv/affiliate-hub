@@ -1,68 +1,54 @@
 import type { CSSProperties } from "react";
 
 /**
- * Identidade visual de cada blog (cores e fontes), aplicada como variáveis CSS no layout
- * do blog. Blog sem tema próprio usa o padrão neutro. Cores usadas pelas classes
- * `*-blog-*` declaradas em app/globals.css.
+ * Identidade visual dos blogs, aplicada como variáveis CSS no layout do blog (classes
+ * `*-blog-*` em app/globals.css). O padrão é a marca Capibusca (Inter + Nunito, verde),
+ * com a Capi como mascote; um blog pode sobrescrever cores e fontes aqui.
  */
 export interface BlogTheme {
   background: string;
   surface: string;
   ink: string;
+  /** Texto corrido do artigo (um tom abaixo do título). */
+  text: string;
   muted: string;
   line: string;
   soft: string;
   accent: string;
   accentDark: string;
+  accentSoft: string;
   accentInk: string;
-  /** Família das fontes (com fallback) e URL do Google Fonts que as carrega. */
+  /** Títulos e texto. */
   headingFont: string;
   bodyFont: string;
+  /** Marca: nome do blog e frases das capas ilustradas. */
+  brandFont: string;
+  /** Google Fonts extra (as da marca Capibusca já vêm do layout raiz). */
   fontsHref: string | null;
-  /** Capa usada quando o post não tem imagem própria (arquivo em public/). */
-  fallbackCover: { src: string; alt: string } | null;
 }
 
-const DEFAULT_THEME: BlogTheme = {
-  background: "#fafbf9",
-  surface: "#ffffff",
+const CAPIBUSCA: BlogTheme = {
+  background: "#FAFBF9",
+  surface: "#FFFFFF",
   ink: "#172033",
+  text: "#344054",
   muted: "#667085",
-  line: "#e7eae7",
-  soft: "#f1f2f5",
-  accent: "#16a66a",
-  accentDark: "#087a4d",
-  accentInk: "#ffffff",
+  line: "#E7EAE7",
+  soft: "#F3F5F2",
+  accent: "#16A66A",
+  accentDark: "#087A4D",
+  accentSoft: "#E8F6EF",
+  accentInk: "#FFFFFF",
   headingFont: "Inter, Helvetica, Arial, sans-serif",
   bodyFont: "Inter, Helvetica, Arial, sans-serif",
+  brandFont: "Nunito, Inter, sans-serif",
   fontsHref: null,
-  fallbackCover: null,
 };
 
-const THEMES: Record<string, Partial<BlogTheme>> = {
-  // Paleta "Meu Novo Lar": creme, terracota, sálvia e oliva.
-  meunovolar: {
-    background: "#F8F6F1",
-    surface: "#FFFFFF",
-    ink: "#292824",
-    muted: "#77736B",
-    line: "#DDD7CC",
-    soft: "#EDE6DA",
-    accent: "#B8664F",
-    accentDark: "#8F493A",
-    accentInk: "#FFFFFF",
-    headingFont: "Newsreader, Georgia, serif",
-    bodyFont: "Manrope, 'Segoe UI', sans-serif",
-    fontsHref: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap",
-    fallbackCover: {
-      src: "/blogs/meunovolar/capa-editorial.jpg",
-      alt: "Sala aconchegante com cozinha integrada e iluminação quente",
-    },
-  },
-};
+const THEMES: Record<string, Partial<BlogTheme>> = {};
 
 export function blogTheme(subdomain: string): BlogTheme {
-  return { ...DEFAULT_THEME, ...THEMES[subdomain] };
+  return { ...CAPIBUSCA, ...THEMES[subdomain] };
 }
 
 export function themeStyle(theme: BlogTheme): CSSProperties {
@@ -70,13 +56,16 @@ export function themeStyle(theme: BlogTheme): CSSProperties {
     "--blog-bg": theme.background,
     "--blog-surface": theme.surface,
     "--blog-ink": theme.ink,
+    "--blog-text": theme.text,
     "--blog-muted": theme.muted,
     "--blog-line": theme.line,
     "--blog-soft": theme.soft,
     "--blog-accent": theme.accent,
     "--blog-accent-dark": theme.accentDark,
+    "--blog-accent-soft": theme.accentSoft,
     "--blog-accent-ink": theme.accentInk,
     "--blog-heading": theme.headingFont,
     "--blog-body": theme.bodyFont,
+    "--blog-brand": theme.brandFont,
   } as CSSProperties;
 }
