@@ -16,6 +16,11 @@ export const getBlog = cache(async (subdomain: string) =>
   prisma.blog.findFirst({ where: { subdomain, active: true } }),
 );
 
+/** Blogs ativos, para o rodapé do site principal. */
+export const listActiveBlogs = cache(async () =>
+  prisma.blog.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { subdomain: true, name: true } }),
+);
+
 export type PublicBlog = NonNullable<Awaited<ReturnType<typeof getBlog>>>;
 
 const cardSelect = {

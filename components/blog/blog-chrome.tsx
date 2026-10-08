@@ -44,7 +44,7 @@ export function BlogHeader({ blog }: { blog: PublicBlog }) {
               Sobre
             </Link>
           ) : null}
-          <a href={mainSiteUrl("/")} className="hidden text-sm font-medium text-blog-muted hover:text-blog-ink sm:inline">
+          <a href={mainSiteUrl("/")} className="text-sm font-medium text-blog-muted hover:text-blog-ink">
             Comparar preços ↗
           </a>
         </nav>
@@ -85,6 +85,7 @@ export function BlogFooter({ blog }: { blog: PublicBlog }) {
           <Link href="/" className={link}>Artigos</Link>
           <Link href="/busca" className={link}>Buscar</Link>
           {blog.about ? <Link href="/sobre" className={link}>Sobre</Link> : null}
+          <a href={mainSiteUrl("/")} className={link}>Voltar ao Capibusca</a>
         </div>
         <div className="flex flex-col gap-2.5 text-sm">
           <span className="text-[11px] font-bold tracking-[0.09em] text-[#98A2B3]">INFORMAÇÕES</span>

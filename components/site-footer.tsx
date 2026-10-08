@@ -2,13 +2,15 @@ import Link from "next/link";
 import { Wordmark } from "./icons";
 import { listNiches } from "@/lib/catalog";
 import { institutionalLinks } from "@/lib/institutional";
+import { blogUrl } from "@/lib/blog/hosts";
+import { listActiveBlogs } from "@/lib/blog/queries";
 
 /**
  * The affiliate-monetization notice is a requirement, not decoration (§12):
  * it has to be reachable from every public page.
  */
 export async function SiteFooter() {
-  const niches = await listNiches();
+  const [niches, blogs] = await Promise.all([listNiches(), listActiveBlogs()]);
   return (
     <footer className="mt-24 border-t border-line bg-surface">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 sm:px-8 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
@@ -52,6 +54,11 @@ export async function SiteFooter() {
           <Link href="/guias" className="text-[13px] text-muted hover:text-brand">
             Guias de compra
           </Link>
+          {blogs.map((blog) => (
+            <a key={blog.subdomain} href={blogUrl(blog.subdomain)} className="text-[13px] text-muted hover:text-brand">
+              Blog {blog.name}
+            </a>
+          ))}
           <Link href="/conta" className="text-[13px] text-muted hover:text-brand">
             Favoritos e alertas
           </Link>

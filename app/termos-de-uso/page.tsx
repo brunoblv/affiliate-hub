@@ -16,7 +16,7 @@ export default function TermsPage() {
       updatedAt={info.policiesUpdatedAt}
       intro={
         <>
-          Estes termos regem o uso do {info.siteName}, operado por {info.operatorName} ({info.operatorDocument}).
+          Estes termos regem o uso do {info.siteName},.
           Ao usar o site você concorda com eles. Se não concordar, não use o serviço.
         </>
       }

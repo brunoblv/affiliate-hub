@@ -27,21 +27,12 @@ export default function ContactPage() {
 
       <h2>Privacidade e dados pessoais (LGPD)</h2>
       <p>
-        Encarregado pelo tratamento de dados: {info.dpoName} — <strong>{info.dpoEmail}</strong>
+        Encarregado pelo tratamento de dados: <strong>{info.dpoEmail}</strong>
       </p>
       <p>
         Para acessar, corrigir, levar ou apagar seus dados, escreva a partir do e-mail cadastrado. Muita coisa você
         resolve na hora em <Link href="/conta">Minha conta</Link>, inclusive excluir a conta. Respondemos em até 15
         dias. Veja a <Link href="/politica-de-privacidade">política de privacidade</Link>.
-      </p>
-
-      <h2>Responsável pelo site</h2>
-      <p>
-        {info.operatorName}
-        <br />
-        {info.operatorDocument}
-        <br />
-        {info.operatorAddress}
       </p>
     </InstitutionalPage>
   );

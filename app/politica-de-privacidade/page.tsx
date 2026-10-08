@@ -25,12 +25,12 @@ export default function PrivacyPolicyPage() {
     >
       <h2 id="controlador">1. Quem é o controlador</h2>
       <p>
-        O controlador dos dados pessoais tratados neste site é <strong>{info.operatorName}</strong>, inscrito
-        sob o nº {info.operatorDocument}, com sede em {info.operatorAddress}.
+        O controlador dos dados pessoais tratados neste site é o responsável pelo {info.siteName}, que atende
+        pelos canais abaixo.
       </p>
       <p>
-        <strong>Encarregado pelo tratamento de dados (DPO):</strong> {info.dpoName} — {info.dpoEmail}. É o canal
-        para dúvidas sobre esta política e para pedidos relativos aos seus direitos.
+        <strong>Encarregado pelo tratamento de dados (DPO):</strong> {info.dpoEmail}. É o canal para dúvidas sobre
+        esta política e para pedidos relativos aos seus direitos.
       </p>
 
       <h2 id="dados">2. Quais dados tratamos, para quê e com qual base legal</h2>
@@ -241,7 +241,7 @@ export default function PrivacyPolicyPage() {
 
       <h2 id="contato">12. Contato</h2>
       <p>
-        Encarregado: {info.dpoName} — {info.dpoEmail}. Outros assuntos: veja a página de{" "}
+        Encarregado: {info.dpoEmail}. Outros assuntos: veja a página de{" "}
         <Link href="/contato">contato</Link>.
       </p>
     </InstitutionalPage>

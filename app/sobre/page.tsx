@@ -39,7 +39,7 @@ export default function AboutPage() {
 
       <h2>Quem está por trás</h2>
       <p>
-        O {info.siteName} é operado por {info.operatorName}. Fale com a gente pela página de{" "}
+        O {info.siteName} é um projeto independente. Fale com a gente pela página de{" "}
         <Link href="/contato">contato</Link>.
       </p>
     </InstitutionalPage>

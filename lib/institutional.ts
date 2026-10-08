@@ -1,21 +1,18 @@
 /**
- * Dados do operador exibidos nas páginas institucionais (LGPD art. 9º e 41).
- * Vêm do ambiente para não ficarem fixos no código; sem valor, a página mostra
- * um marcador visível em vez de inventar identidade ou contato.
+ * Dados exibidos nas páginas institucionais (LGPD art. 9º e 41).
+ * O site não publica nome, CPF/CNPJ nem endereço do responsável: o canal de
+ * contato e do encarregado é só o e-mail. Sem valor, a página mostra um
+ * marcador visível em vez de inventar contato.
  */
 const missing = (what: string) => `[definir ${what}]`;
 
 export const institutional = {
   siteName: "Capibusca",
-  operatorName: process.env.OPERATOR_NAME || missing("nome ou razão social do operador"),
-  operatorDocument: process.env.OPERATOR_DOCUMENT || missing("CPF/CNPJ"),
-  operatorAddress: process.env.OPERATOR_ADDRESS || missing("cidade/UF ou endereço"),
   contactEmail: process.env.CONTACT_EMAIL || missing("e-mail de contato"),
-  /** Encarregado pelo tratamento de dados pessoais (DPO). */
-  dpoName: process.env.DPO_NAME || process.env.OPERATOR_NAME || missing("encarregado de dados"),
+  /** Canal do encarregado pelo tratamento de dados pessoais (DPO). */
   dpoEmail: process.env.DPO_EMAIL || process.env.CONTACT_EMAIL || missing("e-mail do encarregado"),
   /** Atualize ao mudar o texto das políticas. */
-  policiesUpdatedAt: "04/10/2026",
+  policiesUpdatedAt: "07/10/2026",
 };
 
 export const institutionalLinks = [
