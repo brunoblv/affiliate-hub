@@ -5,6 +5,7 @@ import { ErrorBanner, Panel, inputClass, primaryButton, secondaryButton } from "
 import { prisma } from "@/lib/db";
 import { acceptMatch, rejectMatches } from "@/lib/admin/match-actions";
 import { money } from "@/lib/format";
+import { CANDIDATE_REF_PREFIX } from "@/lib/discovery/run";
 import { asText, buildHref, type RawParams } from "@/lib/query";
 
 export const metadata: Metadata = {
@@ -49,10 +50,11 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
 
   return (
     <AdminShell active="Correspondências">
-      <h1 className="text-2xl font-bold tracking-[-0.025em]">Correspondências no Mercado Livre</h1>
+      <h1 className="text-2xl font-bold tracking-[-0.025em]">Correspondências</h1>
       <p className="mb-5 mt-1 text-[13px] text-muted">
         {groups.length} produto{groups.length === 1 ? "" : "s"} aguardando sua escolha · {autoCount} vinculado
-        {autoCount === 1 ? "" : "s"} automaticamente (marca e modelo iguais).
+        {autoCount === 1 ? "" : "s"} automaticamente (marca e modelo iguais). Produto genérico entre lojas só
+        é vinculado com a sua confirmação.
       </p>
       {notice ? (
         <p role="status" className="mb-5 rounded-[10px] bg-good-bg px-4 py-3 text-[13px] font-medium text-good">
@@ -71,7 +73,7 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
       ) : (
         <div className="flex flex-col gap-4">
           {ordered.map((product) => {
-            const source = product.variants.flatMap((v) => v.offers).find((o) => o.store.connector === "shopee");
+            const source = product.variants.flatMap((v) => v.offers).find((o) => o.priceCents !== null);
             return (
               <Panel key={product.id} title={product.name.slice(0, 90)}>
                 <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
@@ -86,7 +88,7 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
                       className="h-24 w-24 rounded-lg object-cover"
                     />
                     <div className="text-xs text-muted">
-                      <p className="font-semibold text-ink">Shopee</p>
+                      <p className="font-semibold text-ink">{source?.store.name ?? "Loja"}</p>
                       <p>{source?.priceCents ? money(source.priceCents) : "sem preço"}</p>
                       <Link href={`/admin/produtos/${product.id}?aba=ofertas`} className="underline hover:text-brand">
                         abrir produto
@@ -110,15 +112,20 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
                           <p className="line-clamp-2 text-[13px] font-semibold">{suggestion.name}</p>
                           <p className="mt-0.5 text-xs text-muted">
                             {suggestion.priceCents ? money(suggestion.priceCents) : "sem preço"} ·{" "}
-                            {suggestion.reasons.join(" · ") || "título parecido"} ·{" "}
-                            <a
-                              href={`https://www.mercadolivre.com.br/p/${suggestion.catalogId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-brand"
-                            >
-                              ver no ML
-                            </a>
+                            {suggestion.reasons.join(" · ") || "título parecido"}
+                            {suggestion.catalogId.startsWith(CANDIDATE_REF_PREFIX) ? null : (
+                              <>
+                                {" · "}
+                                <a
+                                  href={`https://www.mercadolivre.com.br/p/${suggestion.catalogId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline hover:text-brand"
+                                >
+                                  ver no ML
+                                </a>
+                              </>
+                            )}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
@@ -126,12 +133,14 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
                           <form action={acceptMatch} className="flex gap-2">
                             <input type="hidden" name="id" value={suggestion.id} />
                             <input type="hidden" name="voltar" value={self} />
-                            <input
-                              name="affiliateUrl"
-                              type="url"
-                              placeholder="link meli.la (opcional)"
-                              className={`${inputClass} h-8 w-[190px] font-mono text-xs`}
-                            />
+                            {suggestion.catalogId.startsWith(CANDIDATE_REF_PREFIX) ? null : (
+                              <input
+                                name="affiliateUrl"
+                                type="url"
+                                placeholder="link meli.la (opcional)"
+                                className={`${inputClass} h-8 w-[190px] font-mono text-xs`}
+                              />
+                            )}
                             <button type="submit" className={primaryButton + " !h-8 !px-3 !text-xs"}>
                               É este
                             </button>

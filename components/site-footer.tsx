@@ -51,6 +51,15 @@ export async function SiteFooter() {
           <Link href="/ofertas" className="text-[13px] text-muted hover:text-brand">
             Ofertas do dia
           </Link>
+          <Link href="/loja" className="text-[13px] text-muted hover:text-brand">
+            Lojas
+          </Link>
+          <Link href="/marcas" className="text-[13px] text-muted hover:text-brand">
+            Marcas conhecidas
+          </Link>
+          <Link href="/achadinhos" className="text-[13px] text-muted hover:text-brand">
+            Achadinhos
+          </Link>
           <Link href="/guias" className="text-[13px] text-muted hover:text-brand">
             Guias de compra
           </Link>

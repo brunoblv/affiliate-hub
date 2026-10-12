@@ -6,6 +6,7 @@ import { productSearchText } from "@/lib/search-text";
 import { slugify } from "@/lib/slug";
 import type { FetchResult } from "@/lib/connectors";
 import { observedCommercialContext } from "@/lib/connectors/commercial-context";
+import { metricsData } from "@/lib/discovery/metrics";
 
 const newShortCode = () => randomBytes(5).toString("base64url").toLowerCase().replace(/[^a-z0-9]/g, "x");
 
@@ -50,6 +51,7 @@ export async function attachFetchedOffer(input: {
       priceCheckedAt: result.observedAt,
       lastAttemptAt: result.observedAt,
       method: "API",
+      ...metricsData(result, result.observedAt),
     },
   });
   await prisma.pricePoint.create({

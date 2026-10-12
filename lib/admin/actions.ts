@@ -76,7 +76,10 @@ export async function saveStore(data: FormData) {
   const active = flag(data, "active");
 
   if (id) {
-    await prisma.store.update({ where: { id }, data: { name, method, connector, active } });
+    await prisma.store.update({
+      where: { id },
+      data: { name, method, connector, active, tagline: optional(data, "tagline")?.slice(0, 140) ?? null, about: optional(data, "about")?.slice(0, 2000) ?? null },
+    });
     // Ofertas já cadastradas acompanham o método da loja.
     if (connector) await prisma.offer.updateMany({ where: { storeId: id }, data: { method: "API" } });
   } else {

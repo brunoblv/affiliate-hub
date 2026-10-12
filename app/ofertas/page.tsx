@@ -24,8 +24,19 @@ const EMPTY: Record<DealKind, string> = {
 export default async function DealsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   const params = await searchParams;
   const kind = DEAL_KINDS.find((item) => item.slug === asText(params.recorte))?.slug ?? "destaque";
+  const tipo = asText(params.tipo) === "marca" ? "marca" : asText(params.tipo) === "generico" ? "generico" : "";
 
-  const [deals, niches, stores] = await Promise.all([listDeals(kind), listNiches(), listStores()]);
+  const [deals, niches, stores] = await Promise.all([
+    listDeals(kind, 48, tipo === "marca" ? "BRANDED" : tipo === "generico" ? "GENERIC" : undefined),
+    listNiches(),
+    listStores(),
+  ]);
+  const tabHref = (slug: DealKind) => {
+    const query = new URLSearchParams();
+    if (slug !== "destaque") query.set("recorte", slug);
+    if (tipo) query.set("tipo", tipo);
+    return query.size ? `/ofertas?${query}` : "/ofertas";
+  };
 
   return (
     <>
@@ -50,7 +61,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
           {DEAL_KINDS.map((tab) => (
             <Link
               key={tab.slug}
-              href={tab.slug === "destaque" ? "/ofertas" : `/ofertas?recorte=${tab.slug}`}
+              href={tabHref(tab.slug)}
               aria-current={tab.slug === kind ? "page" : undefined}
               className={`rounded-[9px] px-4 py-2.5 text-[13px] font-semibold ${
                 tab.slug === kind
@@ -82,6 +93,20 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                 {niche.name}
               </option>
             ))}
+          </select>
+
+          <label className="sr-only" htmlFor="filtro-tipo">
+            Tipo de produto
+          </label>
+          <select
+            id="filtro-tipo"
+            name="tipo"
+            defaultValue={tipo}
+            className="h-[38px] rounded-[9px] border border-line bg-surface px-2.5 text-[13px] font-medium outline-none focus:border-brand"
+          >
+            <option value="">Marca e genéricos</option>
+            <option value="marca">Marca conhecida</option>
+            <option value="generico">Genéricos</option>
           </select>
 
           <label className="sr-only" htmlFor="filtro-loja">

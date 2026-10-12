@@ -86,7 +86,13 @@ export const ModelName = {
   JourneyNote: 'JourneyNote',
   Media: 'Media',
   PostMedia: 'PostMedia',
-  LarSmartImage: 'LarSmartImage'
+  LarSmartImage: 'LarSmartImage',
+  DiscoveryQuery: 'DiscoveryQuery',
+  DiscoveryRun: 'DiscoveryRun',
+  ProductCandidate: 'ProductCandidate',
+  Brand: 'Brand',
+  BlockedTerm: 'BlockedTerm',
+  ShowcaseEntry: 'ShowcaseEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -278,6 +284,8 @@ export const StoreScalarFieldEnum = {
   method: 'method',
   connector: 'connector',
   active: 'active',
+  tagline: 'tagline',
+  about: 'about',
   createdAt: 'createdAt'
 } as const
 
@@ -297,6 +305,7 @@ export const ProductScalarFieldEnum = {
   status: 'status',
   categoryId: 'categoryId',
   mlMatchCheckedAt: 'mlMatchCheckedAt',
+  tier: 'tier',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -367,6 +376,10 @@ export const OfferScalarFieldEnum = {
   needsReview: 'needsReview',
   reviewReason: 'reviewReason',
   pendingPriceCents: 'pendingPriceCents',
+  salesCount: 'salesCount',
+  ratingCentis: 'ratingCentis',
+  ratingCount: 'ratingCount',
+  metricsCheckedAt: 'metricsCheckedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -678,6 +691,117 @@ export const LarSmartImageScalarFieldEnum = {
 export type LarSmartImageScalarFieldEnum = (typeof LarSmartImageScalarFieldEnum)[keyof typeof LarSmartImageScalarFieldEnum]
 
 
+export const DiscoveryQueryScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  kind: 'kind',
+  value: 'value',
+  sort: 'sort',
+  pages: 'pages',
+  nicheId: 'nicheId',
+  categoryId: 'categoryId',
+  quota: 'quota',
+  active: 'active',
+  position: 'position',
+  lastRunAt: 'lastRunAt',
+  createdAt: 'createdAt'
+} as const
+
+export type DiscoveryQueryScalarFieldEnum = (typeof DiscoveryQueryScalarFieldEnum)[keyof typeof DiscoveryQueryScalarFieldEnum]
+
+
+export const DiscoveryRunScalarFieldEnum = {
+  id: 'id',
+  queryId: 'queryId',
+  source: 'source',
+  status: 'status',
+  input: 'input',
+  found: 'found',
+  kept: 'kept',
+  imported: 'imported',
+  rejected: 'rejected',
+  rejections: 'rejections',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type DiscoveryRunScalarFieldEnum = (typeof DiscoveryRunScalarFieldEnum)[keyof typeof DiscoveryRunScalarFieldEnum]
+
+
+export const ProductCandidateScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  externalListingId: 'externalListingId',
+  externalSellerId: 'externalSellerId',
+  sellerName: 'sellerName',
+  officialStore: 'officialStore',
+  title: 'title',
+  imageUrl: 'imageUrl',
+  priceCents: 'priceCents',
+  previousPriceCents: 'previousPriceCents',
+  salesCount: 'salesCount',
+  ratingCentis: 'ratingCentis',
+  ratingCount: 'ratingCount',
+  commissionPct: 'commissionPct',
+  discountPct: 'discountPct',
+  categoryPath: 'categoryPath',
+  brandId: 'brandId',
+  tier: 'tier',
+  score: 'score',
+  reasons: 'reasons',
+  fingerprint: 'fingerprint',
+  status: 'status',
+  statusReason: 'statusReason',
+  runId: 'runId',
+  queryId: 'queryId',
+  productId: 'productId',
+  firstSeenAt: 'firstSeenAt',
+  lastSeenAt: 'lastSeenAt'
+} as const
+
+export type ProductCandidateScalarFieldEnum = (typeof ProductCandidateScalarFieldEnum)[keyof typeof ProductCandidateScalarFieldEnum]
+
+
+export const BrandScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  name: 'name',
+  aliases: 'aliases',
+  weight: 'weight',
+  active: 'active'
+} as const
+
+export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
+
+
+export const BlockedTermScalarFieldEnum = {
+  id: 'id',
+  term: 'term'
+} as const
+
+export type BlockedTermScalarFieldEnum = (typeof BlockedTermScalarFieldEnum)[keyof typeof BlockedTermScalarFieldEnum]
+
+
+export const ShowcaseEntryScalarFieldEnum = {
+  id: 'id',
+  storeId: 'storeId',
+  kind: 'kind',
+  day: 'day',
+  position: 'position',
+  productId: 'productId',
+  offerId: 'offerId',
+  variantId: 'variantId',
+  priceCents: 'priceCents',
+  priceObservedAt: 'priceObservedAt',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ShowcaseEntryScalarFieldEnum = (typeof ShowcaseEntryScalarFieldEnum)[keyof typeof ShowcaseEntryScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -692,6 +816,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

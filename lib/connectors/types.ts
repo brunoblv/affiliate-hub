@@ -41,6 +41,10 @@ export type FetchResult =
       /** Link de afiliado devolvido pela fonte (só usado se a oferta ainda não tiver um). */
       affiliateUrl: string | null;
       observedAt: Date;
+      /** Métricas DA LOJA, quando a fonte as devolve junto do preço (A.10). */
+      salesCount?: number | null;
+      ratingCentis?: number | null;
+      ratingCount?: number | null;
     }
   /**
    * A fonte respondeu, mas não tem o anúncio. Diferente de falha de rede: pode
@@ -48,10 +52,51 @@ export type FetchResult =
    */
   | { kind: "not_found" };
 
+/** Pauta de busca de candidatos (RF-16). */
+export interface DiscoveryQueryInput {
+  kind: "keyword" | "category" | "shop" | "hot" | "promo";
+  /** Palavra-chave, id de categoria ou de loja. */
+  value?: string;
+  sort: "sales" | "relevance" | "commission" | "discount";
+  page: number;
+  limit: number;
+}
+
+/** Candidato normalizado, igual para qualquer fonte. Nada aqui é estimado. */
+export interface RawCandidate {
+  externalListingId: string;
+  externalSellerId: string | null;
+  sellerName: string | null;
+  /** Marcador de loja oficial/mall quando a fonte informa. */
+  officialStore: boolean | null;
+  title: string;
+  imageUrl: string | null;
+  priceCents: number;
+  previousPriceCents: number | null;
+  /** Vendas acumuladas ou dos últimos 30 dias, conforme a fonte. */
+  salesCount: number | null;
+  /** 0–500 (centésimos de estrela), seguindo a convenção de inteiros do projeto. */
+  ratingCentis: number | null;
+  ratingCount: number | null;
+  /** Centésimos de ponto percentual (12,5% = 1250). */
+  commissionPct: number | null;
+  discountPct: number | null;
+  categoryPath: string[];
+  observedAt: Date;
+}
+
+export interface DiscoveryPage {
+  candidates: RawCandidate[];
+  page: number;
+  hasNextPage: boolean;
+}
+
 export interface ConnectorCapabilities {
   fetchPrice: boolean;
   fetchAvailability: boolean;
   affiliateLink: boolean;
+  /** Implementa `searchCandidates`. */
+  discovery?: boolean;
 }
 
 export interface Connector {
@@ -70,4 +115,6 @@ export interface Connector {
   resolveShortUrl?(url: string): Promise<string | null>;
   /** Falha de rede/API lança erro (nova tentativa); anúncio ausente devolve `not_found`. */
   fetchOffer(ref: OfferRef): Promise<FetchResult>;
+  /** Busca candidatos para a descoberta automática. Falha de rede lança erro. */
+  searchCandidates?(input: DiscoveryQueryInput): Promise<DiscoveryPage>;
 }

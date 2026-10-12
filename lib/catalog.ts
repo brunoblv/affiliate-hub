@@ -21,6 +21,7 @@ import type { ContentSections } from "@/lib/content/types";
 import { historicalOfferIds } from "@/lib/adsense/quality-data";
 import { canonicalHistoryOfferId, evaluateProductQuality } from "@/lib/adsense/quality";
 import { aggregateVariantHistory, type OfferObservation } from "@/lib/history/variant";
+import type { ShowcaseItem } from "@/lib/showcase/types";
 
 // ---------------------------------------------------------------------------
 // Consultas
@@ -388,6 +389,8 @@ export interface SearchOptions {
   minCents?: Cents;
   maxCents?: Cents;
   availableOnly?: boolean;
+  /** Marca conhecida x genérico (RF-17). */
+  tier?: "BRANDED" | "GENERIC";
   sort?: "relevancia" | "menor-preco" | "atualizacao";
   page?: number;
   pageSize?: number;
@@ -421,6 +424,7 @@ export async function searchProducts(options: SearchOptions): Promise<SearchResu
           ? [{ niches: { some: { niche: { slug: options.nicheSlug, active: true } } } }]
           : []),
         ...(options.brands?.length ? [{ brand: { in: options.brands } }] : []),
+        ...(options.tier ? [{ tier: options.tier }] : []),
         ...(options.storeIds?.length ? [inStores(options.storeIds)] : []),
       ],
     },
@@ -592,6 +596,93 @@ const dealsWithHistory = cache(async () => {
   });
 });
 
+export interface StoreDealItem {
+  item: ShowcaseItem;
+  product: Product;
+  offer: Offer;
+  tier: "BRANDED" | "GENERIC" | "UNKNOWN";
+  /** Lojas diferentes desta com oferta pública comparável do mesmo produto. */
+  otherStores: number;
+  cheapestOtherCents: number | null;
+  /** Mínimos diários dos últimos 30 dias desta oferta, para a faísca do histórico. */
+  series: Cents[];
+  salesCount: number | null;
+  ratingCentis: number | null;
+  ratingCount: number | null;
+  metricsCheckedAt: Date | null;
+}
+
+/**
+ * Uma entrada por (produto, loja): a oferta mais barata da loja entre as comparáveis, com o
+ * histórico DA PRÓPRIA oferta. É a base das vitrines /loja/[slug] e da seleção diária.
+ */
+export const loadStoreDeals = cache(async (): Promise<StoreDealItem[]> => {
+  const candidates = await loadDealCandidates();
+  const now = Date.now();
+  const offerIds = candidates.flatMap(({ offers }) => offers.map((offer) => offer.id));
+  if (!offerIds.length) return [];
+  const [rows, meta, tiers] = await Promise.all([
+    prisma.pricePoint.findMany({
+      where: { offerId: { in: offerIds }, observedAt: { gte: new Date(now - 31 * 24 * 60 * 60 * 1000), lte: new Date(now) } },
+      select: { offerId: true, variantId: true, itemCondition: true, priceCondition: true,
+        availability: true, observedAt: true, priceCents: true },
+    }),
+    prisma.offer.findMany({
+      where: { id: { in: offerIds } },
+      select: { id: true, salesCount: true, ratingCentis: true, ratingCount: true, metricsCheckedAt: true,
+        createdAt: true, updatedAt: true, priceCheckedAt: true, previousPriceCents: true },
+    }),
+    prisma.product.findMany({ where: { id: { in: candidates.map(({ product }) => product.id) } }, select: { id: true, tier: true } }),
+  ]);
+  const byOffer = new Map<string, OfferObservation[]>();
+  for (const row of rows) {
+    const points = byOffer.get(row.offerId) ?? [];
+    points.push({ ...row, t: row.observedAt.getTime(), cents: row.priceCents });
+    byOffer.set(row.offerId, points);
+  }
+  const metaById = new Map(meta.map((row) => [row.id, row]));
+  const tierById = new Map(tiers.map((row) => [row.id, row.tier]));
+
+  return candidates.flatMap(({ product, offers }) => {
+    const byStore = new Map<string, Offer>();
+    for (const offer of offers) if (!byStore.has(offer.storeId)) byStore.set(offer.storeId, offer); // já vem do mais barato
+    return [...byStore.values()].flatMap((offer): StoreDealItem[] => {
+      const info = metaById.get(offer.id);
+      if (!info) return [];
+      const points = aggregateVariantHistory(byOffer.get(offer.id) ?? [], {
+        variantId: offer.variantId, itemCondition: offer.condition, priceCondition: offer.priceCondition,
+      });
+      const { analysis, atMinimum } = analyzeDeal(points, offer.priceCents, now, freshnessLimitMinutes(offer.method) * 60_000);
+      const recent = analysis.observations.filter((point) => point.t >= now - 7 * 24 * 60 * 60 * 1000).map((point) => point.cents);
+      const recentHigh = recent.length ? Math.max(...recent) : null;
+      const others = offers.filter((other) => other.storeId !== offer.storeId);
+      return [{
+        item: {
+          productId: product.id, offerId: offer.id, variantId: offer.variantId, storeId: offer.storeId,
+          priceCents: offer.priceCents,
+          priceObservedAt: info.priceCheckedAt ?? info.updatedAt,
+          declaredPreviousCents: info.previousPriceCents,
+          atMinimum,
+          assessment: analysis.assessment,
+          differenceFromAveragePct: analysis.differenceFromAveragePercent,
+          drop7dPct: recentHigh !== null && recentHigh > offer.priceCents ? ((recentHigh - offer.priceCents) / recentHigh) * 100 : null,
+          salesCount: info.salesCount,
+          ratingCentis: info.ratingCentis,
+          metricsCheckedAt: info.metricsCheckedAt,
+          offerCreatedAt: info.createdAt,
+        },
+        product, offer,
+        tier: tierById.get(product.id) ?? "UNKNOWN",
+        otherStores: new Set(others.map((other) => other.storeId)).size,
+        cheapestOtherCents: others.length ? Math.min(...others.map((other) => other.priceCents)) : null,
+        series: analysis.assessment === "insufficient" ? [] : analysis.observations.map((point) => point.cents),
+        salesCount: info.salesCount, ratingCentis: info.ratingCentis, ratingCount: info.ratingCount,
+        metricsCheckedAt: info.metricsCheckedAt,
+      }];
+    });
+  });
+});
+
 export async function listDrops(limit: number): Promise<DropView[]> {
   return (await dealsWithHistory())
     .flatMap(({ product, analysis, dropFrom }) => dropFrom === null ? [] : [{
@@ -611,7 +702,16 @@ export const DEAL_KINDS: { slug: DealKind; label: string }[] = [
   { slug: "novas", label: "Novas ofertas" },
 ];
 
-export async function listDeals(kind: DealKind, limit = 48): Promise<Product[]> {
+export async function listDeals(kind: DealKind, limit = 48, tier?: "BRANDED" | "GENERIC"): Promise<Product[]> {
+  const all = await listDealsUnfiltered(kind, tier ? 1000 : limit);
+  if (!tier) return all;
+  const allowed = new Set(
+    (await prisma.product.findMany({ where: { id: { in: all.map((product) => product.id) }, tier }, select: { id: true } })).map((row) => row.id),
+  );
+  return all.filter((product) => allowed.has(product.id)).slice(0, limit);
+}
+
+async function listDealsUnfiltered(kind: DealKind, limit: number): Promise<Product[]> {
   if (kind === "novas") return (await loadDealCandidates()).slice(0, limit).map(({ product }) => product);
   if (kind === "quedas") return (await listDrops(limit)).map((drop) => drop.product);
   const items = await dealsWithHistory();

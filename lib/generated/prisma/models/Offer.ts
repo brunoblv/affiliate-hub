@@ -34,6 +34,9 @@ export type OfferAvgAggregateOutputType = {
   shippingCents: number | null
   consecutiveFailures: number | null
   pendingPriceCents: number | null
+  salesCount: number | null
+  ratingCentis: number | null
+  ratingCount: number | null
 }
 
 export type OfferSumAggregateOutputType = {
@@ -44,6 +47,9 @@ export type OfferSumAggregateOutputType = {
   shippingCents: number | null
   consecutiveFailures: number | null
   pendingPriceCents: number | null
+  salesCount: number | null
+  ratingCentis: number | null
+  ratingCount: number | null
 }
 
 export type OfferMinAggregateOutputType = {
@@ -74,6 +80,10 @@ export type OfferMinAggregateOutputType = {
   needsReview: boolean | null
   reviewReason: string | null
   pendingPriceCents: number | null
+  salesCount: number | null
+  ratingCentis: number | null
+  ratingCount: number | null
+  metricsCheckedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -106,6 +116,10 @@ export type OfferMaxAggregateOutputType = {
   needsReview: boolean | null
   reviewReason: string | null
   pendingPriceCents: number | null
+  salesCount: number | null
+  ratingCentis: number | null
+  ratingCount: number | null
+  metricsCheckedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -138,6 +152,10 @@ export type OfferCountAggregateOutputType = {
   needsReview: number
   reviewReason: number
   pendingPriceCents: number
+  salesCount: number
+  ratingCentis: number
+  ratingCount: number
+  metricsCheckedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -152,6 +170,9 @@ export type OfferAvgAggregateInputType = {
   shippingCents?: true
   consecutiveFailures?: true
   pendingPriceCents?: true
+  salesCount?: true
+  ratingCentis?: true
+  ratingCount?: true
 }
 
 export type OfferSumAggregateInputType = {
@@ -162,6 +183,9 @@ export type OfferSumAggregateInputType = {
   shippingCents?: true
   consecutiveFailures?: true
   pendingPriceCents?: true
+  salesCount?: true
+  ratingCentis?: true
+  ratingCount?: true
 }
 
 export type OfferMinAggregateInputType = {
@@ -192,6 +216,10 @@ export type OfferMinAggregateInputType = {
   needsReview?: true
   reviewReason?: true
   pendingPriceCents?: true
+  salesCount?: true
+  ratingCentis?: true
+  ratingCount?: true
+  metricsCheckedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -224,6 +252,10 @@ export type OfferMaxAggregateInputType = {
   needsReview?: true
   reviewReason?: true
   pendingPriceCents?: true
+  salesCount?: true
+  ratingCentis?: true
+  ratingCount?: true
+  metricsCheckedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -256,6 +288,10 @@ export type OfferCountAggregateInputType = {
   needsReview?: true
   reviewReason?: true
   pendingPriceCents?: true
+  salesCount?: true
+  ratingCentis?: true
+  ratingCount?: true
+  metricsCheckedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -375,6 +411,10 @@ export type OfferGroupByOutputType = {
   needsReview: boolean
   reviewReason: string | null
   pendingPriceCents: number | null
+  salesCount: number | null
+  ratingCentis: number | null
+  ratingCount: number | null
+  metricsCheckedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: OfferCountAggregateOutputType | null
@@ -430,6 +470,10 @@ export type OfferWhereInput = {
   needsReview?: Prisma.BoolFilter<"Offer"> | boolean
   reviewReason?: Prisma.StringNullableFilter<"Offer"> | string | null
   pendingPriceCents?: Prisma.IntNullableFilter<"Offer"> | number | null
+  salesCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCentis?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  metricsCheckedAt?: Prisma.DateTimeNullableFilter<"Offer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
   variant?: Prisma.XOR<Prisma.ProductVariantScalarRelationFilter, Prisma.ProductVariantWhereInput>
@@ -437,6 +481,7 @@ export type OfferWhereInput = {
   links?: Prisma.AffiliateLinkListRelationFilter
   prices?: Prisma.PricePointListRelationFilter
   syncJobs?: Prisma.SyncJobListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }
 
 export type OfferOrderByWithRelationInput = {
@@ -467,6 +512,10 @@ export type OfferOrderByWithRelationInput = {
   needsReview?: Prisma.SortOrder
   reviewReason?: Prisma.SortOrderInput | Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  salesCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  metricsCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   variant?: Prisma.ProductVariantOrderByWithRelationInput
@@ -474,6 +523,7 @@ export type OfferOrderByWithRelationInput = {
   links?: Prisma.AffiliateLinkOrderByRelationAggregateInput
   prices?: Prisma.PricePointOrderByRelationAggregateInput
   syncJobs?: Prisma.SyncJobOrderByRelationAggregateInput
+  showcaseEntries?: Prisma.ShowcaseEntryOrderByRelationAggregateInput
 }
 
 export type OfferWhereUniqueInput = Prisma.AtLeast<{
@@ -508,6 +558,10 @@ export type OfferWhereUniqueInput = Prisma.AtLeast<{
   needsReview?: Prisma.BoolFilter<"Offer"> | boolean
   reviewReason?: Prisma.StringNullableFilter<"Offer"> | string | null
   pendingPriceCents?: Prisma.IntNullableFilter<"Offer"> | number | null
+  salesCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCentis?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  metricsCheckedAt?: Prisma.DateTimeNullableFilter<"Offer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
   variant?: Prisma.XOR<Prisma.ProductVariantScalarRelationFilter, Prisma.ProductVariantWhereInput>
@@ -515,6 +569,7 @@ export type OfferWhereUniqueInput = Prisma.AtLeast<{
   links?: Prisma.AffiliateLinkListRelationFilter
   prices?: Prisma.PricePointListRelationFilter
   syncJobs?: Prisma.SyncJobListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }, "id" | "storeId_externalListingId_variantId">
 
 export type OfferOrderByWithAggregationInput = {
@@ -545,6 +600,10 @@ export type OfferOrderByWithAggregationInput = {
   needsReview?: Prisma.SortOrder
   reviewReason?: Prisma.SortOrderInput | Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrderInput | Prisma.SortOrder
+  salesCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  metricsCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OfferCountOrderByAggregateInput
@@ -585,6 +644,10 @@ export type OfferScalarWhereWithAggregatesInput = {
   needsReview?: Prisma.BoolWithAggregatesFilter<"Offer"> | boolean
   reviewReason?: Prisma.StringNullableWithAggregatesFilter<"Offer"> | string | null
   pendingPriceCents?: Prisma.IntNullableWithAggregatesFilter<"Offer"> | number | null
+  salesCount?: Prisma.IntNullableWithAggregatesFilter<"Offer"> | number | null
+  ratingCentis?: Prisma.IntNullableWithAggregatesFilter<"Offer"> | number | null
+  ratingCount?: Prisma.IntNullableWithAggregatesFilter<"Offer"> | number | null
+  metricsCheckedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Offer"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Offer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Offer"> | Date | string
 }
@@ -615,6 +678,10 @@ export type OfferCreateInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
@@ -622,6 +689,7 @@ export type OfferCreateInput = {
   links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateInput = {
@@ -652,11 +720,16 @@ export type OfferUncheckedCreateInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUpdateInput = {
@@ -685,6 +758,10 @@ export type OfferUpdateInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
@@ -692,6 +769,7 @@ export type OfferUpdateInput = {
   links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateInput = {
@@ -722,11 +800,16 @@ export type OfferUncheckedUpdateInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferCreateManyInput = {
@@ -757,6 +840,10 @@ export type OfferCreateManyInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -787,6 +874,10 @@ export type OfferUpdateManyMutationInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -819,6 +910,10 @@ export type OfferUncheckedUpdateManyInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -867,6 +962,10 @@ export type OfferCountOrderByAggregateInput = {
   needsReview?: Prisma.SortOrder
   reviewReason?: Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrder
+  salesCount?: Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  metricsCheckedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -879,6 +978,9 @@ export type OfferAvgOrderByAggregateInput = {
   shippingCents?: Prisma.SortOrder
   consecutiveFailures?: Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrder
+  salesCount?: Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
 }
 
 export type OfferMaxOrderByAggregateInput = {
@@ -909,6 +1011,10 @@ export type OfferMaxOrderByAggregateInput = {
   needsReview?: Prisma.SortOrder
   reviewReason?: Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrder
+  salesCount?: Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  metricsCheckedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -941,6 +1047,10 @@ export type OfferMinOrderByAggregateInput = {
   needsReview?: Prisma.SortOrder
   reviewReason?: Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrder
+  salesCount?: Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  metricsCheckedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -953,6 +1063,9 @@ export type OfferSumOrderByAggregateInput = {
   shippingCents?: Prisma.SortOrder
   consecutiveFailures?: Prisma.SortOrder
   pendingPriceCents?: Prisma.SortOrder
+  salesCount?: Prisma.SortOrder
+  ratingCentis?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
 }
 
 export type OfferScalarRelationFilter = {
@@ -1102,6 +1215,20 @@ export type OfferUpdateOneRequiredWithoutSyncJobsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OfferUpdateToOneWithWhereWithoutSyncJobsInput, Prisma.OfferUpdateWithoutSyncJobsInput>, Prisma.OfferUncheckedUpdateWithoutSyncJobsInput>
 }
 
+export type OfferCreateNestedOneWithoutShowcaseEntriesInput = {
+  create?: Prisma.XOR<Prisma.OfferCreateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.OfferCreateOrConnectWithoutShowcaseEntriesInput
+  connect?: Prisma.OfferWhereUniqueInput
+}
+
+export type OfferUpdateOneRequiredWithoutShowcaseEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.OfferCreateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.OfferCreateOrConnectWithoutShowcaseEntriesInput
+  upsert?: Prisma.OfferUpsertWithoutShowcaseEntriesInput
+  connect?: Prisma.OfferWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OfferUpdateToOneWithWhereWithoutShowcaseEntriesInput, Prisma.OfferUpdateWithoutShowcaseEntriesInput>, Prisma.OfferUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
 export type OfferCreateWithoutStoreInput = {
   id?: string
   sellerName: string
@@ -1128,12 +1255,17 @@ export type OfferCreateWithoutStoreInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
   links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateWithoutStoreInput = {
@@ -1163,11 +1295,16 @@ export type OfferUncheckedCreateWithoutStoreInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferCreateOrConnectWithoutStoreInput = {
@@ -1227,6 +1364,10 @@ export type OfferScalarWhereInput = {
   needsReview?: Prisma.BoolFilter<"Offer"> | boolean
   reviewReason?: Prisma.StringNullableFilter<"Offer"> | string | null
   pendingPriceCents?: Prisma.IntNullableFilter<"Offer"> | number | null
+  salesCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCentis?: Prisma.IntNullableFilter<"Offer"> | number | null
+  ratingCount?: Prisma.IntNullableFilter<"Offer"> | number | null
+  metricsCheckedAt?: Prisma.DateTimeNullableFilter<"Offer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Offer"> | Date | string
 }
@@ -1257,12 +1398,17 @@ export type OfferCreateWithoutVariantInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   store: Prisma.StoreCreateNestedOneWithoutOffersInput
   links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateWithoutVariantInput = {
@@ -1292,11 +1438,16 @@ export type OfferUncheckedCreateWithoutVariantInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferCreateOrConnectWithoutVariantInput = {
@@ -1351,12 +1502,17 @@ export type OfferCreateWithoutLinksInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
   store: Prisma.StoreCreateNestedOneWithoutOffersInput
   prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateWithoutLinksInput = {
@@ -1387,10 +1543,15 @@ export type OfferUncheckedCreateWithoutLinksInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferCreateOrConnectWithoutLinksInput = {
@@ -1435,12 +1596,17 @@ export type OfferUpdateWithoutLinksInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
   store?: Prisma.StoreUpdateOneRequiredWithoutOffersNestedInput
   prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateWithoutLinksInput = {
@@ -1471,10 +1637,15 @@ export type OfferUncheckedUpdateWithoutLinksInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferCreateWithoutPricesInput = {
@@ -1503,12 +1674,17 @@ export type OfferCreateWithoutPricesInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
   store: Prisma.StoreCreateNestedOneWithoutOffersInput
   links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateWithoutPricesInput = {
@@ -1539,10 +1715,15 @@ export type OfferUncheckedCreateWithoutPricesInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
   syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferCreateOrConnectWithoutPricesInput = {
@@ -1587,12 +1768,17 @@ export type OfferUpdateWithoutPricesInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
   store?: Prisma.StoreUpdateOneRequiredWithoutOffersNestedInput
   links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateWithoutPricesInput = {
@@ -1623,10 +1809,15 @@ export type OfferUncheckedUpdateWithoutPricesInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferCreateWithoutSyncJobsInput = {
@@ -1655,12 +1846,17 @@ export type OfferCreateWithoutSyncJobsInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
   store: Prisma.StoreCreateNestedOneWithoutOffersInput
   links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutOfferInput
 }
 
 export type OfferUncheckedCreateWithoutSyncJobsInput = {
@@ -1691,10 +1887,15 @@ export type OfferUncheckedCreateWithoutSyncJobsInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
   prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutOfferInput
 }
 
 export type OfferCreateOrConnectWithoutSyncJobsInput = {
@@ -1739,12 +1940,17 @@ export type OfferUpdateWithoutSyncJobsInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
   store?: Prisma.StoreUpdateOneRequiredWithoutOffersNestedInput
   links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateWithoutSyncJobsInput = {
@@ -1775,10 +1981,187 @@ export type OfferUncheckedUpdateWithoutSyncJobsInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
+}
+
+export type OfferCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  sellerName: string
+  externalListingId?: string | null
+  externalVariantId?: string | null
+  externalSellerId?: string | null
+  originalUrl?: string | null
+  priceCents?: number | null
+  previousPriceCents?: number | null
+  installments?: number | null
+  installmentPriceCents?: number | null
+  priceCondition?: string | null
+  shippingKind?: $Enums.ShippingKind
+  shippingCents?: number | null
+  condition?: $Enums.ItemCondition
+  availability?: $Enums.Availability
+  method?: $Enums.CollectionMethod
+  status?: $Enums.OfferStatus
+  active?: boolean
+  priceCheckedAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  lastError?: string | null
+  consecutiveFailures?: number
+  needsReview?: boolean
+  reviewReason?: string | null
+  pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  variant: Prisma.ProductVariantCreateNestedOneWithoutOffersInput
+  store: Prisma.StoreCreateNestedOneWithoutOffersInput
+  links?: Prisma.AffiliateLinkCreateNestedManyWithoutOfferInput
+  prices?: Prisma.PricePointCreateNestedManyWithoutOfferInput
+  syncJobs?: Prisma.SyncJobCreateNestedManyWithoutOfferInput
+}
+
+export type OfferUncheckedCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  variantId: string
+  storeId: string
+  sellerName: string
+  externalListingId?: string | null
+  externalVariantId?: string | null
+  externalSellerId?: string | null
+  originalUrl?: string | null
+  priceCents?: number | null
+  previousPriceCents?: number | null
+  installments?: number | null
+  installmentPriceCents?: number | null
+  priceCondition?: string | null
+  shippingKind?: $Enums.ShippingKind
+  shippingCents?: number | null
+  condition?: $Enums.ItemCondition
+  availability?: $Enums.Availability
+  method?: $Enums.CollectionMethod
+  status?: $Enums.OfferStatus
+  active?: boolean
+  priceCheckedAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  lastError?: string | null
+  consecutiveFailures?: number
+  needsReview?: boolean
+  reviewReason?: string | null
+  pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  links?: Prisma.AffiliateLinkUncheckedCreateNestedManyWithoutOfferInput
+  prices?: Prisma.PricePointUncheckedCreateNestedManyWithoutOfferInput
+  syncJobs?: Prisma.SyncJobUncheckedCreateNestedManyWithoutOfferInput
+}
+
+export type OfferCreateOrConnectWithoutShowcaseEntriesInput = {
+  where: Prisma.OfferWhereUniqueInput
+  create: Prisma.XOR<Prisma.OfferCreateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedCreateWithoutShowcaseEntriesInput>
+}
+
+export type OfferUpsertWithoutShowcaseEntriesInput = {
+  update: Prisma.XOR<Prisma.OfferUpdateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedUpdateWithoutShowcaseEntriesInput>
+  create: Prisma.XOR<Prisma.OfferCreateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedCreateWithoutShowcaseEntriesInput>
+  where?: Prisma.OfferWhereInput
+}
+
+export type OfferUpdateToOneWithWhereWithoutShowcaseEntriesInput = {
+  where?: Prisma.OfferWhereInput
+  data: Prisma.XOR<Prisma.OfferUpdateWithoutShowcaseEntriesInput, Prisma.OfferUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
+export type OfferUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sellerName?: Prisma.StringFieldUpdateOperationsInput | string
+  externalListingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalVariantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalSellerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  previousPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  installments?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingKind?: Prisma.EnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  condition?: Prisma.EnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition
+  availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
+  method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
+  status?: Prisma.EnumOfferStatusFieldUpdateOperationsInput | $Enums.OfferStatus
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priceCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consecutiveFailures?: Prisma.IntFieldUpdateOperationsInput | number
+  needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
+  store?: Prisma.StoreUpdateOneRequiredWithoutOffersNestedInput
+  links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
+  prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
+  syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+}
+
+export type OfferUncheckedUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  variantId?: Prisma.StringFieldUpdateOperationsInput | string
+  storeId?: Prisma.StringFieldUpdateOperationsInput | string
+  sellerName?: Prisma.StringFieldUpdateOperationsInput | string
+  externalListingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalVariantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalSellerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  previousPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  installments?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  installmentPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  priceCondition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingKind?: Prisma.EnumShippingKindFieldUpdateOperationsInput | $Enums.ShippingKind
+  shippingCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  condition?: Prisma.EnumItemConditionFieldUpdateOperationsInput | $Enums.ItemCondition
+  availability?: Prisma.EnumAvailabilityFieldUpdateOperationsInput | $Enums.Availability
+  method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
+  status?: Prisma.EnumOfferStatusFieldUpdateOperationsInput | $Enums.OfferStatus
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  priceCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consecutiveFailures?: Prisma.IntFieldUpdateOperationsInput | number
+  needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
+  prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
+  syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferCreateManyStoreInput = {
@@ -1808,6 +2191,10 @@ export type OfferCreateManyStoreInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1838,12 +2225,17 @@ export type OfferUpdateWithoutStoreInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variant?: Prisma.ProductVariantUpdateOneRequiredWithoutOffersNestedInput
   links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateWithoutStoreInput = {
@@ -1873,11 +2265,16 @@ export type OfferUncheckedUpdateWithoutStoreInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateManyWithoutStoreInput = {
@@ -1907,6 +2304,10 @@ export type OfferUncheckedUpdateManyWithoutStoreInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1938,6 +2339,10 @@ export type OfferCreateManyVariantInput = {
   needsReview?: boolean
   reviewReason?: string | null
   pendingPriceCents?: number | null
+  salesCount?: number | null
+  ratingCentis?: number | null
+  ratingCount?: number | null
+  metricsCheckedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1968,12 +2373,17 @@ export type OfferUpdateWithoutVariantInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   store?: Prisma.StoreUpdateOneRequiredWithoutOffersNestedInput
   links?: Prisma.AffiliateLinkUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateWithoutVariantInput = {
@@ -2003,11 +2413,16 @@ export type OfferUncheckedUpdateWithoutVariantInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.AffiliateLinkUncheckedUpdateManyWithoutOfferNestedInput
   prices?: Prisma.PricePointUncheckedUpdateManyWithoutOfferNestedInput
   syncJobs?: Prisma.SyncJobUncheckedUpdateManyWithoutOfferNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutOfferNestedInput
 }
 
 export type OfferUncheckedUpdateManyWithoutVariantInput = {
@@ -2037,6 +2452,10 @@ export type OfferUncheckedUpdateManyWithoutVariantInput = {
   needsReview?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reviewReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pendingPriceCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCentis?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  metricsCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2050,12 +2469,14 @@ export type OfferCountOutputType = {
   links: number
   prices: number
   syncJobs: number
+  showcaseEntries: number
 }
 
 export type OfferCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   links?: boolean | OfferCountOutputTypeCountLinksArgs
   prices?: boolean | OfferCountOutputTypeCountPricesArgs
   syncJobs?: boolean | OfferCountOutputTypeCountSyncJobsArgs
+  showcaseEntries?: boolean | OfferCountOutputTypeCountShowcaseEntriesArgs
 }
 
 /**
@@ -2089,6 +2510,13 @@ export type OfferCountOutputTypeCountSyncJobsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.SyncJobWhereInput
 }
 
+/**
+ * OfferCountOutputType without action
+ */
+export type OfferCountOutputTypeCountShowcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShowcaseEntryWhereInput
+}
+
 
 export type OfferSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2118,6 +2546,10 @@ export type OfferSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   needsReview?: boolean
   reviewReason?: boolean
   pendingPriceCents?: boolean
+  salesCount?: boolean
+  ratingCentis?: boolean
+  ratingCount?: boolean
+  metricsCheckedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   variant?: boolean | Prisma.ProductVariantDefaultArgs<ExtArgs>
@@ -2125,6 +2557,7 @@ export type OfferSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   links?: boolean | Prisma.Offer$linksArgs<ExtArgs>
   prices?: boolean | Prisma.Offer$pricesArgs<ExtArgs>
   syncJobs?: boolean | Prisma.Offer$syncJobsArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Offer$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.OfferCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["offer"]>
 
@@ -2156,6 +2589,10 @@ export type OfferSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   needsReview?: boolean
   reviewReason?: boolean
   pendingPriceCents?: boolean
+  salesCount?: boolean
+  ratingCentis?: boolean
+  ratingCount?: boolean
+  metricsCheckedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   variant?: boolean | Prisma.ProductVariantDefaultArgs<ExtArgs>
@@ -2190,6 +2627,10 @@ export type OfferSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   needsReview?: boolean
   reviewReason?: boolean
   pendingPriceCents?: boolean
+  salesCount?: boolean
+  ratingCentis?: boolean
+  ratingCount?: boolean
+  metricsCheckedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   variant?: boolean | Prisma.ProductVariantDefaultArgs<ExtArgs>
@@ -2224,17 +2665,22 @@ export type OfferSelectScalar = {
   needsReview?: boolean
   reviewReason?: boolean
   pendingPriceCents?: boolean
+  salesCount?: boolean
+  ratingCentis?: boolean
+  ratingCount?: boolean
+  metricsCheckedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OfferOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "variantId" | "storeId" | "sellerName" | "externalListingId" | "externalVariantId" | "externalSellerId" | "originalUrl" | "priceCents" | "previousPriceCents" | "installments" | "installmentPriceCents" | "priceCondition" | "shippingKind" | "shippingCents" | "condition" | "availability" | "method" | "status" | "active" | "priceCheckedAt" | "lastAttemptAt" | "lastError" | "consecutiveFailures" | "needsReview" | "reviewReason" | "pendingPriceCents" | "createdAt" | "updatedAt", ExtArgs["result"]["offer"]>
+export type OfferOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "variantId" | "storeId" | "sellerName" | "externalListingId" | "externalVariantId" | "externalSellerId" | "originalUrl" | "priceCents" | "previousPriceCents" | "installments" | "installmentPriceCents" | "priceCondition" | "shippingKind" | "shippingCents" | "condition" | "availability" | "method" | "status" | "active" | "priceCheckedAt" | "lastAttemptAt" | "lastError" | "consecutiveFailures" | "needsReview" | "reviewReason" | "pendingPriceCents" | "salesCount" | "ratingCentis" | "ratingCount" | "metricsCheckedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["offer"]>
 export type OfferInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   variant?: boolean | Prisma.ProductVariantDefaultArgs<ExtArgs>
   store?: boolean | Prisma.StoreDefaultArgs<ExtArgs>
   links?: boolean | Prisma.Offer$linksArgs<ExtArgs>
   prices?: boolean | Prisma.Offer$pricesArgs<ExtArgs>
   syncJobs?: boolean | Prisma.Offer$syncJobsArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Offer$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.OfferCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OfferIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2254,6 +2700,7 @@ export type $OfferPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     links: Prisma.$AffiliateLinkPayload<ExtArgs>[]
     prices: Prisma.$PricePointPayload<ExtArgs>[]
     syncJobs: Prisma.$SyncJobPayload<ExtArgs>[]
+    showcaseEntries: Prisma.$ShowcaseEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2301,6 +2748,13 @@ export type $OfferPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     needsReview: boolean
     reviewReason: string | null
     pendingPriceCents: number | null
+    /**
+     * Métricas DA LOJA (nunca nossas): sempre exibidas com fonte e data.
+     */
+    salesCount: number | null
+    ratingCentis: number | null
+    ratingCount: number | null
+    metricsCheckedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["offer"]>
@@ -2702,6 +3156,7 @@ export interface Prisma__OfferClient<T, Null = never, ExtArgs extends runtime.Ty
   links<T extends Prisma.Offer$linksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Offer$linksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AffiliateLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   prices<T extends Prisma.Offer$pricesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Offer$pricesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PricePointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   syncJobs<T extends Prisma.Offer$syncJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Offer$syncJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  showcaseEntries<T extends Prisma.Offer$showcaseEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Offer$showcaseEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShowcaseEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2758,6 +3213,10 @@ export interface OfferFieldRefs {
   readonly needsReview: Prisma.FieldRef<"Offer", 'Boolean'>
   readonly reviewReason: Prisma.FieldRef<"Offer", 'String'>
   readonly pendingPriceCents: Prisma.FieldRef<"Offer", 'Int'>
+  readonly salesCount: Prisma.FieldRef<"Offer", 'Int'>
+  readonly ratingCentis: Prisma.FieldRef<"Offer", 'Int'>
+  readonly ratingCount: Prisma.FieldRef<"Offer", 'Int'>
+  readonly metricsCheckedAt: Prisma.FieldRef<"Offer", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Offer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Offer", 'DateTime'>
 }
@@ -3230,6 +3689,30 @@ export type Offer$syncJobsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.SyncJobScalarFieldEnum | Prisma.SyncJobScalarFieldEnum[]
+}
+
+/**
+ * Offer.showcaseEntries
+ */
+export type Offer$showcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShowcaseEntry
+   */
+  select?: Prisma.ShowcaseEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShowcaseEntry
+   */
+  omit?: Prisma.ShowcaseEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShowcaseEntryInclude<ExtArgs> | null
+  where?: Prisma.ShowcaseEntryWhereInput
+  orderBy?: Prisma.ShowcaseEntryOrderByWithRelationInput | Prisma.ShowcaseEntryOrderByWithRelationInput[]
+  cursor?: Prisma.ShowcaseEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShowcaseEntryScalarFieldEnum | Prisma.ShowcaseEntryScalarFieldEnum[]
 }
 
 /**

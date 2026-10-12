@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin/guard";
 import { attachMlOffer } from "@/lib/discovery/ml-match";
+import { CANDIDATE_REF_PREFIX, attachCandidateToProduct } from "@/lib/discovery/run";
 import { mercadoLivreConnector } from "@/lib/connectors/mercado-livre";
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
@@ -38,6 +39,27 @@ export async function acceptMatch(data: FormData) {
     include: { product: { include: { variants: true } } },
   });
   if (!suggestion) go(back, "erro", "Sugestão não encontrada (talvez já tenha sido tratada).");
+
+  // Sugestão da descoberta (Shopee <-> AliExpress): o link de afiliado vem da própria API.
+  if (suggestion.catalogId.startsWith(CANDIDATE_REF_PREFIX)) {
+    const candidateId = suggestion.catalogId.slice(CANDIDATE_REF_PREFIX.length);
+    let attached = false;
+    try {
+      attached = await attachCandidateToProduct(candidateId, suggestion.productId);
+    } catch (error) {
+      go(back, "erro", `A loja não respondeu: ${error instanceof Error ? error.message : "erro desconhecido"}.`);
+    }
+    if (!attached) go(back, "erro", "Não foi possível criar a oferta: a loja não devolveu o anúncio ou o link de afiliado.");
+    await prisma.$transaction([
+      prisma.matchSuggestion.update({ where: { id: suggestion.id }, data: { status: "ACCEPTED" } }),
+      prisma.matchSuggestion.updateMany({
+        where: { productId: suggestion.productId, status: "PENDING", catalogId: { startsWith: CANDIDATE_REF_PREFIX }, NOT: { id: suggestion.id } },
+        data: { status: "REJECTED" },
+      }),
+    ]);
+    revalidatePath(`/admin/produtos/${suggestion.productId}`);
+    go(back, "aviso", "Oferta criada no mesmo produto.");
+  }
 
   const affiliateRaw = text(data, "affiliateUrl");
   const affiliateUrl = httpUrl(affiliateRaw);

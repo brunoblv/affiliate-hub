@@ -19,6 +19,11 @@ import { verifyImages } from "@/lib/images/check";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
 import { processPublication } from "@/lib/distribution/run";
 import { refreshThreadsTokenIfDue } from "@/lib/social/threads-token";
+import { runDailyDiscoveryIfDue } from "@/lib/discovery/run";
+import { publishReadyProducts } from "@/lib/discovery/publish-gate";
+import { discoveryConfig } from "@/lib/discovery/config";
+import { saoPauloHour } from "@/lib/discovery/day";
+import { buildShowcases, pruneShowcases } from "@/lib/showcase/build";
 
 const once = process.argv.includes("--once");
 const startedAt = new Date();
@@ -84,6 +89,7 @@ async function main() {
   let lastAlerts = 0;
   let lastImages = 0;
   let lastTokens = 0;
+  let lastDiscovery = 0;
   let warnedMail = false;
 
   while (!stopping) {
@@ -117,6 +123,29 @@ async function main() {
         else if (typeof outcome === "object") log("falha ao renovar token do Threads", { erro: outcome.error });
       } catch {
         log("erro ao renovar token do Threads");
+      }
+    }
+
+    // Descoberta diária (RF-16) e vitrines do dia (RF-17). Sem DISCOVERY_ENABLED, nem um request externo.
+    if (Date.now() - lastDiscovery > 10 * 60 * 1000) {
+      lastDiscovery = Date.now();
+      try {
+        const summary = await runDailyDiscoveryIfDue(new Date(), log);
+        if (summary) log("descoberta concluída", { ...summary });
+        const published = await publishReadyProducts();
+        if (published > 0) log("produtos publicados pelo portão", { published });
+      } catch (error) {
+        log("erro na descoberta", { erro: error instanceof Error ? error.message : String(error) });
+      }
+      try {
+        // Depois do ciclo de preços e da rodada de descoberta; idempotente por (loja, recorte, dia).
+        if (saoPauloHour(new Date()) >= discoveryConfig().hour + 1) {
+          const showcases = await buildShowcases();
+          if (showcases.created > 0) log("vitrines montadas", { entradas: showcases.created });
+          await pruneShowcases();
+        }
+      } catch (error) {
+        log("erro ao montar vitrines", { erro: error instanceof Error ? error.message : String(error) });
       }
     }
 

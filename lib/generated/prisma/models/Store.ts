@@ -31,6 +31,8 @@ export type StoreMinAggregateOutputType = {
   method: $Enums.CollectionMethod | null
   connector: string | null
   active: boolean | null
+  tagline: string | null
+  about: string | null
   createdAt: Date | null
 }
 
@@ -41,6 +43,8 @@ export type StoreMaxAggregateOutputType = {
   method: $Enums.CollectionMethod | null
   connector: string | null
   active: boolean | null
+  tagline: string | null
+  about: string | null
   createdAt: Date | null
 }
 
@@ -51,6 +55,8 @@ export type StoreCountAggregateOutputType = {
   method: number
   connector: number
   active: number
+  tagline: number
+  about: number
   createdAt: number
   _all: number
 }
@@ -63,6 +69,8 @@ export type StoreMinAggregateInputType = {
   method?: true
   connector?: true
   active?: true
+  tagline?: true
+  about?: true
   createdAt?: true
 }
 
@@ -73,6 +81,8 @@ export type StoreMaxAggregateInputType = {
   method?: true
   connector?: true
   active?: true
+  tagline?: true
+  about?: true
   createdAt?: true
 }
 
@@ -83,6 +93,8 @@ export type StoreCountAggregateInputType = {
   method?: true
   connector?: true
   active?: true
+  tagline?: true
+  about?: true
   createdAt?: true
   _all?: true
 }
@@ -166,6 +178,8 @@ export type StoreGroupByOutputType = {
   method: $Enums.CollectionMethod
   connector: string | null
   active: boolean
+  tagline: string | null
+  about: string | null
   createdAt: Date
   _count: StoreCountAggregateOutputType | null
   _min: StoreMinAggregateOutputType | null
@@ -197,8 +211,11 @@ export type StoreWhereInput = {
   method?: Prisma.EnumCollectionMethodFilter<"Store"> | $Enums.CollectionMethod
   connector?: Prisma.StringNullableFilter<"Store"> | string | null
   active?: Prisma.BoolFilter<"Store"> | boolean
+  tagline?: Prisma.StringNullableFilter<"Store"> | string | null
+  about?: Prisma.StringNullableFilter<"Store"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Store"> | Date | string
   offers?: Prisma.OfferListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }
 
 export type StoreOrderByWithRelationInput = {
@@ -208,8 +225,11 @@ export type StoreOrderByWithRelationInput = {
   method?: Prisma.SortOrder
   connector?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
+  tagline?: Prisma.SortOrderInput | Prisma.SortOrder
+  about?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   offers?: Prisma.OfferOrderByRelationAggregateInput
+  showcaseEntries?: Prisma.ShowcaseEntryOrderByRelationAggregateInput
 }
 
 export type StoreWhereUniqueInput = Prisma.AtLeast<{
@@ -222,8 +242,11 @@ export type StoreWhereUniqueInput = Prisma.AtLeast<{
   method?: Prisma.EnumCollectionMethodFilter<"Store"> | $Enums.CollectionMethod
   connector?: Prisma.StringNullableFilter<"Store"> | string | null
   active?: Prisma.BoolFilter<"Store"> | boolean
+  tagline?: Prisma.StringNullableFilter<"Store"> | string | null
+  about?: Prisma.StringNullableFilter<"Store"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Store"> | Date | string
   offers?: Prisma.OfferListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }, "id" | "slug">
 
 export type StoreOrderByWithAggregationInput = {
@@ -233,6 +256,8 @@ export type StoreOrderByWithAggregationInput = {
   method?: Prisma.SortOrder
   connector?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
+  tagline?: Prisma.SortOrderInput | Prisma.SortOrder
+  about?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.StoreCountOrderByAggregateInput
   _max?: Prisma.StoreMaxOrderByAggregateInput
@@ -249,6 +274,8 @@ export type StoreScalarWhereWithAggregatesInput = {
   method?: Prisma.EnumCollectionMethodWithAggregatesFilter<"Store"> | $Enums.CollectionMethod
   connector?: Prisma.StringNullableWithAggregatesFilter<"Store"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"Store"> | boolean
+  tagline?: Prisma.StringNullableWithAggregatesFilter<"Store"> | string | null
+  about?: Prisma.StringNullableWithAggregatesFilter<"Store"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Store"> | Date | string
 }
 
@@ -259,8 +286,11 @@ export type StoreCreateInput = {
   method?: $Enums.CollectionMethod
   connector?: string | null
   active?: boolean
+  tagline?: string | null
+  about?: string | null
   createdAt?: Date | string
   offers?: Prisma.OfferCreateNestedManyWithoutStoreInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutStoreInput
 }
 
 export type StoreUncheckedCreateInput = {
@@ -270,8 +300,11 @@ export type StoreUncheckedCreateInput = {
   method?: $Enums.CollectionMethod
   connector?: string | null
   active?: boolean
+  tagline?: string | null
+  about?: string | null
   createdAt?: Date | string
   offers?: Prisma.OfferUncheckedCreateNestedManyWithoutStoreInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutStoreInput
 }
 
 export type StoreUpdateInput = {
@@ -281,8 +314,11 @@ export type StoreUpdateInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   offers?: Prisma.OfferUpdateManyWithoutStoreNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutStoreNestedInput
 }
 
 export type StoreUncheckedUpdateInput = {
@@ -292,8 +328,11 @@ export type StoreUncheckedUpdateInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   offers?: Prisma.OfferUncheckedUpdateManyWithoutStoreNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutStoreNestedInput
 }
 
 export type StoreCreateManyInput = {
@@ -303,6 +342,8 @@ export type StoreCreateManyInput = {
   method?: $Enums.CollectionMethod
   connector?: string | null
   active?: boolean
+  tagline?: string | null
+  about?: string | null
   createdAt?: Date | string
 }
 
@@ -313,6 +354,8 @@ export type StoreUpdateManyMutationInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -323,6 +366,8 @@ export type StoreUncheckedUpdateManyInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -333,6 +378,8 @@ export type StoreCountOrderByAggregateInput = {
   method?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  tagline?: Prisma.SortOrder
+  about?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -343,6 +390,8 @@ export type StoreMaxOrderByAggregateInput = {
   method?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  tagline?: Prisma.SortOrder
+  about?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -353,6 +402,8 @@ export type StoreMinOrderByAggregateInput = {
   method?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  tagline?: Prisma.SortOrder
+  about?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -379,6 +430,20 @@ export type StoreUpdateOneRequiredWithoutOffersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.StoreUpdateToOneWithWhereWithoutOffersInput, Prisma.StoreUpdateWithoutOffersInput>, Prisma.StoreUncheckedUpdateWithoutOffersInput>
 }
 
+export type StoreCreateNestedOneWithoutShowcaseEntriesInput = {
+  create?: Prisma.XOR<Prisma.StoreCreateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.StoreCreateOrConnectWithoutShowcaseEntriesInput
+  connect?: Prisma.StoreWhereUniqueInput
+}
+
+export type StoreUpdateOneRequiredWithoutShowcaseEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.StoreCreateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.StoreCreateOrConnectWithoutShowcaseEntriesInput
+  upsert?: Prisma.StoreUpsertWithoutShowcaseEntriesInput
+  connect?: Prisma.StoreWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.StoreUpdateToOneWithWhereWithoutShowcaseEntriesInput, Prisma.StoreUpdateWithoutShowcaseEntriesInput>, Prisma.StoreUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
 export type StoreCreateWithoutOffersInput = {
   id?: string
   slug: string
@@ -386,7 +451,10 @@ export type StoreCreateWithoutOffersInput = {
   method?: $Enums.CollectionMethod
   connector?: string | null
   active?: boolean
+  tagline?: string | null
+  about?: string | null
   createdAt?: Date | string
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutStoreInput
 }
 
 export type StoreUncheckedCreateWithoutOffersInput = {
@@ -396,7 +464,10 @@ export type StoreUncheckedCreateWithoutOffersInput = {
   method?: $Enums.CollectionMethod
   connector?: string | null
   active?: boolean
+  tagline?: string | null
+  about?: string | null
   createdAt?: Date | string
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutStoreInput
 }
 
 export type StoreCreateOrConnectWithoutOffersInput = {
@@ -422,7 +493,10 @@ export type StoreUpdateWithoutOffersInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutStoreNestedInput
 }
 
 export type StoreUncheckedUpdateWithoutOffersInput = {
@@ -432,7 +506,78 @@ export type StoreUncheckedUpdateWithoutOffersInput = {
   method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
   connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutStoreNestedInput
+}
+
+export type StoreCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  slug: string
+  name: string
+  method?: $Enums.CollectionMethod
+  connector?: string | null
+  active?: boolean
+  tagline?: string | null
+  about?: string | null
+  createdAt?: Date | string
+  offers?: Prisma.OfferCreateNestedManyWithoutStoreInput
+}
+
+export type StoreUncheckedCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  slug: string
+  name: string
+  method?: $Enums.CollectionMethod
+  connector?: string | null
+  active?: boolean
+  tagline?: string | null
+  about?: string | null
+  createdAt?: Date | string
+  offers?: Prisma.OfferUncheckedCreateNestedManyWithoutStoreInput
+}
+
+export type StoreCreateOrConnectWithoutShowcaseEntriesInput = {
+  where: Prisma.StoreWhereUniqueInput
+  create: Prisma.XOR<Prisma.StoreCreateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedCreateWithoutShowcaseEntriesInput>
+}
+
+export type StoreUpsertWithoutShowcaseEntriesInput = {
+  update: Prisma.XOR<Prisma.StoreUpdateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedUpdateWithoutShowcaseEntriesInput>
+  create: Prisma.XOR<Prisma.StoreCreateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedCreateWithoutShowcaseEntriesInput>
+  where?: Prisma.StoreWhereInput
+}
+
+export type StoreUpdateToOneWithWhereWithoutShowcaseEntriesInput = {
+  where?: Prisma.StoreWhereInput
+  data: Prisma.XOR<Prisma.StoreUpdateWithoutShowcaseEntriesInput, Prisma.StoreUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
+export type StoreUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
+  connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  offers?: Prisma.OfferUpdateManyWithoutStoreNestedInput
+}
+
+export type StoreUncheckedUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  method?: Prisma.EnumCollectionMethodFieldUpdateOperationsInput | $Enums.CollectionMethod
+  connector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  about?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  offers?: Prisma.OfferUncheckedUpdateManyWithoutStoreNestedInput
 }
 
 
@@ -442,10 +587,12 @@ export type StoreUncheckedUpdateWithoutOffersInput = {
 
 export type StoreCountOutputType = {
   offers: number
+  showcaseEntries: number
 }
 
 export type StoreCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   offers?: boolean | StoreCountOutputTypeCountOffersArgs
+  showcaseEntries?: boolean | StoreCountOutputTypeCountShowcaseEntriesArgs
 }
 
 /**
@@ -465,6 +612,13 @@ export type StoreCountOutputTypeCountOffersArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.OfferWhereInput
 }
 
+/**
+ * StoreCountOutputType without action
+ */
+export type StoreCountOutputTypeCountShowcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShowcaseEntryWhereInput
+}
+
 
 export type StoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -473,8 +627,11 @@ export type StoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   method?: boolean
   connector?: boolean
   active?: boolean
+  tagline?: boolean
+  about?: boolean
   createdAt?: boolean
   offers?: boolean | Prisma.Store$offersArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Store$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.StoreCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["store"]>
 
@@ -485,6 +642,8 @@ export type StoreSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   method?: boolean
   connector?: boolean
   active?: boolean
+  tagline?: boolean
+  about?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["store"]>
 
@@ -495,6 +654,8 @@ export type StoreSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   method?: boolean
   connector?: boolean
   active?: boolean
+  tagline?: boolean
+  about?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["store"]>
 
@@ -505,12 +666,15 @@ export type StoreSelectScalar = {
   method?: boolean
   connector?: boolean
   active?: boolean
+  tagline?: boolean
+  about?: boolean
   createdAt?: boolean
 }
 
-export type StoreOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "method" | "connector" | "active" | "createdAt", ExtArgs["result"]["store"]>
+export type StoreOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "method" | "connector" | "active" | "tagline" | "about" | "createdAt", ExtArgs["result"]["store"]>
 export type StoreInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   offers?: boolean | Prisma.Store$offersArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Store$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.StoreCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StoreIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -520,6 +684,7 @@ export type $StorePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Store"
   objects: {
     offers: Prisma.$OfferPayload<ExtArgs>[]
+    showcaseEntries: Prisma.$ShowcaseEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -531,6 +696,11 @@ export type $StorePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      */
     connector: string | null
     active: boolean
+    /**
+     * Texto próprio da vitrine /loja/[slug].
+     */
+    tagline: string | null
+    about: string | null
     createdAt: Date
   }, ExtArgs["result"]["store"]>
   composites: {}
@@ -927,6 +1097,7 @@ readonly fields: StoreFieldRefs;
 export interface Prisma__StoreClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   offers<T extends Prisma.Store$offersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Store$offersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OfferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  showcaseEntries<T extends Prisma.Store$showcaseEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Store$showcaseEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShowcaseEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -962,6 +1133,8 @@ export interface StoreFieldRefs {
   readonly method: Prisma.FieldRef<"Store", 'CollectionMethod'>
   readonly connector: Prisma.FieldRef<"Store", 'String'>
   readonly active: Prisma.FieldRef<"Store", 'Boolean'>
+  readonly tagline: Prisma.FieldRef<"Store", 'String'>
+  readonly about: Prisma.FieldRef<"Store", 'String'>
   readonly createdAt: Prisma.FieldRef<"Store", 'DateTime'>
 }
     
@@ -1377,6 +1550,30 @@ export type Store$offersArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.OfferScalarFieldEnum | Prisma.OfferScalarFieldEnum[]
+}
+
+/**
+ * Store.showcaseEntries
+ */
+export type Store$showcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShowcaseEntry
+   */
+  select?: Prisma.ShowcaseEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShowcaseEntry
+   */
+  omit?: Prisma.ShowcaseEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShowcaseEntryInclude<ExtArgs> | null
+  where?: Prisma.ShowcaseEntryWhereInput
+  orderBy?: Prisma.ShowcaseEntryOrderByWithRelationInput | Prisma.ShowcaseEntryOrderByWithRelationInput[]
+  cursor?: Prisma.ShowcaseEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShowcaseEntryScalarFieldEnum | Prisma.ShowcaseEntryScalarFieldEnum[]
 }
 
 /**

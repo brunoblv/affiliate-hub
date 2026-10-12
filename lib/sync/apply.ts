@@ -4,6 +4,7 @@ import type { FetchResult } from "@/lib/connectors/types";
 import { observedCommercialContext } from "@/lib/connectors/commercial-context";
 import type { SyncConfig } from "./config";
 import { invalidateOutdatedCreatives } from "@/lib/creatives/invalidate";
+import { metricsData } from "@/lib/discovery/metrics";
 
 /** Oferta com o que a aplicação do resultado precisa. */
 export type OfferForSync = NonNullable<Awaited<ReturnType<typeof loadOffer>>>;
@@ -84,6 +85,7 @@ export async function applySuccess(
         pendingPriceCents: null,
         reviewReason: null,
         ...(result.availability ? { availability: result.availability } : {}),
+        ...metricsData(result, now),
       },
     });
     await tx.pricePoint.createMany({

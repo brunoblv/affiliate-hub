@@ -196,3 +196,43 @@ export const LarSmartImageKind = {
 } as const
 
 export type LarSmartImageKind = (typeof LarSmartImageKind)[keyof typeof LarSmartImageKind]
+
+
+export const DiscoverySource = {
+  SHOPEE_API: 'SHOPEE_API',
+  SHOPEE_FEED: 'SHOPEE_FEED',
+  ALIEXPRESS_API: 'ALIEXPRESS_API'
+} as const
+
+export type DiscoverySource = (typeof DiscoverySource)[keyof typeof DiscoverySource]
+
+
+export const CandidateStatus = {
+  NEW: 'NEW',
+  SELECTED: 'SELECTED',
+  IMPORTED: 'IMPORTED',
+  DUPLICATE: 'DUPLICATE',
+  REJECTED: 'REJECTED',
+  UNAVAILABLE: 'UNAVAILABLE'
+} as const
+
+export type CandidateStatus = (typeof CandidateStatus)[keyof typeof CandidateStatus]
+
+
+export const ProductTier = {
+  BRANDED: 'BRANDED',
+  GENERIC: 'GENERIC',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type ProductTier = (typeof ProductTier)[keyof typeof ProductTier]
+
+
+export const ShowcaseKind = {
+  ACHADOS: 'ACHADOS',
+  MAIS_VENDIDOS: 'MAIS_VENDIDOS',
+  MELHORES_OFERTAS: 'MELHORES_OFERTAS',
+  NOVIDADES: 'NOVIDADES'
+} as const
+
+export type ShowcaseKind = (typeof ShowcaseKind)[keyof typeof ShowcaseKind]

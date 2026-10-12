@@ -3,6 +3,8 @@ export const adminNav = [
   { label: "Dashboard", href: "/admin" },
   { label: "Produtos", href: "/admin/produtos" },
   { label: "Candidatos", href: "/admin/candidatos" },
+  { label: "Descoberta", href: "/admin/descoberta" },
+  { label: "Marcas", href: "/admin/marcas" },
   { label: "Correspondências", href: "/admin/correspondencias" },
   { label: "Lojas", href: "/admin/lojas" },
   { label: "Categorias", href: "/admin/categorias" },

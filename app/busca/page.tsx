@@ -26,6 +26,8 @@ const SORTS = [
 
 type Sort = (typeof SORTS)[number]["value"];
 
+const tierFrom = (value: string) => (value === "marca" ? "BRANDED" : value === "generico" ? "GENERIC" : undefined);
+
 export default async function SearchPage({
   searchParams,
 }: {
@@ -46,6 +48,7 @@ export default async function SearchPage({
       minCents: asCents(params.min),
       maxCents: asCents(params.max),
       availableOnly: asText(params.disponivel) === "1",
+      tier: tierFrom(asText(params.tipo)),
       sort: SORTS.some((option) => option.value === sort) ? sort : "relevancia",
       nicheSlug: asList(params.categoria)[0],
       page,
@@ -68,6 +71,9 @@ export default async function SearchPage({
       label: stores.find((store) => store.id === storeId)?.name ?? storeId,
       href: hrefWithout("/busca", params, "loja", storeId),
     })),
+    ...(tierFrom(asText(params.tipo))
+      ? [{ key: "tipo", label: asText(params.tipo) === "marca" ? "Marca conhecida" : "Genéricos", href: hrefWithout("/busca", params, "tipo") }]
+      : []),
     ...(asText(params.disponivel) === "1"
       ? [{ key: "disponivel", label: "Somente com oferta atual", href: hrefWithout("/busca", params, "disponivel") }]
       : []),

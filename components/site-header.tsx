@@ -42,6 +42,9 @@ export async function SiteHeader({ term = "" }: { term?: string }) {
           <Link href="/ofertas" className="text-sm font-medium hover:text-brand">
             Ofertas
           </Link>
+          <Link href="/loja" className="text-sm font-medium hover:text-brand">
+            Lojas
+          </Link>
           <Link href="/guias" className="text-sm font-medium hover:text-brand">
             Guias
           </Link>

@@ -12,6 +12,7 @@ export async function SearchFilters({ params, action = "/busca" }: { params: Raw
   const selectedBrands = asList(params.marca);
   const selectedStores = asList(params.loja);
   const availableOnly = asText(params.disponivel) === "1";
+  const selectedTier = asText(params.tipo);
 
   return (
     <form
@@ -39,6 +40,13 @@ export async function SearchFilters({ params, action = "/busca" }: { params: Raw
             defaultChecked={selectedCategories.includes(category.slug)}
           />
         ))}
+      </FilterGroup>
+
+      <Divider />
+
+      <FilterGroup legend="Tipo de produto">
+        <Checkbox name="tipo" value="marca" label="Marca conhecida" defaultChecked={selectedTier === "marca"} />
+        <Checkbox name="tipo" value="generico" label="Genéricos bem avaliados" defaultChecked={selectedTier === "generico"} />
       </FilterGroup>
 
       <Divider />

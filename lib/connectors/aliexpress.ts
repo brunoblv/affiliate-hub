@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { safeFetch } from "@/lib/net/safe-fetch";
 import { toCents } from "./shopee";
-import type { Connector, FetchResult, OfferRef } from "./types";
+import type { Connector, DiscoveryPage, DiscoveryQueryInput, FetchResult, OfferRef, RawCandidate } from "./types";
 
 /**
  * AliExpress — Affiliate API do Open Platform (gateway IOP, `aliexpress.affiliate.productdetail.get`).
@@ -41,7 +41,16 @@ interface ProductNode {
   target_sale_price_currency?: string;
   shop_name?: string;
   promotion_link?: string;
+  /** Campos da busca (product.query / hotproduct.query), ausentes no detalhe. */
+  lastest_volume?: number | string;
+  evaluate_rate?: string;
+  commission_rate?: string;
+  discount?: string;
+  first_level_category_name?: string;
+  second_level_category_name?: string;
 }
+
+type SearchResponse = DetailResponse & Record<string, unknown>;
 
 interface DetailResponse {
   aliexpress_affiliate_productdetail_get_response?: {
@@ -56,7 +65,7 @@ interface DetailResponse {
   message?: string;
 }
 
-async function request(method: string, business: Record<string, string>): Promise<DetailResponse> {
+async function request(method: string, business: Record<string, string>): Promise<SearchResponse> {
   const creds = credentials();
   if (!creds) throw new PermanentError("AliExpress não configurado: defina ALIEXPRESS_APP_KEY e ALIEXPRESS_APP_SECRET.");
 
@@ -76,7 +85,7 @@ async function request(method: string, business: Record<string, string>): Promis
     body: new URLSearchParams(params),
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
-  const json = (await response.json().catch(() => ({}))) as DetailResponse;
+  const json = (await response.json().catch(() => ({}))) as SearchResponse;
 
   const code = json.error_response?.code ?? json.code;
   if (response.ok && (!code || code === "0")) return json;
@@ -182,14 +191,110 @@ async function fetchOffer(ref: OfferRef): Promise<FetchResult> {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Descoberta (RF-16): product.query e hotproduct.query
+// ---------------------------------------------------------------------------
+
+const SORT = {
+  sales: "LAST_VOLUME_DESC",
+  relevance: undefined,
+  // A API não ordena por comissão nem desconto: a ordenação final é nossa (score).
+  commission: "LAST_VOLUME_DESC",
+  discount: "LAST_VOLUME_DESC",
+} as const;
+
+/** "8.0%" ou "8.0" -> 8 (ponto percentual); null quando não é número. */
+function percent(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number.parseFloat(value.replace("%", "").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function toRawCandidate(node: ProductNode, observedAt = new Date()): RawCandidate | null {
+  if (node.target_sale_price_currency && node.target_sale_price_currency !== "BRL") return null;
+  const priceCents = node.target_sale_price ? toCents(node.target_sale_price) : null;
+  if (priceCents === null || !node.product_title) return null;
+  const original = node.target_original_price ? toCents(node.target_original_price) : null;
+  const volume = node.lastest_volume !== undefined ? Number(node.lastest_volume) : null;
+  const commission = percent(node.commission_rate);
+  const discount = percent(node.discount);
+  return {
+    externalListingId: String(node.product_id),
+    externalSellerId: null,
+    sellerName: node.shop_name ?? null,
+    officialStore: null,
+    title: node.product_title,
+    imageUrl: node.product_main_image_url ?? null,
+    priceCents,
+    previousPriceCents: original && original > priceCents ? original : null,
+    // Vendas dos últimos 30 dias, como informa a API.
+    salesCount: volume !== null && Number.isFinite(volume) && volume >= 0 ? Math.round(volume) : null,
+    // evaluate_rate é % de avaliações positivas, não nota em estrelas: não é convertido
+    // (seria inventar uma nota). Fica sem nota; vendas e comissão sustentam o score.
+    ratingCentis: null,
+    ratingCount: null,
+    commissionPct: commission !== null && commission > 0 ? Math.round(commission * 100) : null,
+    discountPct: discount !== null && discount > 0 ? discount : null,
+    categoryPath: [node.first_level_category_name, node.second_level_category_name].filter((c): c is string => Boolean(c)),
+    observedAt,
+  };
+}
+
+async function searchCandidates(input: DiscoveryQueryInput): Promise<DiscoveryPage> {
+  const business: Record<string, string> = {
+    target_currency: "BRL",
+    target_language: "PT",
+    ship_to_country: "BR",
+    page_no: String(input.page),
+    page_size: String(Math.min(50, input.limit)),
+  };
+  let method: string;
+  let key: string;
+  switch (input.kind) {
+    case "keyword":
+    case "category": {
+      method = "aliexpress.affiliate.product.query";
+      key = "aliexpress_affiliate_product_query_response";
+      if (input.kind === "keyword") business.keywords = input.value ?? "";
+      else business.category_ids = input.value ?? "";
+      const sort = SORT[input.sort];
+      if (sort) business.sort = sort;
+      break;
+    }
+    case "hot":
+      method = "aliexpress.affiliate.hotproduct.query";
+      key = "aliexpress_affiliate_hotproduct_query_response";
+      if (input.value) business.keywords = input.value;
+      break;
+    case "promo":
+      method = "aliexpress.affiliate.featuredpromo.products.get";
+      key = "aliexpress_affiliate_featuredpromo_products_get_response";
+      if (input.value) business.promotion_name = input.value;
+      break;
+    default:
+      throw new Error(`O AliExpress não tem pauta do tipo "${input.kind}".`);
+  }
+
+  const json = await withRetry(() => request(method, business));
+  const result = (json[key] as { resp_result?: { result?: { products?: { product?: ProductNode[] }; current_page_no?: number; total_page_no?: number } } } | undefined)
+    ?.resp_result?.result;
+  const now = new Date();
+  const candidates = (result?.products?.product ?? [])
+    .map((node) => toRawCandidate(node, now))
+    .filter((c): c is RawCandidate => c !== null);
+  const hasNextPage = result?.total_page_no !== undefined && (result.current_page_no ?? input.page) < result.total_page_no;
+  return { candidates, page: input.page, hasNextPage };
+}
+
 export const aliExpressConnector: Connector = {
   key: "aliexpress",
   label: "AliExpress (API de afiliados)",
-  capabilities: { fetchPrice: true, fetchAvailability: false, affiliateLink: true },
+  capabilities: { fetchPrice: true, fetchAvailability: false, affiliateLink: true, discovery: true },
   limits: { concurrency: 2, minIntervalMs: 500 },
   isConfigured: () => credentials() !== null,
   requiresSellerId: false,
   parseUrl: parseAliExpressUrl,
   resolveShortUrl: resolveAliExpressShortUrl,
   fetchOffer,
+  searchCandidates,
 };

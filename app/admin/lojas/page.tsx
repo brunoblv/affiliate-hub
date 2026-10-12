@@ -74,6 +74,14 @@ export default async function AdminStoresPage({ searchParams }: { searchParams: 
                   </select>
                 </Field>
               </div>
+              <div className="flex flex-col gap-3 sm:col-span-4">
+                <Field label="Frase da vitrine (/loja/{slug}), até 140 caracteres">
+                  <input name="tagline" defaultValue={store.tagline ?? ""} maxLength={140} className={inputClass} />
+                </Field>
+                <Field label="Texto da vitrine (sobre a loja; vira o texto próprio da página)">
+                  <textarea name="about" defaultValue={store.about ?? ""} maxLength={2000} rows={3} className={`${inputClass} h-auto py-2`} />
+                </Field>
+              </div>
               <label className="flex h-[38px] items-center gap-2 text-xs font-semibold">
                 <input type="checkbox" name="active" defaultChecked={store.active} />
                 Ativa

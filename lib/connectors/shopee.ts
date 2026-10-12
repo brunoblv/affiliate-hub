@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Connector, FetchResult, OfferRef } from "./types";
+import type { Connector, DiscoveryPage, DiscoveryQueryInput, FetchResult, OfferRef, RawCandidate } from "./types";
 
 /**
  * Shopee Affiliate Open API (GraphQL). Notas confirmadas em uso real:
@@ -25,6 +25,8 @@ const QUERY = /* GraphQL */ `
         priceMax
         priceDiscountRate
         offerLink
+        sales
+        ratingStar
       }
     }
   }
@@ -40,6 +42,8 @@ interface Node {
   priceMax: string | number;
   priceDiscountRate: number | null;
   offerLink: string;
+  sales?: number | string | null;
+  ratingStar?: string | number | null;
 }
 
 interface GraphQLResponse {
@@ -158,16 +162,120 @@ async function fetchOffer(ref: OfferRef): Promise<FetchResult> {
     imageUrl: node.imageUrl ?? null,
     affiliateUrl: node.offerLink || null,
     observedAt: new Date(),
+    ...shopeeMetrics(node),
   };
+}
+
+/** Vendas e nota da própria loja, no mesmo request do preço (A.10). Nunca estimados. */
+function shopeeMetrics(node: { sales?: number | string | null; ratingStar?: string | number | null }) {
+  const sales = node.sales != null && node.sales !== "" ? Number(node.sales) : null;
+  const stars = node.ratingStar ? Number(node.ratingStar) : null;
+  return {
+    salesCount: sales !== null && Number.isFinite(sales) && sales >= 0 ? Math.round(sales) : null,
+    ratingCentis: stars !== null && Number.isFinite(stars) && stars > 0 && stars <= 5 ? Math.round(stars * 100) : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Descoberta (RF-16)
+// ---------------------------------------------------------------------------
+
+const SEARCH_FIELDS =
+  "itemId shopId shopName productName imageUrl priceMin priceDiscountRate commissionRate sales ratingStar";
+const PAGE_INFO = "pageInfo { page limit hasNextPage }";
+const SORT_TYPE = { relevance: 1, sales: 2, commission: 5, discount: 1 } as const;
+
+// Um documento por tipo de busca: declarar variável não usada quebra o resolver da Shopee
+// ("got null for non-null"), então cada consulta só declara o que usa.
+const SEARCH_QUERIES = {
+  keyword: `query buscar($keyword: String, $listType: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(keyword: $keyword, listType: $listType, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${SEARCH_FIELDS} } ${PAGE_INFO} } }`,
+  category: `query buscar($productCatId: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(productCatId: $productCatId, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${SEARCH_FIELDS} } ${PAGE_INFO} } }`,
+  shop: `query buscar($shopId: Int64!, $listType: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(shopId: $shopId, listType: $listType, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${SEARCH_FIELDS} } ${PAGE_INFO} } }`,
+  hot: `query buscar($listType: Int, $page: Int, $limit: Int, $sortType: Int) {
+    productOfferV2(listType: $listType, page: $page, limit: $limit, sortType: $sortType) {
+      nodes { ${SEARCH_FIELDS} } ${PAGE_INFO} } }`,
+} as const;
+
+interface SearchNode extends Node {
+  commissionRate?: string | number | null;
+}
+
+interface SearchResponse {
+  productOfferV2?: { nodes: SearchNode[] | null; pageInfo?: { hasNextPage?: boolean } } | null;
+}
+
+export function toRawCandidate(node: SearchNode, observedAt = new Date()): RawCandidate | null {
+  const priceCents = toCents(node.priceMin);
+  if (priceCents === null) return null;
+  const rate = node.priceDiscountRate ? Number(node.priceDiscountRate) : 0;
+  const commission = node.commissionRate ? Number(node.commissionRate) : 0;
+  const metrics = shopeeMetrics(node);
+  return {
+    externalListingId: String(node.itemId),
+    externalSellerId: String(node.shopId),
+    sellerName: node.shopName ?? null,
+    // O schema público não traz marcador de loja oficial: fica desconhecido, nunca presumido.
+    officialStore: null,
+    title: node.productName,
+    imageUrl: node.imageUrl,
+    priceCents,
+    previousPriceCents: rate > 0 && rate < 100 ? Math.round(priceCents / (1 - rate / 100)) : null,
+    salesCount: metrics.salesCount,
+    ratingCentis: metrics.ratingCentis,
+    ratingCount: null,
+    commissionPct: commission > 0 ? Math.round(commission * 10_000) : null,
+    discountPct: rate > 0 ? rate : null,
+    categoryPath: [],
+    observedAt,
+  };
+}
+
+async function searchCandidates(input: DiscoveryQueryInput): Promise<DiscoveryPage> {
+  const common = { page: input.page, limit: input.limit, sortType: SORT_TYPE[input.sort] };
+  let query: string;
+  let variables: Record<string, unknown>;
+  switch (input.kind) {
+    case "keyword":
+      query = SEARCH_QUERIES.keyword;
+      variables = { ...common, keyword: input.value ?? "", listType: 0 };
+      break;
+    case "category":
+      query = SEARCH_QUERIES.category;
+      variables = { ...common, productCatId: Number(input.value) };
+      break;
+    case "shop":
+      query = SEARCH_QUERIES.shop;
+      variables = { ...common, shopId: input.value ?? "", listType: 0 };
+      break;
+    case "hot":
+      query = SEARCH_QUERIES.hot;
+      variables = { ...common, listType: 0 };
+      break;
+    default:
+      throw new Error(`A Shopee não tem pauta do tipo "${input.kind}".`);
+  }
+  const data = await shopeeQuery<SearchResponse>(query, variables);
+  const now = new Date();
+  const candidates = (data.productOfferV2?.nodes ?? [])
+    .map((node) => toRawCandidate(node, now))
+    .filter((c): c is RawCandidate => c !== null);
+  return { candidates, page: input.page, hasNextPage: Boolean(data.productOfferV2?.pageInfo?.hasNextPage) };
 }
 
 export const shopeeConnector: Connector = {
   key: "shopee",
   label: "Shopee (API de afiliados)",
-  capabilities: { fetchPrice: true, fetchAvailability: false, affiliateLink: true },
+  capabilities: { fetchPrice: true, fetchAvailability: false, affiliateLink: true, discovery: true },
   // Limite não documentado: conservador (a produção do meu-novo-lar usa 5 req/s).
   limits: { concurrency: 2, minIntervalMs: 400 },
   isConfigured: () => credentials() !== null,
   parseUrl: parseShopeeUrl,
   fetchOffer,
+  searchCandidates,
 };

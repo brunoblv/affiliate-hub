@@ -199,3 +199,33 @@ export type PostMedia = Prisma.PostMediaModel
  * Imagem gerada pelo LarSmart: guarda o prompt e as legendas para o Pinterest.
  */
 export type LarSmartImage = Prisma.LarSmartImageModel
+/**
+ * Model DiscoveryQuery
+ * Pauta da descoberta: o que procurar, onde e com que peso. Editável no admin.
+ */
+export type DiscoveryQuery = Prisma.DiscoveryQueryModel
+/**
+ * Model DiscoveryRun
+ * Uma execução de uma pauta. Guarda o histórico para afinar filtros com dados reais.
+ */
+export type DiscoveryRun = Prisma.DiscoveryRunModel
+/**
+ * Model ProductCandidate
+ * Candidato visto em alguma fonte. Vive independente da página do admin.
+ */
+export type ProductCandidate = Prisma.ProductCandidateModel
+/**
+ * Model Brand
+ * Marcas reconhecidas, com apelidos e grafias comuns nos títulos dos marketplaces.
+ */
+export type Brand = Prisma.BrandModel
+/**
+ * Model BlockedTerm
+ * Termos que reprovam um candidato (réplica, suplemento…). Dado, não constante de código.
+ */
+export type BlockedTerm = Prisma.BlockedTermModel
+/**
+ * Model ShowcaseEntry
+ * Seleção do dia por loja. Congelada para a página poder dizer "hoje" com verdade.
+ */
+export type ShowcaseEntry = Prisma.ShowcaseEntryModel

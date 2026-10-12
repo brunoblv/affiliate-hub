@@ -36,6 +36,7 @@ export type ProductMinAggregateOutputType = {
   status: $Enums.ProductStatus | null
   categoryId: string | null
   mlMatchCheckedAt: Date | null
+  tier: $Enums.ProductTier | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +53,7 @@ export type ProductMaxAggregateOutputType = {
   status: $Enums.ProductStatus | null
   categoryId: string | null
   mlMatchCheckedAt: Date | null
+  tier: $Enums.ProductTier | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -69,6 +71,7 @@ export type ProductCountAggregateOutputType = {
   status: number
   categoryId: number
   mlMatchCheckedAt: number
+  tier: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -87,6 +90,7 @@ export type ProductMinAggregateInputType = {
   status?: true
   categoryId?: true
   mlMatchCheckedAt?: true
+  tier?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -103,6 +107,7 @@ export type ProductMaxAggregateInputType = {
   status?: true
   categoryId?: true
   mlMatchCheckedAt?: true
+  tier?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -120,6 +125,7 @@ export type ProductCountAggregateInputType = {
   status?: true
   categoryId?: true
   mlMatchCheckedAt?: true
+  tier?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -210,6 +216,7 @@ export type ProductGroupByOutputType = {
   status: $Enums.ProductStatus
   categoryId: string | null
   mlMatchCheckedAt: Date | null
+  tier: $Enums.ProductTier
   createdAt: Date
   updatedAt: Date
   _count: ProductCountAggregateOutputType | null
@@ -248,6 +255,7 @@ export type ProductWhereInput = {
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   mlMatchCheckedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tier?: Prisma.EnumProductTierFilter<"Product"> | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
@@ -261,6 +269,7 @@ export type ProductWhereInput = {
   matchSuggestions?: Prisma.MatchSuggestionListRelationFilter
   postItems?: Prisma.PostProductListRelationFilter
   larsmartImages?: Prisma.LarSmartImageListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }
 
 export type ProductOrderByWithRelationInput = {
@@ -276,6 +285,7 @@ export type ProductOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   mlMatchCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tier?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   category?: Prisma.CategoryOrderByWithRelationInput
@@ -289,6 +299,7 @@ export type ProductOrderByWithRelationInput = {
   matchSuggestions?: Prisma.MatchSuggestionOrderByRelationAggregateInput
   postItems?: Prisma.PostProductOrderByRelationAggregateInput
   larsmartImages?: Prisma.LarSmartImageOrderByRelationAggregateInput
+  showcaseEntries?: Prisma.ShowcaseEntryOrderByRelationAggregateInput
 }
 
 export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -307,6 +318,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   mlMatchCheckedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tier?: Prisma.EnumProductTierFilter<"Product"> | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
@@ -320,6 +332,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   matchSuggestions?: Prisma.MatchSuggestionListRelationFilter
   postItems?: Prisma.PostProductListRelationFilter
   larsmartImages?: Prisma.LarSmartImageListRelationFilter
+  showcaseEntries?: Prisma.ShowcaseEntryListRelationFilter
 }, "id" | "slug">
 
 export type ProductOrderByWithAggregationInput = {
@@ -335,6 +348,7 @@ export type ProductOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   mlMatchCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tier?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProductCountOrderByAggregateInput
@@ -358,6 +372,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumProductStatusWithAggregatesFilter<"Product"> | $Enums.ProductStatus
   categoryId?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   mlMatchCheckedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
+  tier?: Prisma.EnumProductTierWithAggregatesFilter<"Product"> | $Enums.ProductTier
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
 }
@@ -374,6 +389,7 @@ export type ProductCreateInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -387,6 +403,7 @@ export type ProductCreateInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateInput = {
@@ -402,6 +419,7 @@ export type ProductUncheckedCreateInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -414,6 +432,7 @@ export type ProductUncheckedCreateInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductUpdateInput = {
@@ -428,6 +447,7 @@ export type ProductUpdateInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -441,6 +461,7 @@ export type ProductUpdateInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateInput = {
@@ -456,6 +477,7 @@ export type ProductUncheckedUpdateInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -468,6 +490,7 @@ export type ProductUncheckedUpdateInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateManyInput = {
@@ -483,6 +506,7 @@ export type ProductCreateManyInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -499,6 +523,7 @@ export type ProductUpdateManyMutationInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -516,6 +541,7 @@ export type ProductUncheckedUpdateManyInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -548,6 +574,7 @@ export type ProductCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   mlMatchCheckedAt?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -564,6 +591,7 @@ export type ProductMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   mlMatchCheckedAt?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -580,6 +608,7 @@ export type ProductMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   mlMatchCheckedAt?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -661,6 +690,10 @@ export type ProductUncheckedUpdateManyWithoutCategoryNestedInput = {
 
 export type EnumProductStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProductStatus
+}
+
+export type EnumProductTierFieldUpdateOperationsInput = {
+  set?: $Enums.ProductTier
 }
 
 export type ProductCreateNestedOneWithoutNichesInput = {
@@ -777,6 +810,20 @@ export type ProductUpdateOneWithoutLarsmartImagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutLarsmartImagesInput, Prisma.ProductUpdateWithoutLarsmartImagesInput>, Prisma.ProductUncheckedUpdateWithoutLarsmartImagesInput>
 }
 
+export type ProductCreateNestedOneWithoutShowcaseEntriesInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutShowcaseEntriesInput
+  connect?: Prisma.ProductWhereUniqueInput
+}
+
+export type ProductUpdateOneRequiredWithoutShowcaseEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedCreateWithoutShowcaseEntriesInput>
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutShowcaseEntriesInput
+  upsert?: Prisma.ProductUpsertWithoutShowcaseEntriesInput
+  connect?: Prisma.ProductWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductUpdateToOneWithWhereWithoutShowcaseEntriesInput, Prisma.ProductUpdateWithoutShowcaseEntriesInput>, Prisma.ProductUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
 export type ProductCreateWithoutFavoritesInput = {
   id?: string
   slug: string
@@ -789,6 +836,7 @@ export type ProductCreateWithoutFavoritesInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -801,6 +849,7 @@ export type ProductCreateWithoutFavoritesInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutFavoritesInput = {
@@ -816,6 +865,7 @@ export type ProductUncheckedCreateWithoutFavoritesInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -827,6 +877,7 @@ export type ProductUncheckedCreateWithoutFavoritesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutFavoritesInput = {
@@ -857,6 +908,7 @@ export type ProductUpdateWithoutFavoritesInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -869,6 +921,7 @@ export type ProductUpdateWithoutFavoritesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutFavoritesInput = {
@@ -884,6 +937,7 @@ export type ProductUncheckedUpdateWithoutFavoritesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -895,6 +949,7 @@ export type ProductUncheckedUpdateWithoutFavoritesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutPriceAlertsInput = {
@@ -909,6 +964,7 @@ export type ProductCreateWithoutPriceAlertsInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -921,6 +977,7 @@ export type ProductCreateWithoutPriceAlertsInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutPriceAlertsInput = {
@@ -936,6 +993,7 @@ export type ProductUncheckedCreateWithoutPriceAlertsInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -947,6 +1005,7 @@ export type ProductUncheckedCreateWithoutPriceAlertsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutPriceAlertsInput = {
@@ -977,6 +1036,7 @@ export type ProductUpdateWithoutPriceAlertsInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -989,6 +1049,7 @@ export type ProductUpdateWithoutPriceAlertsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutPriceAlertsInput = {
@@ -1004,6 +1065,7 @@ export type ProductUncheckedUpdateWithoutPriceAlertsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1015,6 +1077,7 @@ export type ProductUncheckedUpdateWithoutPriceAlertsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutCategoryInput = {
@@ -1029,6 +1092,7 @@ export type ProductCreateWithoutCategoryInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheCreateNestedManyWithoutProductInput
@@ -1041,6 +1105,7 @@ export type ProductCreateWithoutCategoryInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutCategoryInput = {
@@ -1055,6 +1120,7 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1067,6 +1133,7 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutCategoryInput = {
@@ -1111,6 +1178,7 @@ export type ProductScalarWhereInput = {
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   mlMatchCheckedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tier?: Prisma.EnumProductTierFilter<"Product"> | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
 }
@@ -1127,6 +1195,7 @@ export type ProductCreateWithoutNichesInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1139,6 +1208,7 @@ export type ProductCreateWithoutNichesInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutNichesInput = {
@@ -1154,6 +1224,7 @@ export type ProductUncheckedCreateWithoutNichesInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   variants?: Prisma.ProductVariantUncheckedCreateNestedManyWithoutProductInput
@@ -1165,6 +1236,7 @@ export type ProductUncheckedCreateWithoutNichesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutNichesInput = {
@@ -1195,6 +1267,7 @@ export type ProductUpdateWithoutNichesInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1207,6 +1280,7 @@ export type ProductUpdateWithoutNichesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutNichesInput = {
@@ -1222,6 +1296,7 @@ export type ProductUncheckedUpdateWithoutNichesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variants?: Prisma.ProductVariantUncheckedUpdateManyWithoutProductNestedInput
@@ -1233,6 +1308,7 @@ export type ProductUncheckedUpdateWithoutNichesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutVariantsInput = {
@@ -1247,6 +1323,7 @@ export type ProductCreateWithoutVariantsInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1259,6 +1336,7 @@ export type ProductCreateWithoutVariantsInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutVariantsInput = {
@@ -1274,6 +1352,7 @@ export type ProductUncheckedCreateWithoutVariantsInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1285,6 +1364,7 @@ export type ProductUncheckedCreateWithoutVariantsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutVariantsInput = {
@@ -1315,6 +1395,7 @@ export type ProductUpdateWithoutVariantsInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1327,6 +1408,7 @@ export type ProductUpdateWithoutVariantsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutVariantsInput = {
@@ -1342,6 +1424,7 @@ export type ProductUncheckedUpdateWithoutVariantsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1353,6 +1436,7 @@ export type ProductUncheckedUpdateWithoutVariantsInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutImagesInput = {
@@ -1367,6 +1451,7 @@ export type ProductCreateWithoutImagesInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1379,6 +1464,7 @@ export type ProductCreateWithoutImagesInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutImagesInput = {
@@ -1394,6 +1480,7 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1405,6 +1492,7 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutImagesInput = {
@@ -1435,6 +1523,7 @@ export type ProductUpdateWithoutImagesInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1447,6 +1536,7 @@ export type ProductUpdateWithoutImagesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutImagesInput = {
@@ -1462,6 +1552,7 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1473,6 +1564,7 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutMatchSuggestionsInput = {
@@ -1487,6 +1579,7 @@ export type ProductCreateWithoutMatchSuggestionsInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1499,6 +1592,7 @@ export type ProductCreateWithoutMatchSuggestionsInput = {
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutMatchSuggestionsInput = {
@@ -1514,6 +1608,7 @@ export type ProductUncheckedCreateWithoutMatchSuggestionsInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1525,6 +1620,7 @@ export type ProductUncheckedCreateWithoutMatchSuggestionsInput = {
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutMatchSuggestionsInput = {
@@ -1555,6 +1651,7 @@ export type ProductUpdateWithoutMatchSuggestionsInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1567,6 +1664,7 @@ export type ProductUpdateWithoutMatchSuggestionsInput = {
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutMatchSuggestionsInput = {
@@ -1582,6 +1680,7 @@ export type ProductUncheckedUpdateWithoutMatchSuggestionsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1593,6 +1692,7 @@ export type ProductUncheckedUpdateWithoutMatchSuggestionsInput = {
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutContentInput = {
@@ -1607,6 +1707,7 @@ export type ProductCreateWithoutContentInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1619,6 +1720,7 @@ export type ProductCreateWithoutContentInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutContentInput = {
@@ -1634,6 +1736,7 @@ export type ProductUncheckedCreateWithoutContentInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1645,6 +1748,7 @@ export type ProductUncheckedCreateWithoutContentInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutContentInput = {
@@ -1675,6 +1779,7 @@ export type ProductUpdateWithoutContentInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1687,6 +1792,7 @@ export type ProductUpdateWithoutContentInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutContentInput = {
@@ -1702,6 +1808,7 @@ export type ProductUncheckedUpdateWithoutContentInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1713,6 +1820,7 @@ export type ProductUncheckedUpdateWithoutContentInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutCreativesInput = {
@@ -1727,6 +1835,7 @@ export type ProductCreateWithoutCreativesInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1739,6 +1848,7 @@ export type ProductCreateWithoutCreativesInput = {
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutCreativesInput = {
@@ -1754,6 +1864,7 @@ export type ProductUncheckedCreateWithoutCreativesInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1765,6 +1876,7 @@ export type ProductUncheckedCreateWithoutCreativesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutCreativesInput = {
@@ -1795,6 +1907,7 @@ export type ProductUpdateWithoutCreativesInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1807,6 +1920,7 @@ export type ProductUpdateWithoutCreativesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutCreativesInput = {
@@ -1822,6 +1936,7 @@ export type ProductUncheckedUpdateWithoutCreativesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1833,6 +1948,7 @@ export type ProductUncheckedUpdateWithoutCreativesInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutPostItemsInput = {
@@ -1847,6 +1963,7 @@ export type ProductCreateWithoutPostItemsInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1859,6 +1976,7 @@ export type ProductCreateWithoutPostItemsInput = {
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutPostItemsInput = {
@@ -1874,6 +1992,7 @@ export type ProductUncheckedCreateWithoutPostItemsInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -1885,6 +2004,7 @@ export type ProductUncheckedCreateWithoutPostItemsInput = {
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutPostItemsInput = {
@@ -1915,6 +2035,7 @@ export type ProductUpdateWithoutPostItemsInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1927,6 +2048,7 @@ export type ProductUpdateWithoutPostItemsInput = {
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutPostItemsInput = {
@@ -1942,6 +2064,7 @@ export type ProductUncheckedUpdateWithoutPostItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -1953,6 +2076,7 @@ export type ProductUncheckedUpdateWithoutPostItemsInput = {
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateWithoutLarsmartImagesInput = {
@@ -1967,6 +2091,7 @@ export type ProductCreateWithoutLarsmartImagesInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1979,6 +2104,7 @@ export type ProductCreateWithoutLarsmartImagesInput = {
   creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutLarsmartImagesInput = {
@@ -1994,6 +2120,7 @@ export type ProductUncheckedCreateWithoutLarsmartImagesInput = {
   status?: $Enums.ProductStatus
   categoryId?: string | null
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
   niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
@@ -2005,6 +2132,7 @@ export type ProductUncheckedCreateWithoutLarsmartImagesInput = {
   creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
   postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type ProductCreateOrConnectWithoutLarsmartImagesInput = {
@@ -2035,6 +2163,7 @@ export type ProductUpdateWithoutLarsmartImagesInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -2047,6 +2176,7 @@ export type ProductUpdateWithoutLarsmartImagesInput = {
   creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutLarsmartImagesInput = {
@@ -2062,6 +2192,7 @@ export type ProductUncheckedUpdateWithoutLarsmartImagesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -2073,6 +2204,135 @@ export type ProductUncheckedUpdateWithoutLarsmartImagesInput = {
   creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type ProductCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
+  niches?: Prisma.ProductNicheCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageCreateNestedManyWithoutProductInput
+}
+
+export type ProductUncheckedCreateWithoutShowcaseEntriesInput = {
+  id?: string
+  slug: string
+  name: string
+  brand?: string | null
+  model?: string | null
+  gtin?: string | null
+  summary?: string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: string
+  status?: $Enums.ProductStatus
+  categoryId?: string | null
+  mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  niches?: Prisma.ProductNicheUncheckedCreateNestedManyWithoutProductInput
+  variants?: Prisma.ProductVariantUncheckedCreateNestedManyWithoutProductInput
+  images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutProductInput
+  priceAlerts?: Prisma.PriceAlertUncheckedCreateNestedManyWithoutProductInput
+  content?: Prisma.ProductContentUncheckedCreateNestedOneWithoutProductInput
+  creatives?: Prisma.CreativeUncheckedCreateNestedManyWithoutProductInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedCreateNestedManyWithoutProductInput
+  postItems?: Prisma.PostProductUncheckedCreateNestedManyWithoutProductInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type ProductCreateOrConnectWithoutShowcaseEntriesInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedCreateWithoutShowcaseEntriesInput>
+}
+
+export type ProductUpsertWithoutShowcaseEntriesInput = {
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedUpdateWithoutShowcaseEntriesInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedCreateWithoutShowcaseEntriesInput>
+  where?: Prisma.ProductWhereInput
+}
+
+export type ProductUpdateToOneWithWhereWithoutShowcaseEntriesInput = {
+  where?: Prisma.ProductWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutShowcaseEntriesInput, Prisma.ProductUncheckedUpdateWithoutShowcaseEntriesInput>
+}
+
+export type ProductUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
+  niches?: Prisma.ProductNicheUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutShowcaseEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  model?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gtin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  searchText?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
+  variants?: Prisma.ProductVariantUncheckedUpdateManyWithoutProductNestedInput
+  images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutProductNestedInput
+  priceAlerts?: Prisma.PriceAlertUncheckedUpdateManyWithoutProductNestedInput
+  content?: Prisma.ProductContentUncheckedUpdateOneWithoutProductNestedInput
+  creatives?: Prisma.CreativeUncheckedUpdateManyWithoutProductNestedInput
+  matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
+  postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
+  larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductCreateManyCategoryInput = {
@@ -2087,6 +2347,7 @@ export type ProductCreateManyCategoryInput = {
   searchText?: string
   status?: $Enums.ProductStatus
   mlMatchCheckedAt?: Date | string | null
+  tier?: $Enums.ProductTier
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2103,6 +2364,7 @@ export type ProductUpdateWithoutCategoryInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUpdateManyWithoutProductNestedInput
@@ -2115,6 +2377,7 @@ export type ProductUpdateWithoutCategoryInput = {
   matchSuggestions?: Prisma.MatchSuggestionUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutCategoryInput = {
@@ -2129,6 +2392,7 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   niches?: Prisma.ProductNicheUncheckedUpdateManyWithoutProductNestedInput
@@ -2141,6 +2405,7 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   matchSuggestions?: Prisma.MatchSuggestionUncheckedUpdateManyWithoutProductNestedInput
   postItems?: Prisma.PostProductUncheckedUpdateManyWithoutProductNestedInput
   larsmartImages?: Prisma.LarSmartImageUncheckedUpdateManyWithoutProductNestedInput
+  showcaseEntries?: Prisma.ShowcaseEntryUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateManyWithoutCategoryInput = {
@@ -2155,6 +2420,7 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   searchText?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   mlMatchCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tier?: Prisma.EnumProductTierFieldUpdateOperationsInput | $Enums.ProductTier
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2174,6 +2440,7 @@ export type ProductCountOutputType = {
   matchSuggestions: number
   postItems: number
   larsmartImages: number
+  showcaseEntries: number
 }
 
 export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2186,6 +2453,7 @@ export type ProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   matchSuggestions?: boolean | ProductCountOutputTypeCountMatchSuggestionsArgs
   postItems?: boolean | ProductCountOutputTypeCountPostItemsArgs
   larsmartImages?: boolean | ProductCountOutputTypeCountLarsmartImagesArgs
+  showcaseEntries?: boolean | ProductCountOutputTypeCountShowcaseEntriesArgs
 }
 
 /**
@@ -2261,6 +2529,13 @@ export type ProductCountOutputTypeCountLarsmartImagesArgs<ExtArgs extends runtim
   where?: Prisma.LarSmartImageWhereInput
 }
 
+/**
+ * ProductCountOutputType without action
+ */
+export type ProductCountOutputTypeCountShowcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShowcaseEntryWhereInput
+}
+
 
 export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2275,6 +2550,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   categoryId?: boolean
   mlMatchCheckedAt?: boolean
+  tier?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
@@ -2288,6 +2564,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   matchSuggestions?: boolean | Prisma.Product$matchSuggestionsArgs<ExtArgs>
   postItems?: boolean | Prisma.Product$postItemsArgs<ExtArgs>
   larsmartImages?: boolean | Prisma.Product$larsmartImagesArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Product$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
@@ -2304,6 +2581,7 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   categoryId?: boolean
   mlMatchCheckedAt?: boolean
+  tier?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
@@ -2322,6 +2600,7 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   categoryId?: boolean
   mlMatchCheckedAt?: boolean
+  tier?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
@@ -2340,11 +2619,12 @@ export type ProductSelectScalar = {
   status?: boolean
   categoryId?: boolean
   mlMatchCheckedAt?: boolean
+  tier?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "brand" | "model" | "gtin" | "summary" | "specs" | "searchText" | "status" | "categoryId" | "mlMatchCheckedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "brand" | "model" | "gtin" | "summary" | "specs" | "searchText" | "status" | "categoryId" | "mlMatchCheckedAt" | "tier" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
   niches?: boolean | Prisma.Product$nichesArgs<ExtArgs>
@@ -2357,6 +2637,7 @@ export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   matchSuggestions?: boolean | Prisma.Product$matchSuggestionsArgs<ExtArgs>
   postItems?: boolean | Prisma.Product$postItemsArgs<ExtArgs>
   larsmartImages?: boolean | Prisma.Product$larsmartImagesArgs<ExtArgs>
+  showcaseEntries?: boolean | Prisma.Product$showcaseEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2380,6 +2661,7 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     matchSuggestions: Prisma.$MatchSuggestionPayload<ExtArgs>[]
     postItems: Prisma.$PostProductPayload<ExtArgs>[]
     larsmartImages: Prisma.$LarSmartImagePayload<ExtArgs>[]
+    showcaseEntries: Prisma.$ShowcaseEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2400,6 +2682,10 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * Última busca de correspondência no Mercado Livre (null = ainda não procurado).
      */
     mlMatchCheckedAt: Date | null
+    /**
+     * Marca conhecida x genérico (classificador de lib/discovery/brand.ts).
+     */
+    tier: $Enums.ProductTier
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["product"]>
@@ -2807,6 +3093,7 @@ export interface Prisma__ProductClient<T, Null = never, ExtArgs extends runtime.
   matchSuggestions<T extends Prisma.Product$matchSuggestionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$matchSuggestionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchSuggestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   postItems<T extends Prisma.Product$postItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$postItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   larsmartImages<T extends Prisma.Product$larsmartImagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$larsmartImagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LarSmartImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  showcaseEntries<T extends Prisma.Product$showcaseEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$showcaseEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShowcaseEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2848,6 +3135,7 @@ export interface ProductFieldRefs {
   readonly status: Prisma.FieldRef<"Product", 'ProductStatus'>
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
   readonly mlMatchCheckedAt: Prisma.FieldRef<"Product", 'DateTime'>
+  readonly tier: Prisma.FieldRef<"Product", 'ProductTier'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>
 }
@@ -3502,6 +3790,30 @@ export type Product$larsmartImagesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.LarSmartImageScalarFieldEnum | Prisma.LarSmartImageScalarFieldEnum[]
+}
+
+/**
+ * Product.showcaseEntries
+ */
+export type Product$showcaseEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShowcaseEntry
+   */
+  select?: Prisma.ShowcaseEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShowcaseEntry
+   */
+  omit?: Prisma.ShowcaseEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShowcaseEntryInclude<ExtArgs> | null
+  where?: Prisma.ShowcaseEntryWhereInput
+  orderBy?: Prisma.ShowcaseEntryOrderByWithRelationInput | Prisma.ShowcaseEntryOrderByWithRelationInput[]
+  cursor?: Prisma.ShowcaseEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShowcaseEntryScalarFieldEnum | Prisma.ShowcaseEntryScalarFieldEnum[]
 }
 
 /**
