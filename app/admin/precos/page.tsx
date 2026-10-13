@@ -1,3 +1,4 @@
+import { storeListingUrl } from "@/lib/sync/listing-url";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
@@ -164,6 +165,16 @@ export default async function PriceSyncPage({ searchParams }: { searchParams: Pr
                       {offer.store.name} · {offer.sellerName}
                     </p>
                     <p className="mt-1 text-xs text-warn-ink">{offer.reviewReason}</p>
+                    {storeListingUrl(offer) ? (
+                      <a
+                        href={storeListingUrl(offer)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark"
+                      >
+                        Ver preço atual na {offer.store.name} ↗
+                      </a>
+                    ) : null}
                   </div>
                   <div className="text-[13px]">
                     <span className="text-muted">Publicado </span>
@@ -209,6 +220,16 @@ export default async function PriceSyncPage({ searchParams }: { searchParams: Pr
                       {offer.store.name} · {offer.sellerName} · {offer.consecutiveFailures} falhas seguidas
                     </p>
                     <p className="mt-1 text-xs text-bad-ink">{offer.lastError ?? "Sem detalhe do erro."}</p>
+                    {storeListingUrl(offer) ? (
+                      <a
+                        href={storeListingUrl(offer)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark"
+                      >
+                        Ver preço atual na {offer.store.name} ↗
+                      </a>
+                    ) : null}
                   </div>
                   <StatusPill label={offer.status === "ERROR" ? "erro" : "desatualizada"} tone={offer.status === "ERROR" ? "bad" : "warn"} />
                   <form action={resetOfferFailures}>
