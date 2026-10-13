@@ -1,6 +1,3 @@
-◇ injected env (33) from .env
-Loaded Prisma config from prisma.config.ts.
-
 -- CreateEnum
 CREATE TYPE "DiscoverySource" AS ENUM ('SHOPEE_API', 'SHOPEE_FEED', 'ALIEXPRESS_API');
 
@@ -178,14 +175,3 @@ ALTER TABLE "showcase_entries" ADD CONSTRAINT "showcase_entries_productId_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "showcase_entries" ADD CONSTRAINT "showcase_entries_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "offers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-┌─────────────────────────────────────────────────────────┐
-│  Update available 7.10.0 -> 8.0.0-rc.22                 │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘
-
