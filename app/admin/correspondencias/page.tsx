@@ -1,3 +1,4 @@
+import { PendingButton } from "@/components/pending-button";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
@@ -141,9 +142,9 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
                                 className={`${inputClass} h-8 w-[190px] font-mono text-xs`}
                               />
                             )}
-                            <button type="submit" className={primaryButton + " !h-8 !px-3 !text-xs"}>
+                            <PendingButton className={primaryButton + " !h-8 !px-3 !text-xs"} pendingLabel="Criando oferta…">
                               É este
-                            </button>
+                            </PendingButton>
                           </form>
                         </div>
                       </div>

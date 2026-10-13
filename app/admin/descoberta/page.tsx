@@ -1,3 +1,4 @@
+import { PendingButton } from "@/components/pending-button";
 import type { Metadata } from "next";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
 import { EmptyRow, ErrorBanner, Field, PageHeader, Panel, dangerButton, inputClass, primaryButton, secondaryButton } from "@/components/admin-ui";
@@ -142,9 +143,13 @@ export default async function DiscoveryAdminPage({ searchParams }: { searchParam
           })}
         </ul>
         <form action={runQueryNow} className="mt-4">
-          <button type="submit" className={primaryButton}>
+          <PendingButton
+            className={primaryButton}
+            pendingLabel="Rodando a descoberta…"
+            hint="Buscando nas lojas e importando. Pode levar vários minutos: não feche esta página."
+          >
             Rodar todas as pautas agora
-          </button>
+          </PendingButton>
           <span className="ml-3 text-[11px] text-muted">Pedido explícito: vale mesmo com a rodada diária desligada.</span>
         </form>
       </Panel>
@@ -167,15 +172,20 @@ export default async function DiscoveryAdminPage({ searchParams }: { searchParam
                 <label className="flex items-center gap-2 text-[13px]">
                   <input type="checkbox" name="active" defaultChecked={query.active} /> Ativa
                 </label>
-                <button type="submit" className={primaryButton}>
+                <PendingButton className={primaryButton} pendingLabel="Salvando…">
                   Salvar
-                </button>
-                <button type="submit" formAction={runQueryNow} className={secondaryButton}>
+                </PendingButton>
+                <PendingButton
+                  formAction={runQueryNow}
+                  className={secondaryButton}
+                  pendingLabel="Rodando…"
+                  hint="Buscando nesta pauta. Pode levar alguns minutos: não feche a página."
+                >
                   Rodar agora
-                </button>
-                <button type="submit" formAction={deleteQuery} className={dangerButton}>
+                </PendingButton>
+                <PendingButton formAction={deleteQuery} className={dangerButton} pendingLabel="Removendo…">
                   Remover
-                </button>
+                </PendingButton>
               </div>
             </form>
           </Panel>
@@ -188,9 +198,9 @@ export default async function DiscoveryAdminPage({ searchParams }: { searchParam
               <input type="checkbox" name="active" defaultChecked /> Ativa
             </label>
             <div>
-              <button type="submit" className={primaryButton}>
+              <PendingButton className={primaryButton} pendingLabel="Criando…">
                 Criar pauta
-              </button>
+              </PendingButton>
             </div>
           </form>
         </Panel>

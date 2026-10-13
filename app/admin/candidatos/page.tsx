@@ -1,3 +1,4 @@
+import { PendingButton } from "@/components/pending-button";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
@@ -290,9 +291,9 @@ export default async function CandidatesPage({ searchParams }: { searchParams: P
                 Só publica quem passa no portão: foto verificada, nicho ou categoria, oferta atual com link ativo, conteúdo editorial
                 publicado (descrição com 120+ caracteres) e nota de descoberta suficiente. O resto fica com o motivo na linha.
               </p>
-              <button type="submit" className={primaryButton}>
+              <PendingButton className={primaryButton} pendingLabel="Publicando…">
                 Publicar selecionados
-              </button>
+              </PendingButton>
             </Panel>
           ) : status.value === "rejeitado" || status.value === "duplicado" ? null : (
             <Panel title="Importar ou rejeitar selecionados">
@@ -331,15 +332,19 @@ export default async function CandidatesPage({ searchParams }: { searchParams: P
                   nasce como rascunho.
                 </p>
                 <div className="flex flex-wrap items-end gap-3">
-                  <button type="submit" className={primaryButton}>
+                  <PendingButton
+                    className={primaryButton}
+                    pendingLabel="Importando…"
+                    hint="Buscando preço, link e fotos de cada item na loja. Pode levar alguns minutos."
+                  >
                     Importar selecionados
-                  </button>
+                  </PendingButton>
                   <Field label="Motivo da rejeição" className="w-[260px]">
                     <input name="motivo" className={inputClass} placeholder="ex.: marca falsificada" />
                   </Field>
-                  <button type="submit" formAction={rejectCandidates} className={secondaryButton}>
+                  <PendingButton formAction={rejectCandidates} className={secondaryButton} pendingLabel="Rejeitando…">
                     Rejeitar selecionados
-                  </button>
+                  </PendingButton>
                 </div>
               </div>
             </Panel>
