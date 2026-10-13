@@ -35,8 +35,11 @@ const MAX_BATCH = 25;
 export async function importStoredCandidates(data: FormData) {
   await requireAdmin();
   const back = backTo(data, "/admin/candidatos");
-  const ids = [...new Set(data.getAll("sel").map(String))].slice(0, MAX_BATCH);
-  if (ids.length === 0) go(back, "erro", "Marque pelo menos um candidato.");
+  const selected = [...new Set(data.getAll("sel").map(String))];
+  if (selected.length === 0) go(back, "erro", "Marque pelo menos um candidato.");
+  // Cada item vira uma chamada à loja; o lote é limitado para a requisição não estourar o tempo.
+  const ids = selected.slice(0, MAX_BATCH);
+  const leftOver = selected.length - ids.length;
 
   const nicheIds = data.getAll("nicheIds").map(String).filter(Boolean);
   const categoryId = text(data, "categoryId") || null;
@@ -65,6 +68,7 @@ export async function importStoredCandidates(data: FormData) {
   if (unavailable) parts.push(`${unavailable} sem link de afiliado ou fora do ar`);
   if (already) parts.push(`${already} já cadastrados`);
   if (failed) parts.push(`${failed} falharam (tente de novo)`);
+  if (leftOver > 0) parts.push(`${leftOver} ficaram de fora (limite de ${MAX_BATCH} por vez): importe de novo para continuar`);
   go(back, "aviso", `${parts.join(" · ")}.`);
 }
 

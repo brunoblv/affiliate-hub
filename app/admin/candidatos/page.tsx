@@ -1,4 +1,5 @@
 import { PendingButton } from "@/components/pending-button";
+import { SelectAll } from "@/components/select-all";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
@@ -199,6 +200,9 @@ export default async function CandidatesPage({ searchParams }: { searchParams: P
         <form action={review ? publishReady : importStoredCandidates} className="mt-6 flex flex-col gap-4">
           <input type="hidden" name="voltar" value={self} />
           <Panel title={review ? "Fila de revisão" : "Candidatos"}>
+            <div className="mb-2 border-b border-line pb-3">
+              <SelectAll />
+            </div>
             <ul className="flex flex-col divide-y divide-line">
               {rows.map((row) => {
                 const productId = row.productId;

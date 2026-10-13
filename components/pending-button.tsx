@@ -42,10 +42,18 @@ export function PendingButton({
         ) : null}
         {active ? pendingLabel : children}
       </button>
-      {active && hint ? (
-        <span role="status" className="text-[11px] font-medium text-muted">
-          {hint}
-        </span>
+      {active ? (
+        // Fixo na tela: o botão costuma ficar no fim de uma página longa, fora de vista.
+        <div
+          role="status"
+          className="fixed bottom-5 left-1/2 z-50 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 rounded-[12px] bg-ink px-4 py-3 text-[13px] font-medium text-surface shadow-lg"
+        >
+          <span aria-hidden className="h-4 w-4 flex-none animate-spin rounded-full border-2 border-surface border-t-transparent" />
+          <span>
+            {pendingLabel}
+            {hint ? <span className="block text-[11px] font-normal text-ghost">{hint}</span> : null}
+          </span>
+        </div>
       ) : null}
     </>
   );
