@@ -13,6 +13,7 @@ import { compareAcrossStores, decideMatch, type CrossMatch } from "./match";
 import { metricsData } from "./metrics";
 import { scoreCandidate } from "./score";
 import { selectForImport } from "./selection";
+import { ensureShopeeTaxonomy } from "./taxonomy";
 
 /**
  * Orquestração da descoberta (A.8). Não conhece loja nenhuma: tudo vem do contrato `searchCandidates`
@@ -532,7 +533,14 @@ export async function runDiscovery(options: RunOptions = {}): Promise<RunSummary
     where: { active: true, ...(options.queryIds ? { id: { in: options.queryIds } } : {}) },
     orderBy: [{ source: "asc" }, { position: "asc" }],
   });
-  const queryInfo = new Map(queries.map((query) => [query.id, { nicheId: query.nicheId, categoryId: query.categoryId }]));
+  // Categorias da Shopee viram nicho + categoria no banco; pauta de categoria sem destino herda o dela.
+  const taxonomy = await ensureShopeeTaxonomy();
+  const queryInfo = new Map(
+    queries.map((query) => {
+      const own = query.source === "SHOPEE_API" && query.kind === "category" && query.value ? taxonomy.get(query.value) : undefined;
+      return [query.id, { nicheId: query.nicheId ?? own?.nicheId ?? null, categoryId: query.categoryId ?? own?.categoryId ?? null }];
+    }),
+  );
 
   for (const query of queries) {
     const run = await prisma.discoveryRun.create({

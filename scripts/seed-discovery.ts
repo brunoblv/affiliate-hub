@@ -7,6 +7,8 @@ import "dotenv/config";
 import { prisma } from "@/lib/db";
 import { BRAND_SEEDS, slugOfBrand } from "@/lib/discovery/brands-seed";
 import { DEFAULT_BLOCKED_TERMS } from "@/lib/discovery/gates";
+import { SHOPEE_CATEGORIES } from "@/lib/discovery/shopee-categories";
+import { ensureShopeeTaxonomy } from "@/lib/discovery/taxonomy";
 
 async function main() {
   let brands = 0;
@@ -34,6 +36,19 @@ async function main() {
     });
     queries = 2;
   }
+  // Uma pauta por categoria da Shopee: os produtos importados já nascem no nicho/categoria certos.
+  const taxonomy = await ensureShopeeTaxonomy();
+  let categoryQueries = 0;
+  for (const [index, item] of SHOPEE_CATEGORIES.entries()) {
+    const exists = await prisma.discoveryQuery.findFirst({ where: { source: "SHOPEE_API", kind: "category", value: String(item.id) } });
+    if (exists) continue;
+    const target = taxonomy.get(String(item.id))!;
+    await prisma.discoveryQuery.create({
+      data: { source: "SHOPEE_API", kind: "category", value: String(item.id), sort: "sales", pages: 2, nicheId: target.nicheId, categoryId: target.categoryId, position: index + 1 },
+    });
+    categoryQueries++;
+  }
+  console.log(`Pautas por categoria da Shopee: ${categoryQueries}`);
   console.log(`Marcas novas: ${brands} · termos bloqueados: ${terms} · pautas criadas: ${queries}`);
 }
 
